@@ -1,0 +1,35 @@
+traefik:
+  headers:
+    entryPoints: "Entry Points"
+    hosts: "Hosts"
+    services: "Services"
+    middleware: "Middleware"
+    tls: "TLS"
+    routes: "Routes"
+    match: "Match Rules"
+  labels:
+    ingressRoute: "Ingress Route"
+    middleware: "Middleware" 
+    tlsOption: "TLS Option"
+    serversTransport: "Servers Transport"
+    traefikService: "Traefik Service"
+  dashboard:
+    title: "Dashboard"
+  product:
+    label: "Traefik"
+    
+# Product-level configuration
+product:
+  traefik: "Traefik"
+
+# Type labels
+typeLabel:
+  'traefik.io.ingressroute': "IngressRoutes"
+  'traefik.io.ingressroutetcp': "IngressRouteTCPs" 
+  'traefik.io.ingressrouteudp': "IngressRouteUDPs"
+  'traefik.io.middleware': "Middlewares"
+  'traefik.io.middlewaretcp': "MiddlewareTCPs"
+  'traefik.io.tlsoption': "TLS Options"
+  'traefik.io.tlsstore': "TLS Stores" 
+  'traefik.io.traefikservice': "Traefik Services"
+  'traefik.io.serverstransport': "Servers Transports"

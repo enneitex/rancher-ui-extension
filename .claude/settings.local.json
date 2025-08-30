@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:rancher.github.io)",
+      "WebFetch(domain:extensions.rancher.io)",
+      "Bash(API=rancher.dev.local yarn dev)",
+      "Bash(find:*)",
+      "Bash(yarn install)",
+      "WebFetch(domain:docs.rancher.com)",
+      "WebFetch(domain:rancher.com)",
+      "Read(/home/dev/kind/github/rancher/dashboard/shell/list/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
