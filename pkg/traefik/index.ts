@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import TraefikRoutes from './routing/traefik-routes';
+import traefikRoutes from './routing/traefik-routes';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -10,12 +10,9 @@ export default function(plugin: IPlugin) {
   // Provide extension metadata from package.json
   plugin.metadata = require('./package.json');
 
-  // Load the Traefik product
-  plugin.addProduct(require('./product'));
+  // Load Traefik product configuration
+  plugin.addProduct(require('./config/traefik'));
 
   // Add routes
-  plugin.addRoutes(TraefikRoutes);
-
-  // Add localization
-  plugin.addL10n('./l10n/en-us.yaml', 'en-us');
+  plugin.addRoutes(traefikRoutes);
 }

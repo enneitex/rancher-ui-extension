@@ -1,0 +1,251 @@
+# Exemple 1: IngressRoute simple HTTP
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: simple-web-app
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`app.example.com`)
+      kind: Rule
+      services:
+        - name: web-app-service
+          port: 80
+    - match: Host(`app.example.com`) && Path(`/api`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: api-service
+          port: 8080
+          weight: 100
+      middlewares:
+        - name: auth-middleware
+        - name: rate-limit
+          namespace: kube-system
+
+---
+# Exemple 2: IngressRoute HTTPS avec TLS secret
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: secure-web-app
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`secure.example.com`)
+      kind: Rule
+      services:
+        - name: secure-app
+          port: 443
+        - name: backup-app
+          port: 443
+          weight: 20
+      middlewares:
+        - name: security-headers
+        - name: compress
+  tls:
+    secretName: secure-app-tls
+    options:
+      name: modern-tls
+
+---
+# Exemple 3: IngressRoute avec cert-resolver et domaines multiples
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: multi-domain-app
+  namespace: staging
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`staging.example.com`, `test.example.com`)
+      kind: Rule
+      services:
+        - name: staging-service
+          port: 3000
+      middlewares:
+        - name: staging-auth
+          namespace: auth-system
+    - match: Host(`api.staging.example.com`) && PathPrefix(`/v1`)
+      kind: Rule
+      priority: 200
+      services:
+        - name: api-v1-service
+          port: 8080
+        - name: api-v1-backup
+          port: 8080
+          weight: 10
+      middlewares:
+        - name: api-rate-limit
+        - name: cors-middleware
+  tls:
+    certResolver: letsencrypt-staging
+    domains:
+      - main: staging.example.com
+        sans:
+          - test.example.com
+          - api.staging.example.com
+      - main: backup.staging.example.com
+    options:
+      name: staging-tls-options
+    store:
+      name: staging-store
+
+---
+# Exemple 4: IngressRoute complexe avec services cross-namespace
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: complex-microservices
+  namespace: microservices
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`shop.example.com`) && PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: frontend-service
+          port: 80
+    - match: Host(`shop.example.com`) && PathPrefix(`/api/users`)
+      kind: Rule
+      priority: 300
+      services:
+        - name: user-service
+          namespace: users-system
+          port: 8080
+          weight: 80
+        - name: user-service-v2
+          namespace: users-system
+          port: 8081
+          weight: 20
+      middlewares:
+        - name: user-auth
+          namespace: auth-system
+        - name: user-rate-limit
+    - match: Host(`shop.example.com`) && PathPrefix(`/api/products`)
+      kind: Rule
+      priority: 250
+      services:
+        - name: product-service
+          namespace: catalog-system
+          port: 9000
+          kind: TraefikService
+      middlewares:
+        - name: product-cache
+          namespace: cache-system
+    - match: Host(`admin.shop.example.com`)
+      kind: Rule
+      services:
+        - name: admin-service
+          port: 3000
+      middlewares:
+        - name: admin-auth
+          namespace: auth-system
+        - name: ip-whitelist
+        - name: security-headers
+  tls:
+    secretName: shop-wildcard-tls
+    certResolver: letsencrypt-prod
+    domains:
+      - main: "*.shop.example.com"
+        sans:
+          - shop.example.com
+      - main: admin.shop.example.com
+    options:
+      name: high-security-tls
+    store:
+      name: default
+
+---
+# Exemple 5: IngressRoute sans TLS (HTTP only)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: internal-api
+  namespace: internal
+spec:
+  entryPoints:
+    - web
+    - internal
+  routes:
+    - match: Host(`internal-api.local`) && PathPrefix(`/health`)
+      kind: Rule
+      services:
+        - name: health-check-service
+          port: 8080
+    - match: Host(`internal-api.local`) && PathPrefix(`/metrics`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: monitoring-service
+          namespace: monitoring
+          port: 9090
+      middlewares:
+        - name: basic-auth
+          namespace: monitoring
+    - match: Host(`internal-api.local`)
+      kind: Rule
+      services:
+        - name: internal-service
+          port: 80
+          weight: 100
+
+---
+# Exemple 6: IngressRoute avec TLS complet (tous les champs)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: full-tls-example
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`full-example.com`)
+      kind: Rule
+      services:
+        - name: main-service
+          port: 443
+          strategy: RoundRobin
+          passHostHeader: true
+        - name: backup-service
+          port: 443
+          weight: 10
+          passHostHeader: false
+      middlewares:
+        - name: full-security
+        - name: compression
+        - name: logging
+  tls:
+    secretName: full-example-tls
+    certResolver: letsencrypt-production
+    domains:
+      - main: full-example.com
+        sans:
+          - www.full-example.com
+          - api.full-example.com
+          - cdn.full-example.com
+      - main: mobile.full-example.com
+        sans:
+          - m.full-example.com
+    options:
+      name: modern-tls-config
+    store:
+      name: production-cert-store

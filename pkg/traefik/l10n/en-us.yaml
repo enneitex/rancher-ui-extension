@@ -1,30 +1,263 @@
 traefik:
+  description: Traefik resources manage HTTP, TCP, and UDP routing with advanced load balancing, middleware, and TLS termination capabilities.
+  
+  # IngressRoute specific translations
+  ingressRoute:
+    description: IngressRoute defines HTTP routing rules from external traffic to internal services based on host, path, and middleware configurations.
+    ingressClass:
+      label: Ingress Class
+    entryPoints:
+      label: Entry Points
+      description: Network entry points where Traefik listens for incoming traffic
+      addEntryPoint: Add Entry Point
+      web: "web (HTTP - 80)"
+      websecure: "websecure (HTTPS - 443)" 
+      traefik: "traefik (Dashboard - 8080)"
+    routes:
+      label: Routes
+      title: Routes Configuration
+      count: Routes Count
+      addRoute: Add Route
+      removeRoute: Remove Route
+      hosts:
+        label: Hosts
+      host:
+        label: Host
+      path:
+        label: Path
+      match:
+        label: Match Rule
+        placeholder: "e.g. Host(`example.com`) && Path(`/api`)"
+        required: Match rule is required
+        invalid: Invalid match rule syntax
+        tooltip: "Traefik matching rules using Go template syntax. Examples: Host(`domain.com`), Path(`/api`), PathPrefix(`/v1`)"
+      service:
+        label: Target Service
+        required: Target service is required
+        doesntExist: The selected service does not exist
+        tooltip: Kubernetes service that will receive the matched traffic
+      port:
+        label: Port
+        placeholder: "e.g. 80 or http"
+        required: Port is required
+        notInt: Port must be an integer
+        tooltip: Service port number or named port
+      kind:
+        label: Service Type
+        service: Service
+        traefikService: TraefikService
+        tooltip: Type of service target - standard Kubernetes Service or custom TraefikService
+      weight:
+        label: Weight
+        placeholder: "e.g. 100"
+        tooltip: Traffic distribution weight for load balancing (optional)
+      strategy:
+        label: Strategy
+        roundRobin: Round Robin
+        wrr: Weighted Round Robin
+        tooltip: Load balancing strategy
+      passHostHeader:
+        label: Pass Host Header
+        tooltip: Forward the original Host header to the backend service
+      priority:
+        label: Priority
+        placeholder: "e.g. 1000"
+        tooltip: Route priority - higher values take precedence
+    middleware:
+      label: Middleware
+      addMiddleware: Add Middleware  
+      removeMiddleware: Remove Middleware
+      name:
+        label: Middleware Name
+        required: Middleware name is required
+        doesntExist: The selected middleware does not exist
+      namespace:
+        label: Namespace
+        tooltip: Namespace of the middleware resource
+      tooltip: Chain of middleware to apply to requests before reaching the service
+    tls:
+      label: TLS Configuration
+      enable: Enable TLS
+      enabled: TLS Enabled
+      disabled: TLS Disabled
+      secretName:
+        label: TLS Secret Name
+        placeholder: "e.g. my-tls-secret"
+        tooltip: Kubernetes secret containing TLS certificate and key
+        required: TLS secret name is required when TLS is enabled
+        doesntExist: The selected TLS secret does not exist
+      certResolver:
+        label: Certificate Resolver
+        placeholder: "e.g. letsencrypt"
+        tooltip: Traefik certificate resolver for automatic TLS certificate generation
+      domains:
+        label: Domains
+        addDomain: Add Domain
+        removeDomain: Remove Domain
+        main:
+          label: Main Domain
+          placeholder: "e.g. example.com"
+          required: Main domain is required
+        sans:
+          label: Subject Alternative Names
+          placeholder: "e.g. www.example.com, api.example.com"
+          tooltip: Additional domain names for the certificate
+      options:
+        label: TLS Options
+        tooltip: Reference to TLSOption resource for advanced TLS configuration
+      store:
+        label: TLS Store
+        tooltip: Reference to TLSStore resource for certificate storage
+    validation:
+      entryPointsRequired: At least one entry point must be specified
+      routesRequired: At least one route must be configured  
+      matchRequired: Match rule is required for each route
+      serviceRequired: Target service is required for each route
+      portRequired: Port is required when service is specified
+      tlsSecretRequired: TLS secret name is required when TLS is enabled
+      middlewareNameRequired: Middleware name is required
+      domainRequired: Domain is required for TLS certificate
+      
+  # Middleware specific translations  
+  middleware:
+    description: Middleware components that can transform requests and responses before they reach services.
+    type:
+      label: Middleware Type
+      addHeaders: Add Headers
+      basicAuth: Basic Authentication
+      compress: Compression
+      errors: Error Pages
+      forwardAuth: Forward Authentication
+      headers: Headers
+      ipWhiteList: IP Whitelist
+      rateLimit: Rate Limiting
+      redirectRegex: Redirect Regex
+      redirectScheme: Redirect Scheme
+      replacePath: Replace Path
+      replacePathRegex: Replace Path Regex
+      stripPrefix: Strip Prefix
+      stripPrefixRegex: Strip Prefix Regex
+      retry: Retry
+      circuitBreaker: Circuit Breaker
+    spec:
+      label: Configuration
+      tooltip: Middleware-specific configuration parameters
+      
+  # TLS Options specific translations
+  tlsOption:
+    description: TLS Options define advanced TLS configurations including cipher suites, TLS versions, and client authentication.
+    minVersion:
+      label: Minimum TLS Version
+      tooltip: Minimum supported TLS version
+    maxVersion:
+      label: Maximum TLS Version  
+      tooltip: Maximum supported TLS version
+    cipherSuites:
+      label: Cipher Suites
+      tooltip: List of supported cipher suites for TLS negotiation
+    clientAuth:
+      label: Client Authentication
+      type:
+        label: Authentication Type
+        none: None
+        request: Request
+        require: Require
+        verify: Verify
+        requireAndVerify: Require and Verify
+      caFiles:
+        label: CA Files
+        tooltip: Certificate Authority files for client authentication
+      
+  # Headers used in tables
   headers:
-    entryPoints: "Entry Points"
     hosts: "Hosts"
+    entryPoints: "EntryPoints"
+    routes: "Routes"
     services: "Services"
     middleware: "Middleware"
     tls: "TLS"
-    routes: "Routes"
     match: "Match Rules"
+    priority: "Priority"
+    status: "Status"
+    type: "Type"
+    
+  # Common labels
   labels:
-    ingressRoute: "Ingress Route"
+    ingressRoute: "IngressRoute"
     middleware: "Middleware" 
-    tlsOption: "TLS Option"
-    serversTransport: "Servers Transport"
-    traefikService: "Traefik Service"
+    tlsOption: "TLSOption"
+    serversTransport: "ServersTransport"
+    traefikService: "TraefikService"
+
+  # Product and dashboard
   dashboard:
-    title: "Dashboard"
+    title: "Traefik Dashboard"
+    description: "Monitor and configure your Traefik proxy and load balancer"
   product:
     label: "Traefik"
+    description: "Modern HTTP reverse proxy and load balancer"
     
+# Generic translations (missing from main rancher translations)
+generic:
+  configuration: "Configuration"
+  status: "Status"  
+  route: "Route"
+  routes: "Routes"
+  yaml: "YAML"
+  age: "Age"
+  namespace: "Namespace"
+  labels: "Labels"
+  annotations: "Annotations"
+  created: "Created"
+  name: "Name"
+  type: "Type"
+  value: "Value"
+  description: "Description"
+  property: "Property"
+  key: "Key"
+  add: "Add"
+  remove: "Remove"
+  edit: "Edit"
+  save: "Save"
+  cancel: "Cancel"
+  delete: "Delete"
+  none: "None"
+  enabled: "Enabled"
+  disabled: "Disabled"
+  yes: "Yes"
+  no: "No"
+  port: "Port"
+  host: "Host"
+  hosts: "Hosts"
+  service: "Service"
+  services: "Services"
+  secret: "Secret"
+  secrets: "Secrets"
+  realm: "Realm"
+  scheme: "Scheme"
+  permanent: "Permanent"
+  prefixes: "Prefixes"
+  forceSlash: "Force Slash"
+  average: "Average"
+  burst: "Burst"
+  period: "Period"
+  removeHeader: "Remove Header"
+  customRequestHeaders: "Custom Request Headers"
+  customResponseHeaders: "Custom Response Headers"
+  excludedContentTypes: "Excluded Content Types"
+  minResponseBodyBytes: "Min Response Body Bytes"
+  sslRedirect: "SSL Redirect"
+  stsIncludeSubdomains: "STS Include Subdomains"
+  stsSeconds: "STS Seconds"
+  contentTypeNosniff: "Content Type No Sniff"
+
 # Product-level configuration
 product:
   traefik: "Traefik"
 
-# Type labels
+# Type labels  
 typeLabel:
-  'traefik.io.ingressroute': "IngressRoutes"
+  'traefik.io.ingressroute': "IngressRoute"
   'traefik.io.ingressroutetcp': "IngressRouteTCPs" 
   'traefik.io.ingressrouteudp': "IngressRouteUDPs"
   'traefik.io.middleware': "Middlewares"

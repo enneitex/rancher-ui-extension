@@ -1,538 +1,657 @@
 <template>
-  <div class="enhanced-ingressroute">
-    <div class="header">
-      <h2>🚀 Enhanced IngressRoute Editor</h2>
-      <p class="subtitle">Improved UI for Traefik IngressRoute configuration</p>
-    </div>
-
-    <div class="form-section">
-      <h3>Basic Information</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Name</label>
-          <input 
-            v-model="localValue.metadata.name"
-            type="text" 
-            placeholder="my-ingressroute"
-            class="form-input"
-          />
-        </div>
-        <div class="form-group">
-          <label>Namespace</label>
-          <input 
-            v-model="localValue.metadata.namespace"
-            type="text" 
-            placeholder="default"
-            class="form-input"
-          />
-        </div>
+  <CruResource
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :subtypes="[]"
+    :validation-passed="fvFormIsValid"
+    :errors="fvUnreportedValidationErrors"
+    @error="e=>errors = e"
+    @finish="save"
+    @cancel="done"
+  >
+    <div class="row">
+      <div class="col span-12">
+        <NameNsDescription
+          :value="value"
+          :mode="mode"
+          :register-before-hook="registerBeforeHook"
+          :rules="{
+            name: fvGetAndReportPathRules('metadata.name'),
+            namespace: fvGetAndReportPathRules('metadata.namespace'),
+            description: []
+          }"
+        />
       </div>
     </div>
 
-    <div class="form-section">
-      <h3>Routes Configuration</h3>
-      <div v-for="(route, index) in routes" :key="index" class="route-card">
-        <div class="card-header">
-          <h4>Route {{ index + 1 }}</h4>
-          <button 
-            v-if="routes.length > 1"
-            @click="removeRoute(index)" 
-            class="btn-remove"
-          >
-            ✕
-          </button>
+    <Tabbed :side-tabs="true">
+      <!-- Entry Points Tab -->
+      <Tab 
+        name="entrypoints" 
+        :label="t('traefik.ingressRoute.entryPoints.label')" 
+        :weight="10"
+        :error="tabErrors.entryPoints"
+      >
+        <div class="row">
+          <div class="col span-12">
+            <Banner 
+              color="info" 
+              :label="t('traefik.ingressRoute.entryPoints.description')"
+            />
+          </div>
         </div>
         
-        <div class="form-row">
-          <div class="form-group flex-2">
-            <label>Match Rule</label>
-            <input 
-              v-model="route.match"
-              type="text" 
-              placeholder="Host(`example.com`)"
-              class="form-input"
-            />
-            <small class="help-text">Example: Host(`example.com`) && Path(`/api`)</small>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Service Type</label>
-            <select v-model="route.kind" class="form-select">
-              <option value="Service">Service</option>
-              <option value="TraefikService">TraefikService</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Service Name</label>
-            <input 
-              v-model="route.name"
-              type="text" 
-              placeholder="my-service"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label>Port</label>
-            <input 
-              v-model.number="route.port"
-              type="number" 
-              placeholder="80"
-              class="form-input"
+        <div class="row">
+          <div class="col span-12">
+            <LabeledSelect
+              v-model="value.spec.entryPoints"
+              :mode="mode"
+              :label="t('traefik.ingressRoute.entryPoints.label')"
+              :multiple="true"
+              :taggable="true"
+              :options="entryPointOptions"
+              :rules="fvGetAndReportPathRules('spec.entryPoints')"
             />
           </div>
         </div>
-      </div>
-      
-      <button @click="addRoute" class="btn-add">
-        ➕ Add Route
-      </button>
-    </div>
+      </Tab>
 
-    <div class="form-section">
-      <h3>Entry Points</h3>
-      <div class="checkbox-grid">
-        <label v-for="ep in entryPointOptions" :key="ep.value" class="checkbox-item">
-          <input 
-            type="checkbox" 
-            :value="ep.value"
-            v-model="selectedEntryPoints"
-          />
-          <span>{{ ep.label }}</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3>TLS Configuration</h3>
-      <div class="form-row">
-        <label class="checkbox-item">
-          <input type="checkbox" v-model="tlsEnabled" />
-          <span>Enable TLS</span>
-        </label>
-      </div>
-      
-      <div v-if="tlsEnabled" class="form-row">
-        <div class="form-group">
-          <label>TLS Secret Name</label>
-          <input 
-            v-model="tlsSecretName"
-            type="text" 
-            placeholder="my-tls-secret"
-            class="form-input"
-          />
+      <!-- Routes Tab -->
+      <Tab 
+        name="routes" 
+        :label="t('traefik.ingressRoute.routes.label')" 
+        :weight="9"
+        :error="tabErrors.routes"
+      >
+        <div class="row">
+          <div class="col span-12">
+            <Banner 
+              color="info" 
+              :label="t('traefik.ingressRoute.routes.title')"
+            />
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button @click="saveResource" class="btn-primary">💾 Save</button>
-      <button @click="showYaml" class="btn-secondary">📝 View YAML</button>
-    </div>
+        <div v-for="(route, i) in value.spec.routes" :key="i" class="row route-section">
+          <div class="col span-12">
+            <div class="route-card">
+              <div class="route-header">
+                <h4>{{ t('generic.route') }} {{ i + 1 }}</h4>
+                <button 
+                  v-if="value.spec.routes.length > 1"
+                  type="button" 
+                  class="btn role-link" 
+                  @click="removeRoute(i)"
+                >
+                  {{ t('generic.remove') }}
+                </button>
+              </div>
 
-    <div v-if="yamlVisible" class="yaml-section">
-      <h3>Generated YAML</h3>
-      <pre class="yaml-output">{{ generatedYaml }}</pre>
-    </div>
-  </div>
+              <!-- Match Rule -->
+              <div class="row">
+                <div class="col span-12">
+                  <LabeledInput
+                    v-model="route.match"
+                    :mode="mode"
+                    :label="t('traefik.ingressRoute.routes.match.label')"
+                    :placeholder="t('traefik.ingressRoute.routes.match.placeholder')"
+                    :tooltip="t('traefik.ingressRoute.routes.match.tooltip')"
+                    :rules="fvGetAndReportPathRules(`spec.routes.${i}.match`)"
+                  />
+                </div>
+              </div>
+
+              <!-- Priority (optional) -->
+              <div class="row">
+                <div class="col span-6">
+                  <LabeledInput
+                    v-model.number="route.priority"
+                    :mode="mode"
+                    type="number"
+                    :label="t('traefik.ingressRoute.routes.priority.label')"
+                    :placeholder="t('traefik.ingressRoute.routes.priority.placeholder')"
+                    :tooltip="t('traefik.ingressRoute.routes.priority.tooltip')"
+                  />
+                </div>
+              </div>
+
+              <!-- Services -->
+              <div class="services-section">
+                <h5>{{ t('traefik.ingressRoute.routes.service.label') }}</h5>
+                <div v-for="(service, j) in route.services" :key="j" class="service-row">
+                  <div class="row">
+                    <div class="col span-4">
+                      <LabeledSelect
+                        v-model="service.kind"
+                        :mode="mode"
+                        :label="t('traefik.ingressRoute.routes.kind.label')"
+                        :options="serviceKindOptions"
+                        :tooltip="t('traefik.ingressRoute.routes.kind.tooltip')"
+                      />
+                    </div>
+                    <div class="col span-4">
+                      <LabeledSelect
+                        v-model="service.name"
+                        :mode="mode"
+                        :label="t('traefik.ingressRoute.routes.service.label')"
+                        :options="serviceOptions"
+                        :tooltip="t('traefik.ingressRoute.routes.service.tooltip')"
+                        :rules="fvGetAndReportPathRules(`spec.routes.${i}.services.${j}.name`)"
+                      />
+                    </div>
+                    <div class="col span-2">
+                      <LabeledInput
+                        v-model.number="service.port"
+                        :mode="mode"
+                        type="number"
+                        :label="t('traefik.ingressRoute.routes.port.label')"
+                        :placeholder="t('traefik.ingressRoute.routes.port.placeholder')"
+                        :tooltip="t('traefik.ingressRoute.routes.port.tooltip')"
+                        :rules="fvGetAndReportPathRules(`spec.routes.${i}.services.${j}.port`)"
+                      />
+                    </div>
+                    <div class="col span-2">
+                      <button 
+                        v-if="route.services.length > 1"
+                        type="button" 
+                        class="btn role-link" 
+                        @click="removeService(i, j)"
+                      >
+                        {{ t('generic.remove') }}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Advanced service options -->
+                  <div class="row">
+                    <div class="col span-3">
+                      <LabeledInput
+                        v-model.number="service.weight"
+                        :mode="mode"
+                        type="number"
+                        :label="t('traefik.ingressRoute.routes.weight.label')"
+                        :placeholder="t('traefik.ingressRoute.routes.weight.placeholder')"
+                        :tooltip="t('traefik.ingressRoute.routes.weight.tooltip')"
+                      />
+                    </div>
+                    <div class="col span-3">
+                      <LabeledSelect
+                        v-model="service.strategy"
+                        :mode="mode"
+                        :label="t('traefik.ingressRoute.routes.strategy.label')"
+                        :options="strategyOptions"
+                        :tooltip="t('traefik.ingressRoute.routes.strategy.tooltip')"
+                        clearable
+                      />
+                    </div>
+                    <div class="col span-3">
+                      <Checkbox
+                        v-model="service.passHostHeader"
+                        :mode="mode"
+                        :label="t('traefik.ingressRoute.routes.passHostHeader.label')"
+                        :tooltip="t('traefik.ingressRoute.routes.passHostHeader.tooltip')"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  type="button" 
+                  class="btn role-secondary" 
+                  @click="addService(i)"
+                >
+                  {{ t('generic.add') }} {{ t('traefik.ingressRoute.routes.service.label') }}
+                </button>
+              </div>
+
+              <!-- Middleware -->
+              <div class="middleware-section">
+                <h5>{{ t('traefik.ingressRoute.middleware.label') }}</h5>
+                <div v-for="(middleware, k) in route.middlewares" :key="k" class="row">
+                  <div class="col span-5">
+                    <LabeledInput
+                      v-model="middleware.name"
+                      :mode="mode"
+                      :label="t('traefik.ingressRoute.middleware.name.label')"
+                      :rules="fvGetAndReportPathRules(`spec.routes.${i}.middlewares.${k}.name`)"
+                    />
+                  </div>
+                  <div class="col span-5">
+                    <LabeledInput
+                      v-model="middleware.namespace"
+                      :mode="mode"
+                      :label="t('traefik.ingressRoute.middleware.namespace.label')"
+                      :tooltip="t('traefik.ingressRoute.middleware.namespace.tooltip')"
+                    />
+                  </div>
+                  <div class="col span-2">
+                    <button 
+                      type="button" 
+                      class="btn role-link" 
+                      @click="removeMiddleware(i, k)"
+                    >
+                      {{ t('generic.remove') }}
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  type="button" 
+                  class="btn role-secondary" 
+                  @click="addMiddleware(i)"
+                >
+                  {{ t('traefik.ingressRoute.middleware.addMiddleware') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          class="btn role-secondary" 
+          @click="addRoute"
+        >
+          {{ t('traefik.ingressRoute.routes.addRoute') }}
+        </button>
+      </Tab>
+
+      <!-- TLS Tab -->
+      <Tab 
+        name="tls" 
+        :label="t('traefik.ingressRoute.tls.label')" 
+        :weight="8"
+        :error="tabErrors.tls"
+      >
+        <div class="row">
+          <div class="col span-12">
+            <Checkbox
+              v-model="tlsEnabled"
+              :mode="mode"
+              :label="t('traefik.ingressRoute.tls.enable')"
+            />
+          </div>
+        </div>
+
+        <template v-if="tlsEnabled">
+          <!-- TLS Secret -->
+          <div class="row">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model="value.spec.tls.secretName"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.tls.secretName.label')"
+                :placeholder="t('traefik.ingressRoute.tls.secretName.placeholder')"
+                :tooltip="t('traefik.ingressRoute.tls.secretName.tooltip')"
+                :options="secretOptions"
+                :rules="tlsSecretRules"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.tls.options.name"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.tls.options.label')"
+                :tooltip="t('traefik.ingressRoute.tls.options.tooltip')"
+              />
+            </div>
+          </div>
+
+          <!-- Certificate Resolver -->
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.tls.certResolver"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.tls.certResolver.label')"
+                :placeholder="t('traefik.ingressRoute.tls.certResolver.placeholder')"
+                :tooltip="t('traefik.ingressRoute.tls.certResolver.tooltip')"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.tls.store.name"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.tls.store.label')"
+                :tooltip="t('traefik.ingressRoute.tls.store.tooltip')"
+              />
+            </div>
+          </div>
+
+          <!-- Domains -->
+          <div class="domains-section">
+            <h5>{{ t('traefik.ingressRoute.tls.domains.label') }}</h5>
+            <div v-for="(domain, l) in value.spec.tls.domains" :key="l" class="row">
+              <div class="col span-5">
+                <LabeledInput
+                  v-model="domain.main"
+                  :mode="mode"
+                  :label="t('traefik.ingressRoute.tls.domains.main.label')"
+                  :placeholder="t('traefik.ingressRoute.tls.domains.main.placeholder')"
+                  :rules="fvGetAndReportPathRules(`spec.tls.domains.${l}.main`)"
+                />
+              </div>
+              <div class="col span-5">
+                <LabeledInput
+                  v-model="domain.sans"
+                  :mode="mode"
+                  :label="t('traefik.ingressRoute.tls.domains.sans.label')"
+                  :placeholder="t('traefik.ingressRoute.tls.domains.sans.placeholder')"
+                  :tooltip="t('traefik.ingressRoute.tls.domains.sans.tooltip')"
+                />
+              </div>
+              <div class="col span-2">
+                <button 
+                  type="button" 
+                  class="btn role-link" 
+                  @click="removeDomain(l)"
+                >
+                  {{ t('generic.remove') }}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="button" 
+              class="btn role-secondary" 
+              @click="addDomain"
+            >
+              {{ t('traefik.ingressRoute.tls.domains.addDomain') }}
+            </button>
+          </div>
+        </template>
+      </Tab>
+    </Tabbed>
+  </CruResource>
 </template>
 
 <script>
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { Banner } from '@components/Banner';
+import { allHash } from '@shell/utils/promise';
+
 export default {
   name: 'IngressRouteEdit',
-  
-  props: {
-    value: {
-      type: Object,
-      required: true
-    },
-    mode: {
-      type: String,
-      default: 'edit'
+
+  components: {
+    CruResource,
+    NameNsDescription,
+    Tabbed,
+    Tab,
+    LabeledInput,
+    LabeledSelect,
+    Checkbox,
+    Banner
+  },
+
+  mixins: [CreateEditView, FormValidation],
+
+  async fetch() {
+    const promises = {
+      services: this.$store.dispatch('cluster/findAll', { type: 'service' }),
+      secrets: this.$store.dispatch('cluster/findAll', { type: 'secret' })
+    };
+
+    try {
+      const hash = await allHash(promises);
+      this.services = hash.services || [];
+      this.secrets = hash.secrets || [];
+    } catch (e) {
+      console.error('Error fetching resources:', e);
     }
   },
 
   data() {
     return {
-      yamlVisible: false,
-      entryPointOptions: [
-        { label: 'web (HTTP - 80)', value: 'web' },
-        { label: 'websecure (HTTPS - 443)', value: 'websecure' },
-        { label: 'traefik (Dashboard - 8080)', value: 'traefik' }
+      services: [],
+      secrets: [],
+      fvFormRuleSets: [
+        {
+          path: 'metadata.name',
+          rules: ['required'],
+          translationKey: 'nameNsDescription.name.label'
+        },
+        {
+          path: 'spec.entryPoints',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.entryPoints.label'
+        },
+        {
+          path: 'spec.routes.match',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.routes.match.label'
+        }
       ]
     };
   },
 
   computed: {
-    localValue: {
-      get() {
-        return this.value;
-      },
-      set(newValue) {
-        this.$emit('input', newValue);
-      }
+    entryPointOptions() {
+      return [
+        { label: this.t('traefik.ingressRoute.entryPoints.web'), value: 'web' },
+        { label: this.t('traefik.ingressRoute.entryPoints.websecure'), value: 'websecure' },
+        { label: this.t('traefik.ingressRoute.entryPoints.traefik'), value: 'traefik' }
+      ];
     },
 
-    routes: {
-      get() {
-        if (!this.localValue.spec) {
-          this.ensureSpec();
-        }
-        return this.localValue.spec.routes || [];
-      },
-      set(newRoutes) {
-        this.ensureSpec();
-        this.$set(this.localValue.spec, 'routes', newRoutes);
-      }
+    serviceKindOptions() {
+      return [
+        { label: this.t('traefik.ingressRoute.routes.kind.service'), value: 'Service' },
+        { label: this.t('traefik.ingressRoute.routes.kind.traefikService'), value: 'TraefikService' }
+      ];
     },
 
-    selectedEntryPoints: {
-      get() {
-        this.ensureSpec();
-        return this.localValue.spec.entryPoints || ['web'];
-      },
-      set(newEntryPoints) {
-        this.ensureSpec();
-        this.$set(this.localValue.spec, 'entryPoints', newEntryPoints);
-      }
+    strategyOptions() {
+      return [
+        { label: this.t('traefik.ingressRoute.routes.strategy.roundRobin'), value: 'RoundRobin' },
+        { label: this.t('traefik.ingressRoute.routes.strategy.wrr'), value: 'WeightedRoundRobin' }
+      ];
+    },
+
+    serviceOptions() {
+      return this.services
+        .filter(service => service.namespace === this.value.metadata.namespace)
+        .map(service => ({
+          label: service.metadata.name,
+          value: service.metadata.name
+        }));
+    },
+
+    secretOptions() {
+      return this.secrets
+        .filter(secret => 
+          secret.namespace === this.value.metadata.namespace && 
+          secret._type === 'kubernetes.io/tls'
+        )
+        .map(secret => ({
+          label: secret.metadata.name,
+          value: secret.metadata.name
+        }));
     },
 
     tlsEnabled: {
       get() {
-        return !!(this.localValue.spec && this.localValue.spec.tls);
+        return !!this.value.spec.tls;
       },
       set(enabled) {
-        this.ensureSpec();
         if (enabled) {
-          this.$set(this.localValue.spec, 'tls', {
-            secretName: ''
+          this.$set(this.value.spec, 'tls', {
+            secretName: '',
+            domains: [],
+            options: {},
+            store: {}
           });
         } else {
-          this.$delete(this.localValue.spec, 'tls');
+          this.$delete(this.value.spec, 'tls');
         }
       }
     },
 
-    tlsSecretName: {
-      get() {
-        return this.localValue.spec?.tls?.secretName || '';
-      },
-      set(secretName) {
-        if (this.localValue.spec?.tls) {
-          this.$set(this.localValue.spec.tls, 'secretName', secretName);
-        }
+    tlsSecretRules() {
+      if (this.tlsEnabled && !this.value.spec.tls?.certResolver) {
+        return ['required'];
       }
+      return [];
     },
 
-    generatedYaml() {
-      try {
-        return JSON.stringify(this.localValue, null, 2);
-      } catch (e) {
-        return 'Error generating YAML';
-      }
+    tabErrors() {
+      return {
+        entryPoints: !!this.fvGetPathErrors(['spec.entryPoints'])?.length,
+        routes: !!this.fvGetPathErrors(['spec.routes'])?.length,
+        tls: !!this.fvGetPathErrors(['spec.tls'])?.length
+      };
     }
   },
 
-  mounted() {
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
     this.initializeDefaults();
   },
 
   methods: {
-    ensureSpec() {
-      if (!this.localValue.spec) {
-        this.$set(this.localValue, 'spec', {});
+    initializeDefaults() {
+      if (!this.value.spec) {
+        this.$set(this.value, 'spec', {});
+      }
+
+      if (!this.value.spec.entryPoints) {
+        this.$set(this.value.spec, 'entryPoints', ['web']);
+      }
+
+      if (!this.value.spec.routes || this.value.spec.routes.length === 0) {
+        this.$set(this.value.spec, 'routes', [{
+          match: '',
+          services: [{
+            name: '',
+            port: 80,
+            kind: 'Service'
+          }],
+          middlewares: []
+        }]);
       }
     },
 
-    initializeDefaults() {
-      // Ensure metadata exists
-      if (!this.localValue.metadata) {
-        this.$set(this.localValue, 'metadata', {
-          name: '',
-          namespace: 'default'
-        });
-      }
+    willSave() {
+      // Clean up empty values before saving
+      this.value.spec.routes = this.value.spec.routes.filter(route => 
+        route.match && route.services?.some(s => s.name)
+      );
 
-      // Ensure spec exists
-      this.ensureSpec();
-
-      // Initialize with default route if none exist
-      if (!this.localValue.spec.routes || this.localValue.spec.routes.length === 0) {
-        this.$set(this.localValue.spec, 'routes', [{
-          match: 'Host(`example.com`)',
-          kind: 'Service',
-          name: '',
-          port: 80
-        }]);
-      }
-
-      // Initialize entryPoints if not set
-      if (!this.localValue.spec.entryPoints) {
-        this.$set(this.localValue.spec, 'entryPoints', ['web']);
+      // Clean up TLS configuration
+      if (this.value.spec.tls && !this.value.spec.tls.secretName && !this.value.spec.tls.certResolver) {
+        delete this.value.spec.tls;
       }
     },
 
     addRoute() {
-      const newRoute = {
-        match: 'Host(`example.com`)',
-        kind: 'Service',
-        name: '',
-        port: 80
-      };
-      this.routes = [...this.routes, newRoute];
+      this.value.spec.routes.push({
+        match: '',
+        services: [{
+          name: '',
+          port: 80,
+          kind: 'Service'
+        }],
+        middlewares: []
+      });
     },
 
     removeRoute(index) {
-      const updatedRoutes = [...this.routes];
-      updatedRoutes.splice(index, 1);
-      this.routes = updatedRoutes;
+      this.value.spec.routes.splice(index, 1);
     },
 
-    saveResource() {
-      // Clean up empty values
-      if (this.localValue.spec.routes) {
-        this.localValue.spec.routes = this.localValue.spec.routes.filter(route => 
-          route.match && route.name
-        );
+    addService(routeIndex) {
+      this.value.spec.routes[routeIndex].services.push({
+        name: '',
+        port: 80,
+        kind: 'Service'
+      });
+    },
+
+    removeService(routeIndex, serviceIndex) {
+      this.value.spec.routes[routeIndex].services.splice(serviceIndex, 1);
+    },
+
+    addMiddleware(routeIndex) {
+      if (!this.value.spec.routes[routeIndex].middlewares) {
+        this.$set(this.value.spec.routes[routeIndex], 'middlewares', []);
       }
-
-      this.$emit('input', this.localValue);
-      
-      // Show success message
-      alert('✅ IngressRoute configuration saved successfully!');
+      this.value.spec.routes[routeIndex].middlewares.push({
+        name: '',
+        namespace: this.value.metadata.namespace
+      });
     },
 
-    showYaml() {
-      this.yamlVisible = !this.yamlVisible;
+    removeMiddleware(routeIndex, middlewareIndex) {
+      this.value.spec.routes[routeIndex].middlewares.splice(middlewareIndex, 1);
+    },
+
+    addDomain() {
+      if (!this.value.spec.tls.domains) {
+        this.$set(this.value.spec.tls, 'domains', []);
+      }
+      this.value.spec.tls.domains.push({
+        main: '',
+        sans: []
+      });
+    },
+
+    removeDomain(index) {
+      this.value.spec.tls.domains.splice(index, 1);
     }
   }
 };
 </script>
 
-<style scoped>
-.enhanced-ingressroute {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e1e5e9;
-}
-
-.header h2 {
-  color: #2c5aa0;
-  margin-bottom: 5px;
-}
-
-.subtitle {
-  color: #6c757d;
-  margin: 0;
-}
-
-.form-section {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
+<style lang="scss" scoped>
+.route-section {
   margin-bottom: 20px;
-  border-left: 4px solid #28a745;
-}
-
-.form-section h3 {
-  color: #495057;
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  align-items: end;
-}
-
-.form-group {
-  flex: 1;
-}
-
-.form-group.flex-2 {
-  flex: 2;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #495057;
-}
-
-.form-input, .form-select {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus, .form-select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.help-text {
-  color: #6c757d;
-  font-style: italic;
-  margin-top: 2px;
-  display: block;
 }
 
 .route-card {
-  background: white;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
   padding: 20px;
-  margin-bottom: 15px;
+  background: var(--box-bg);
 }
 
-.card-header {
+.route-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+
+  h4 {
+    margin: 0;
+    color: var(--primary);
+  }
 }
 
-.card-header h4 {
-  margin: 0;
-  color: #007bff;
-}
-
-.btn-remove {
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: #c82333;
-}
-
-.checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.checkbox-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-}
-
-.btn-add {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: background-color 0.2s;
-}
-
-.btn-add:hover {
-  background: #218838;
-}
-
-.actions {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin: 30px 0;
-}
-
-.btn-primary, .btn-secondary {
-  padding: 12px 30px;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #0056b3;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #545b62;
-}
-
-.yaml-section {
-  background: #f8f9fa;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  padding: 20px;
+.services-section,
+.middleware-section,
+.domains-section {
   margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+
+  h5 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+  }
 }
 
-.yaml-output {
-  background: #2d3748;
-  color: #e2e8f0;
+.service-row {
+  margin-bottom: 15px;
   padding: 15px;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  max-height: 400px;
-}
-
-@media (max-width: 768px) {
-  .form-row {
-    flex-direction: column;
-  }
-  
-  .actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .btn-primary, .btn-secondary {
-    width: 200px;
-  }
+  background: var(--accent-btn);
+  border-radius: var(--border-radius);
 }
 </style>

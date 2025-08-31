@@ -11,35 +11,55 @@ const routes = [
   {
     name: `c-cluster-${PRODUCT_NAME}-dashboard`,
     path: `/c/:cluster/${PRODUCT_NAME}`,
-    component: TraefikDashboard
+    component: TraefikDashboard,
+    meta: {
+      product: PRODUCT_NAME,
+      pkg: PRODUCT_NAME
+    }
   },
   
   // Resource routes - List view
   {
     name: `c-cluster-${PRODUCT_NAME}-resource`,
     path: `/c/:cluster/${PRODUCT_NAME}/:resource`,
-    component: ListResource
+    component: ListResource,
+    meta: {
+      product: PRODUCT_NAME,
+      pkg: PRODUCT_NAME
+    }
   },
   
   // Resource routes - Create view
   {
     name: `c-cluster-${PRODUCT_NAME}-resource-create`,
     path: `/c/:cluster/${PRODUCT_NAME}/:resource/create`,
-    component: CreateResource
+    component: CreateResource,
+    meta: {
+      product: PRODUCT_NAME,
+      pkg: PRODUCT_NAME
+    }
   },
   
   // Resource routes - Detail view (cluster-scoped)
   {
     name: `c-cluster-${PRODUCT_NAME}-resource-id`,
     path: `/c/:cluster/${PRODUCT_NAME}/:resource/:id`,
-    component: ViewResource
+    component: ViewResource,
+    meta: {
+      product: PRODUCT_NAME,
+      pkg: PRODUCT_NAME
+    }
   },
   
   // Resource routes - Detail view (namespaced)
   {
     name: `c-cluster-${PRODUCT_NAME}-resource-namespace-id`,
     path: `/c/:cluster/${PRODUCT_NAME}/:resource/:namespace/:id`,
-    component: ViewNamespacedResource
+    component: ViewNamespacedResource,
+    meta: {
+      product: PRODUCT_NAME,
+      pkg: PRODUCT_NAME
+    }
   }
 ];
 

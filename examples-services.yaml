@@ -1,0 +1,395 @@
+# Services Kubernetes référencés dans examples-ingressroutes.yaml
+
+---
+# Services pour simple-web-app (namespace: default)
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+  namespace: default
+spec:
+  selector:
+    app: web-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: default
+spec:
+  selector:
+    app: api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+# Services pour secure-web-app (namespace: production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: secure-app
+  namespace: production
+spec:
+  selector:
+    app: secure-app
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backup-app
+  namespace: production
+spec:
+  selector:
+    app: backup-app
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+  type: ClusterIP
+
+---
+# Services pour multi-domain-app (namespace: staging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: staging-service
+  namespace: staging
+spec:
+  selector:
+    app: staging-service
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-v1-service
+  namespace: staging
+spec:
+  selector:
+    app: api-v1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-v1-backup
+  namespace: staging
+spec:
+  selector:
+    app: api-v1-backup
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+# Services pour complex-microservices (namespace: microservices)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: microservices
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: microservices
+spec:
+  selector:
+    app: admin
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+# Services cross-namespace pour complex-microservices (namespace: users-system)
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: users-system
+spec:
+  selector:
+    app: user-service
+    version: v1
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-v2
+  namespace: users-system
+spec:
+  selector:
+    app: user-service
+    version: v2
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+  type: ClusterIP
+
+---
+# Service pour products (namespace: catalog-system)
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: catalog-system
+spec:
+  selector:
+    app: product-service
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP
+
+---
+# Services pour internal-api (namespace: internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-check-service
+  namespace: internal
+spec:
+  selector:
+    app: health-check
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-service
+  namespace: internal
+spec:
+  selector:
+    app: internal-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+
+---
+# Service de monitoring (namespace: monitoring)
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-service
+  namespace: monitoring
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
+
+---
+# Services pour full-tls-example (namespace: production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+  namespace: production
+spec:
+  selector:
+    app: main-app
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backup-service
+  namespace: production
+spec:
+  selector:
+    app: backup-app
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+  type: ClusterIP
+
+---
+# Services d'authentification (namespace: auth-system)
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: auth-system
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-auth-service
+  namespace: auth-system
+spec:
+  selector:
+    app: user-auth
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-auth-service
+  namespace: auth-system
+spec:
+  selector:
+    app: admin-auth
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+# Namespaces nécessaires
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    name: production
+    environment: production
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    name: staging
+    environment: staging
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microservices
+  labels:
+    name: microservices
+    tier: application
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: users-system
+  labels:
+    name: users-system
+    component: users
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: catalog-system
+  labels:
+    name: catalog-system
+    component: catalog
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auth-system
+  labels:
+    name: auth-system
+    component: authentication
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cache-system
+  labels:
+    name: cache-system
+    component: cache
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: internal
+  labels:
+    name: internal
+    visibility: internal
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    component: observability

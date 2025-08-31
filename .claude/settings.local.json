@@ -5,12 +5,46 @@
       "WebFetch(domain:extensions.rancher.io)",
       "Bash(API=rancher.dev.local yarn dev)",
       "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(node:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx jest:*)",
+      "Bash(rg:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run test:*)",
+      "Bash(sed:*)",
       "Bash(yarn install)",
       "WebFetch(domain:docs.rancher.com)",
       "WebFetch(domain:rancher.com)",
-      "Read(/home/dev/kind/github/rancher/dashboard/shell/list/**)"
+      "Read(~/kind/github/rancher/**)",
+      "Search(~/kind/github/rancher/**)",
+      "Read(~/kind/github/rancher/kubewarden-ui/**)",
+      "Bash(npm run dev:*)",
+      "Read(~/kind/github/rancher/dashboard/docusaurus/extensions_versioned_docs/version-v2/**)",
+      "Read(~/kind/github/rancher/dashboard/docusaurus/extensions_versioned_docs/version-v2/**)",
+      "Read(~/kind/github/rancher/kubewarden-ui/pkg/kubewarden/components/Policies/**)",
+      "Read(~/kind/github/rancher/kubewarden-ui/pkg/kubewarden/list/**)",
+      "Read(~/kind/github/rancher/dashboard/**)",
+      "Read(~/kind/github/rancher/dashboard/**/*)",
+      "Read(~/kind/github/rancher/dashboard/storybook/src/stories/Components/**)",
+      "Read(/home/dev/kind/github/rancher/dashboard/shell/edit/networking.k8s.io.ingress/**)",
+      "mcp__playwright__browser_navigate",
+      "Read(/home/dev/**)",
+      "Read(/home/dev/.cache/yarn/v6/npm-@rancher-shell-3.0.5-rc.8-integrity/node_modules/@rancher/shell/cloud-credential/**)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7"
+  ]
 }

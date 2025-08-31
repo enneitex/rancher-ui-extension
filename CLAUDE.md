@@ -131,8 +131,8 @@ plugin.register('list', 'traefik.io.tlsoption', TLSOptionList);
 
 ### Commandes utiles
 ```bash
-# Développement local
-npm run dev
+# Développement local (IMPORTANT: utiliser yarn, pas npm)
+API=rancher.dev.local yarn dev
 
 # Build de l'extension
 npm run build-pkg
@@ -140,6 +140,11 @@ npm run build-pkg
 # Tests (à ajouter)
 npm run test:unit
 ```
+
+### Notes importantes
+- **TOUJOURS utiliser `yarn dev` pour le développement local** - une instance est déjà lancée
+- Ne jamais lancer `npm run dev` ou `npm start` - cela interfère avec l'instance existante
+- Claude ne doit jamais lancer de commandes de build automatiquement
 
 ### Bonnes pratiques observées
 - Utiliser `@rancher/shell` pour l'intégration Rancher

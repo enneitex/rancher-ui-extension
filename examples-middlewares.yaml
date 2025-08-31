@@ -1,0 +1,293 @@
+# Middlewares référencés dans examples-ingressroutes.yaml
+
+---
+# Auth middleware pour simple-web-app
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: auth-middleware
+  namespace: default
+spec:
+  basicAuth:
+    secret: auth-secret
+    removeHeader: true
+
+---
+# Rate limiting middleware (kube-system)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit
+  namespace: kube-system
+spec:
+  rateLimit:
+    burst: 100
+    period: 1m
+    average: 50
+
+---
+# Security headers middleware pour secure-web-app
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+  namespace: production
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+      Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+    contentSecurityPolicy: "default-src 'self'"
+
+---
+# Compression middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: compress
+  namespace: production
+spec:
+  compress:
+    excludedContentTypes:
+      - "image/png"
+      - "image/jpeg"
+      - "image/gif"
+
+---
+# Staging auth middleware (auth-system)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: staging-auth
+  namespace: auth-system
+spec:
+  forwardAuth:
+    address: "http://auth-service.auth-system.svc.cluster.local:8080/auth"
+    trustForwardHeader: true
+    authResponseHeaders:
+      - "X-Auth-User"
+      - "X-Auth-Role"
+
+---
+# API rate limiting
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: api-rate-limit
+  namespace: staging
+spec:
+  rateLimit:
+    burst: 200
+    period: 1m
+    average: 100
+
+---
+# CORS middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: cors-middleware
+  namespace: staging
+spec:
+  headers:
+    accessControlAllowCredentials: true
+    accessControlAllowHeaders:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Requested-With"
+    accessControlAllowMethods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    accessControlAllowOriginList:
+      - "https://staging.example.com"
+      - "https://test.example.com"
+    accessControlMaxAge: 100
+
+---
+# User authentication middleware (auth-system)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: user-auth
+  namespace: auth-system
+spec:
+  forwardAuth:
+    address: "http://user-auth-service.auth-system.svc.cluster.local:8080/verify"
+    authRequestHeaders:
+      - "Authorization"
+      - "Cookie"
+    authResponseHeaders:
+      - "X-User-ID"
+      - "X-User-Roles"
+
+---
+# User rate limiting
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: user-rate-limit
+  namespace: microservices
+spec:
+  rateLimit:
+    burst: 50
+    period: 1m
+    average: 30
+
+---
+# Product cache middleware (cache-system)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: product-cache
+  namespace: cache-system
+spec:
+  headers:
+    customResponseHeaders:
+      Cache-Control: "public, max-age=300"
+      X-Cache-Status: "HIT"
+
+---
+# Admin authentication (auth-system)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: admin-auth
+  namespace: auth-system
+spec:
+  forwardAuth:
+    address: "http://admin-auth-service.auth-system.svc.cluster.local:8080/admin/verify"
+    authRequestHeaders:
+      - "Authorization"
+      - "X-Admin-Token"
+    authResponseHeaders:
+      - "X-Admin-User"
+      - "X-Admin-Permissions"
+
+---
+# IP whitelist middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ip-whitelist
+  namespace: microservices
+spec:
+  ipAllowList:
+    sourceRange:
+      - "10.0.0.0/8"      # Internal network
+      - "192.168.0.0/16"  # Private network
+      - "172.16.0.0/12"   # Docker networks
+      - "203.0.113.0/24"  # Office IP range
+
+---
+# Security headers (reused in microservices namespace)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+  namespace: microservices
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "SAMEORIGIN"
+      X-XSS-Protection: "1; mode=block"
+      Strict-Transport-Security: "max-age=31536000"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+
+---
+# Basic auth for monitoring (monitoring namespace)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: basic-auth
+  namespace: monitoring
+spec:
+  basicAuth:
+    secret: monitoring-auth
+    realm: "Monitoring Access"
+
+---
+# Full security middleware (production)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: full-security
+  namespace: production
+spec:
+  chain:
+    middlewares:
+      - name: security-headers
+      - name: rate-limit-strict
+      - name: ip-protection
+
+---
+# Strict rate limiting for production
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-strict
+  namespace: production
+spec:
+  rateLimit:
+    burst: 20
+    period: 1m
+    average: 10
+
+---
+# IP protection for production
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ip-protection
+  namespace: production
+spec:
+  ipAllowList:
+    sourceRange:
+      - "10.0.0.0/8"
+      - "203.0.113.0/24"  # Trusted office range
+
+---
+# Compression middleware (production)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: compression
+  namespace: production
+spec:
+  compress:
+    excludedContentTypes:
+      - "image/*"
+      - "video/*"
+      - "application/zip"
+      - "application/gzip"
+
+---
+# Logging middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: logging
+  namespace: production
+spec:
+  accessLog:
+    filePath: "/var/log/traefik/access.log"
+    format: json
+    fields:
+      defaultMode: keep
+      names:
+        ClientUsername: drop
+      headers:
+        defaultMode: keep
+        names:
+          User-Agent: keep
+          Authorization: drop
+          Cookie: drop
