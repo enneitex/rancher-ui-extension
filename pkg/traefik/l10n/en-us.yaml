@@ -33,6 +33,8 @@ traefik:
         tooltip: "Traefik matching rules using Go template syntax. Examples: Host(`domain.com`), Path(`/api`), PathPrefix(`/v1`)"
       service:
         label: Target Service
+        placeholder: Select a service
+        add: Add Service
         required: Target service is required
         doesntExist: The selected service does not exist
         tooltip: Kubernetes service that will receive the matched traffic
@@ -65,10 +67,13 @@ traefik:
         tooltip: Route priority - higher values take precedence
     middleware:
       label: Middleware
-      addMiddleware: Add Middleware  
+      selectMiddleware: Select a middleware to add
+      addMiddleware: Add Middleware
+      orderInfo: Middlewares are applied in the same order as their declaration before forwarding requests to services. Use arrows to reorder.  
       removeMiddleware: Remove Middleware
       name:
         label: Middleware Name
+        placeholder: "middleware-name or namespace/middleware-name"
         required: Middleware name is required
         doesntExist: The selected middleware does not exist
       namespace:
@@ -79,7 +84,7 @@ traefik:
       label: TLS Configuration
       enable: Enable TLS
       enabled: TLS Enabled
-      disabled: TLS Disabled
+      disabled: TLS is disabled. The spec.tls field will be set to an empty object {}.
       secretName:
         label: TLS Secret Name
         placeholder: "e.g. my-tls-secret"
@@ -104,9 +109,11 @@ traefik:
           tooltip: Additional domain names for the certificate
       options:
         label: TLS Options
+        placeholder: "e.g. default"
         tooltip: Reference to TLSOption resource for advanced TLS configuration
       store:
         label: TLS Store
+        placeholder: "e.g. default"
         tooltip: Reference to TLSStore resource for certificate storage
     validation:
       entryPointsRequired: At least one entry point must be specified
@@ -189,10 +196,6 @@ traefik:
     serversTransport: "ServersTransport"
     traefikService: "TraefikService"
 
-  # Product and dashboard
-  dashboard:
-    title: "Traefik Dashboard"
-    description: "Monitor and configure your Traefik proxy and load balancer"
   product:
     label: "Traefik"
     description: "Modern HTTP reverse proxy and load balancer"
