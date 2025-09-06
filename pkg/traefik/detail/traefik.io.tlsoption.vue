@@ -248,7 +248,7 @@ export default {
 
     clientAuthStatusClass() {
       const authType = this.clientAuthConfig?.clientAuthType || 'NoClientCert';
-      
+
       if (authType === 'NoClientCert') return 'text-muted';
       if (authType.includes('Require')) return 'text-success';
       return 'text-warning';
@@ -261,7 +261,7 @@ export default {
 
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 
@@ -273,7 +273,7 @@ export default {
   methods: {
     tlsVersionDisplay(version) {
       if (!version) return 'Default';
-      
+
       const versionMap = {
         VersionTLS10: 'TLS 1.0',
         VersionTLS11: 'TLS 1.1',

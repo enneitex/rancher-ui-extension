@@ -142,10 +142,10 @@ export default {
           />
         </div>
         <div class="col span-2">
-          <button 
+          <button
             v-if="services.length > 1"
-            type="button" 
-            class="btn role-link remove-btn" 
+            type="button"
+            class="btn role-link remove-btn"
             @click="removeService(i)"
           >
             {{ t('generic.remove') }}
@@ -188,9 +188,9 @@ export default {
 
     <div class="row mt-15">
       <div class="col span-12">
-        <button 
-          type="button" 
-          class="btn role-secondary" 
+        <button
+          type="button"
+          class="btn role-secondary"
           @click="addService"
         >
           {{ t('generic.add') }} {{ t('traefik.ingressRoute.routes.service.label') }}

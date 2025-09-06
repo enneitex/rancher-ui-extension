@@ -1,69 +1,144 @@
 <template>
-  <div class="row">
-    <div class="col span-12">
-      <div v-if="tlsConfig" class="tls-section">
-        <div class="tls-status">
-          <i class="icon icon-lock text-success" />
-          <span class="text-success">{{ t('traefik.ingressRoute.tls.enabled') }}</span>
+  <div class="tls-view-container">
+    <!-- TLS Enabled State -->
+    <div v-if="tlsConfig">
+      <Banner 
+        color="success" 
+        :closable="false"
+        class="mb-20"
+      >
+        <div class="banner-content">
+          <i class="icon icon-lock" />
+          <span>{{ t('traefik.ingressRoute.tls.enabled') }}</span>
         </div>
-        
-        <div v-if="tlsConfig.secretName" class="tls-detail">
-          <strong>{{ t('traefik.ingressRoute.tls.secretName.label') }}:</strong>
-          <router-link
-            :to="secretLink"
-            class="secret-link"
-          >
-            <i class="icon icon-lock" />
-            {{ tlsConfig.secretName }}
-          </router-link>
-        </div>
-        
-        <div v-if="tlsConfig.certResolver" class="tls-detail">
-          <strong>{{ t('traefik.ingressRoute.tls.certResolver.label') }}:</strong>
-          <span>{{ tlsConfig.certResolver }}</span>
-        </div>
-        
-        <div v-if="tlsConfig.domains && tlsConfig.domains.length" class="tls-detail">
-          <strong>{{ t('traefik.ingressRoute.tls.domains.label') }}:</strong>
-          <div class="domains-list">
-            <div
-              v-for="(domain, k) in tlsConfig.domains"
-              :key="k"
-              class="domain-item"
-            >
-              <span class="domain-main">{{ domain.main }}</span>
-              <span v-if="domain.sans && domain.sans.length" class="domain-sans">
-                (+ {{ domain.sans.length }} SAN{{ domain.sans.length > 1 ? 's' : '' }})
-              </span>
+      </Banner>
+      
+      <div class="tls-cards-grid">
+        <!-- Certificate Card -->
+        <Card v-if="hasCertificateInfo" class="tls-card" :show-actions="false">
+          <template #title>
+            <h4 class="card-title">
+              <i class="icon icon-file" />
+              {{ t('traefik.ingressRoute.tls.certificate.title') }}
+            </h4>
+          </template>
+          <template #body>
+            <div class="info-row" v-if="tlsConfig.secretName">
+              <label>{{ t('traefik.ingressRoute.tls.secretName.label') }}</label>
+              <router-link
+                :to="secretLink"
+                class="resource-link"
+              >
+                {{ tlsConfig.secretName }}
+              </router-link>
             </div>
-          </div>
-        </div>
-        
-        <div v-if="tlsConfig.options?.name" class="tls-detail">
-          <strong>{{ t('traefik.ingressRoute.tls.options.label') }}:</strong>
-          <span>{{ tlsConfig.options.name }}</span>
-        </div>
-        
-        <div v-if="tlsConfig.store?.name" class="tls-detail">
-          <strong>{{ t('traefik.ingressRoute.tls.store.label') }}:</strong>
-          <span>{{ tlsConfig.store.name }}</span>
-        </div>
-      </div>
-      <div v-else class="tls-disabled">
-        <div class="text-center text-muted">
-          <i class="icon icon-unlock" />
-          <p>{{ t('traefik.ingressRoute.tls.disabled') }}</p>
-        </div>
+            <div class="info-row" v-if="tlsConfig.certResolver">
+              <label>{{ t('traefik.ingressRoute.tls.certResolver.label') }}</label>
+              <span class="value">{{ tlsConfig.certResolver }}</span>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Configuration Card -->
+        <Card v-if="hasConfigInfo" class="tls-card" :show-actions="false">
+          <template #title>
+            <h4 class="card-title">
+              <i class="icon icon-gear" />
+              {{ t('traefik.ingressRoute.tls.configuration.title') }}
+            </h4>
+          </template>
+          <template #body>
+            <div class="info-row" v-if="tlsConfig.options?.name">
+              <label>{{ t('traefik.ingressRoute.tls.options.label') }}</label>
+              <router-link
+                :to="tlsOptionsLink"
+                class="resource-link"
+              >
+                {{ tlsConfig.options.name }}
+              </router-link>
+            </div>
+            <div class="info-row" v-if="tlsConfig.store?.name">
+              <label>{{ t('traefik.ingressRoute.tls.store.label') }}</label>
+              <router-link
+                :to="tlsStoreLink"
+                class="resource-link"
+              >
+                {{ tlsConfig.store.name }}
+              </router-link>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Domains Card -->
+        <Card v-if="hasDomains" class="tls-card" :show-actions="false">
+          <template #title>
+            <h4 class="card-title">
+              <i class="icon icon-globe" />
+              {{ t('traefik.ingressRoute.tls.domains.label') }}
+            </h4>
+          </template>
+          <template #body>
+            <div class="domains-list">
+              <div
+                v-for="(domain, k) in tlsConfig.domains"
+                :key="k"
+                class="domain-item"
+              >
+                <div class="domain-main">
+                  <i class="icon icon-dot" />
+                  {{ domain.main }}
+                </div>
+                <div v-if="domain.sans && domain.sans.length" class="domain-sans">
+                  <BadgeState
+                    v-clean-tooltip="{
+                      content: domain.sans.join('<br>'),
+                      placement: 'top'
+                    }"
+                    :label="`+${domain.sans.length} SAN${domain.sans.length > 1 ? 's' : ''}`"
+                    color="info"
+                    class="sans-badge"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </div>
+
+    <!-- TLS Disabled State -->
+    <Banner 
+      v-else
+      color="info" 
+      :closable="false"
+    >
+      <div class="banner-content">
+        <i class="icon icon-info-circle" />
+        <span>{{ t('traefik.ingressRoute.tls.notConfigured') }}</span>
+      </div>
+    </Banner>
   </div>
 </template>
 
 <script>
 import { get } from '@shell/utils/object';
+import { Banner } from '@components/Banner';
+import { Card } from '@components/Card';
+import { BadgeState } from '@components/BadgeState';
+import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 
 export default {
   name: 'TLSConfiguration',
+
+  components: {
+    Banner,
+    Card,
+    BadgeState
+  },
+
+  directives: {
+    cleanTooltip: cleanTooltipDirective
+  },
 
   props: {
     value: {
@@ -74,7 +149,24 @@ export default {
 
   computed: {
     tlsConfig() {
-      return get(this.value, 'spec.tls');
+      const tls = get(this.value, 'spec.tls');
+      // Check if TLS is actually configured (not just an empty object)
+      if (!tls || Object.keys(tls).length === 0) {
+        return null;
+      }
+      return tls;
+    },
+
+    hasCertificateInfo() {
+      return this.tlsConfig?.secretName || this.tlsConfig?.certResolver;
+    },
+
+    hasConfigInfo() {
+      return this.tlsConfig?.options?.name || this.tlsConfig?.store?.name;
+    },
+
+    hasDomains() {
+      return this.tlsConfig?.domains && this.tlsConfig.domains.length > 0;
     },
 
     secretLink() {
@@ -90,6 +182,36 @@ export default {
 
       // Create direct path instead of using router-link params
       return `/c/${cluster}/explorer/secret/${namespace}/${this.tlsConfig.secretName}`;
+    },
+
+    tlsOptionsLink() {
+      if (!this.tlsConfig?.options?.name) {
+        return null;
+      }
+
+      const cluster = this.$route.params.cluster;
+      if (!cluster) return null;
+      
+      const namespace = this.value.metadata.namespace;
+      if (!namespace) return null;
+
+      // Create direct path for TLSOption resource
+      return `/c/${cluster}/explorer/traefik.io.tlsoption/${namespace}/${this.tlsConfig.options.name}`;
+    },
+
+    tlsStoreLink() {
+      if (!this.tlsConfig?.store?.name) {
+        return null;
+      }
+
+      const cluster = this.$route.params.cluster;
+      if (!cluster) return null;
+      
+      const namespace = this.value.metadata.namespace;
+      if (!namespace) return null;
+
+      // Create direct path for TLSStore resource
+      return `/c/${cluster}/explorer/traefik.io.tlsstore/${namespace}/${this.tlsConfig.store.name}`;
     }
   },
 
@@ -102,88 +224,145 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.tls-section {
-  margin-top: 15px;
+.tls-view-container {
+  padding: 0;
 }
 
-.tls-status {
+.banner-content {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 1.1em;
-}
-
-.tls-detail {
-  margin-bottom: 15px;
-  
-  strong {
-    display: inline-block;
-    min-width: 150px;
-    color: var(--input-label);
-    font-weight: 600;
-  }
-}
-
-.secret-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--link);
-  text-decoration: none;
-  
-  &:hover {
-    text-decoration: underline;
-  }
+  gap: 10px;
   
   .icon {
-    font-size: 0.9em;
+    font-size: 1.2em;
   }
-}
-
-.domains-list {
-  margin-top: 8px;
-}
-
-.domain-item {
-  padding: 4px 0;
   
-  .domain-main {
+  span {
     font-weight: 500;
   }
+}
+
+.tls-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
   
-  .domain-sans {
-    color: var(--muted);
-    font-size: 0.9em;
-    margin-left: 8px;
+  // Responsive breakpoints
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+  
+  @media (min-width: 769px) and (max-width: 1200px) {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+  
+  @media (min-width: 1201px) {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-.text-center {
-  text-align: center;
+.tls-card {
+  height: fit-content;
+  min-height: 150px;
   
-  .icon {
-    font-size: 2em;
-    color: var(--muted);
-    margin-bottom: 10px;
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--text-primary);
+    
+    .icon {
+      font-size: 1.1em;
+      color: var(--text-secondary);
+    }
   }
   
-  p {
-    color: var(--muted);
-    font-style: italic;
+  .info-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    label {
+      font-weight: 500;
+      font-size: 0.9em;
+      color: var(--text-secondary);
+      margin: 0;
+      flex-shrink: 0;
+      
+      &:after {
+        content: ':';
+      }
+    }
+    
+    .value {
+      color: var(--text-primary);
+      font-size: 0.9em;
+      word-break: break-word;
+    }
+    
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--link);
+      text-decoration: none;
+      font-size: 0.9em;
+      word-break: break-word;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .domains-list {
+    max-height: 200px;
+    overflow-y: auto;
+    
+    .domain-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .domain-main {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9em;
+        color: var(--text-primary);
+        
+        .icon {
+          font-size: 0.6em;
+          color: var(--text-secondary);
+        }
+      }
+      
+      .domain-sans {
+        display: flex;
+        align-items: center;
+        
+        .sans-badge {
+          cursor: help;
+        }
+      }
+    }
   }
 }
 
-.text-success {
-  color: var(--success);
-}
-
-.text-muted {
-  color: var(--muted);
-}
-
-.tls-disabled {
-  margin-top: 20px;
-}
 </style>

@@ -85,7 +85,7 @@
             <!-- Headers Configuration -->
             <div v-else-if="middlewareType === 'headers'" class="config-section">
               <h5>{{ t('traefik.middleware.type.headers') }} Configuration</h5>
-              
+
               <div v-if="middlewareConfig.customRequestHeaders" class="config-detail">
                 <strong>Custom Request Headers:</strong>
                 <div class="headers-list">
@@ -310,7 +310,7 @@ export default {
 
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 

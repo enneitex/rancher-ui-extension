@@ -65,7 +65,7 @@ export default {
       if (this.value && Array.isArray(this.value)) {
         return this.value;
       }
-      
+
       // Sinon, utiliser targetRoutes depuis le row (préparé par la vue liste)
       if (this.row?.targetRoutes) {
         return this.row.targetRoutes;

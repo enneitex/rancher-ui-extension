@@ -1,0 +1,100 @@
+---
+# Test setup for IngressRoute with related resources
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik-test
+---
+# Service to be referenced
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-service
+  namespace: traefik-test
+spec:
+  selector:
+    app: test
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+# TLS Secret to be referenced
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-tls-secret
+  namespace: traefik-test
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNwakNDQVk0Q0NRRHc4T... # dummy cert
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBdU... # dummy key
+---
+# Middleware to be referenced
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: test-middleware
+  namespace: traefik-test
+spec:
+  addHeaders:
+    request:
+      headers:
+        X-Custom-Header: "Test"
+---
+# TLSOption to be referenced
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: test-tlsoption
+  namespace: traefik-test
+spec:
+  minVersion: VersionTLS12
+  maxVersion: VersionTLS13
+  cipherSuites:
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+---
+# TLSStore to be referenced
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: test-tlsstore
+  namespace: traefik-test
+spec:
+  defaultCertificate:
+    secretName: test-tls-secret
+---
+# IngressRoute with all related resources
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-ingressroute-with-relations
+  namespace: traefik-test
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`test.example.com`)
+      kind: Rule
+      services:
+        - name: test-service
+          port: 80
+          kind: Service
+      middlewares:
+        - test-middleware
+  tls:
+    secretName: test-tls-secret
+    options:
+      name: test-tlsoption
+      namespace: traefik-test
+    store:
+      name: test-tlsstore
+      namespace: traefik-test
+    certResolver: letsencrypt
+    domains:
+      - main: test.example.com
+        sans:
+          - "*.test.example.com"

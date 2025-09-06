@@ -52,7 +52,7 @@ export default {
       const protocol = hasWebsecure ? 'https://' : 'http://';
 
       const fullUrl = `${protocol}${firstHost}${pathValue}`;
-      
+
       return this.isValidUrl(fullUrl) ? { fullUrl } : null;
     }
   },
@@ -60,7 +60,7 @@ export default {
   methods: {
     hasTLS() {
       // Vérifier si l'IngressRoute a du TLS configuré
-      return !!(this.row?.tlsEnabled || 
+      return !!(this.row?.tlsEnabled ||
                 (this.row?.resource && this.row.resource.spec?.tls));
     },
 

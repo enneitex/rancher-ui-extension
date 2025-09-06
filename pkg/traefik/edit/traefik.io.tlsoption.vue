@@ -9,7 +9,6 @@
     :description="t('traefik.tlsOption.description')"
     @error="e=>errors = e"
     @finish="save"
-    @cancel="done"
   >
     <div class="row">
       <div class="col span-12">
@@ -28,16 +27,16 @@
 
     <Tabbed :side-tabs="true">
       <!-- TLS Configuration Tab -->
-      <Tab 
-        name="tls-config" 
-        :label="t('generic.configuration')" 
+      <Tab
+        name="tls-config"
+        :label="t('generic.configuration')"
         :weight="10"
         :error="tabErrors.config"
       >
         <div class="row">
           <div class="col span-12">
-            <Banner 
-              color="info" 
+            <Banner
+              color="info"
               :label="t('traefik.tlsOption.description')"
             />
           </div>
@@ -71,8 +70,8 @@
         <div class="row">
           <div class="col span-12">
             <h4>{{ t('traefik.tlsOption.cipherSuites.label') }}</h4>
-            <Banner 
-              color="warning" 
+            <Banner
+              color="warning"
               :label="t('traefik.tlsOption.cipherSuites.tooltip')"
             />
           </div>
@@ -146,8 +145,8 @@
         <!-- Client Auth Secret (alternative to CA Files) -->
         <div v-if="value.spec.clientAuth && value.spec.clientAuth.clientAuthType && value.spec.clientAuth.clientAuthType !== 'NoClientCert'" class="row">
           <div class="col span-12">
-            <Banner 
-              color="info" 
+            <Banner
+              color="info"
               label="Alternative: You can also store CA certificates in a Kubernetes Secret and reference it instead of using CA files."
             />
             <LabeledSelect
@@ -264,6 +263,14 @@ export default {
   },
 
   computed: {
+    // Override doneParams to exclude 'product' parameter
+    doneParams() {
+      return {
+        cluster: this.$route.params.cluster,
+        resource: this.$route.params.resource || this.value.type
+      };
+    },
+
     tlsVersionOptions() {
       return [
         { label: 'TLS 1.0', value: 'VersionTLS10' },
@@ -279,7 +286,7 @@ export default {
         { label: 'TLS_AES_128_GCM_SHA256', value: 'TLS_AES_128_GCM_SHA256' },
         { label: 'TLS_AES_256_GCM_SHA384', value: 'TLS_AES_256_GCM_SHA384' },
         { label: 'TLS_CHACHA20_POLY1305_SHA256', value: 'TLS_CHACHA20_POLY1305_SHA256' },
-        
+
         // TLS 1.2 and earlier
         { label: 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256', value: 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256' },
         { label: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', value: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384' },
@@ -342,16 +349,23 @@ export default {
 
   methods: {
     initializeDefaults() {
-      if (!this.value.spec) {
-        this.$set(this.value, 'spec', {});
+      // Créer une copie fraîche de l'objet pour assurer la réactivité
+      const valueCopy = JSON.parse(JSON.stringify(this.value));
+
+      // Initialiser les objets nécessaires
+      if (!valueCopy.spec) {
+        valueCopy.spec = {};
       }
 
       // Initialize clientAuth if not present
-      if (!this.value.spec.clientAuth) {
-        this.$set(this.value.spec, 'clientAuth', {
+      if (!valueCopy.spec.clientAuth) {
+        valueCopy.spec.clientAuth = {
           clientAuthType: 'NoClientCert'
-        });
+        };
       }
+
+      // Remplacer l'objet complet par la nouvelle copie
+      Object.assign(this.value, valueCopy);
     },
 
     willSave() {
@@ -375,8 +389,8 @@ export default {
       }
 
       // Remove empty clientAuth object
-      if (this.value.spec.clientAuth && 
-          Object.keys(this.value.spec.clientAuth).length === 1 && 
+      if (this.value.spec.clientAuth &&
+          Object.keys(this.value.spec.clientAuth).length === 1 &&
           this.value.spec.clientAuth.clientAuthType === 'NoClientCert') {
         delete this.value.spec.clientAuth;
       }

@@ -1,14 +1,21 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
+import { RadioGroup } from '@components/Form/Radio';
+import { Banner } from '@components/Banner';
+import TLSDomains from './TLSDomains';
 import { random32 } from '@shell/utils/string';
+import { get, set, remove } from '@shell/utils/object';
 
 export default {
+  emits: ['tls-validation-changed'],
+
   components: {
     LabeledInput,
     LabeledSelect,
-    Checkbox
+    RadioGroup,
+    Banner,
+    TLSDomains
   },
 
   props: {
@@ -25,40 +32,90 @@ export default {
     secretTargets: {
       type:    Array,
       default: () => []
+    },
+
+    tlsOptionsTargets: {
+      type:    Array,
+      default: () => []
+    },
+
+    tlsStoresTargets: {
+      type:    Array,
+      default: () => []
+    },
+
+    namespace: {
+      type: String,
+      default: 'default'
     }
   },
 
-  beforeUpdate() {
-    // Ensure domains have vKey for UI tracking
-    if (this.value.spec.tls?.domains) {
-      for (const domain of this.value.spec.tls.domains) {
-        if (!domain.vKey) {
-          domain['vKey'] = random32(1);
-        }
-      }
+  data() {
+    return {
+      tlsMode: false, // État direct pour le mode TLS (true = enabled, false = disabled)
+      // État direct pour le mode TLS (true = enabled, false = disabled)
+    };
+  },
+
+  mounted() {
+    // Always ensure spec.tls exists
+    if (!this.value.spec.tls) {
+      this.value.spec.tls = {};
     }
+
+    // Ensure domains is always an array
+    if (!Array.isArray(this.value.spec.tls.domains)) {
+      this.value.spec.tls.domains = [];
+    }
+
+    // Initialiser le tlsMode en fonction de l'état actuel
+    this.initTlsMode();
+    this.ensureDomainKeys();
   },
 
   computed: {
-    tlsEnabled: {
-      get() {
-        return !!this.value.spec.tls;
-      },
-      set(enabled) {
-        if (enabled) {
-          this.$set(this.value.spec, 'tls', {
-            secretName:   '',
-            domains:      [],
-            options:      {},
-            store:        {},
-            certResolver: ''
-          });
-        } else {
-          this.$delete(this.value.spec, 'tls');
-        }
-      }
+    // Évalue si TLS a des champs configurés
+    hasTlsFields() {
+      const tls = this.value.spec.tls;
+      if (!tls) return false;
+
+      return !!(
+        tls.secretName ||
+        tls.certResolver ||
+        (tls.options && tls.options.name) ||
+        (tls.store && tls.store.name) ||
+        (tls.domains && tls.domains.length > 0)
+      );
     },
 
+    // Validation du formulaire TLS
+    isValid() {
+      // Toujours valide si TLS est désactivé
+      // Si TLS est activé, au moins un champ doit être rempli
+      return !this.tlsMode || this.hasTlsFields;
+    },
+
+    // TLS Secret Name Value Helper
+    tlsSecretValue() {
+      return get(this.value, 'spec.tls.secretName') || '';
+    },
+
+    // TLS Certificate Resolver Value Helper
+    tlsCertResolverValue() {
+      return get(this.value, 'spec.tls.certResolver') || '';
+    },
+
+    // TLS Options Value Helper
+    tlsOptionsValue() {
+      return get(this.value, 'spec.tls.options.name') || '';
+    },
+
+    // TLS Store Value Helper
+    tlsStoreValue() {
+      return get(this.value, 'spec.tls.store.name') || '';
+    },
+
+    // Helper pour l'affichage des sans
     sansAsString() {
       return (domain) => {
         return Array.isArray(domain.sans) ? domain.sans.join(', ') : '';
@@ -67,23 +124,142 @@ export default {
   },
 
   methods: {
-    addDomain() {
-      if (!this.value.spec.tls.domains) {
-        this.$set(this.value.spec.tls, 'domains', []);
+    // Initialise l'état tlsMode en fonction des données existantes
+    initTlsMode() {
+      // Si TLS a des champs renseignés, considérer comme activé
+      this.tlsMode = this.hasTlsFields;
+    },
+
+    // Gère le changement de mode TLS (enable/disable)
+    tlsModeChanged(enabled) {
+      if (!enabled) {
+        // Clear all TLS fields but keep the object empty
+        this.value.spec.tls = {};
+      } else {
+        // Ensure TLS object exists with domains array
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
+        // Ensure domains is always an array
+        if (!Array.isArray(this.value.spec.tls.domains)) {
+          this.value.spec.tls.domains = [];
+        }
       }
-      this.value.spec.tls.domains.push({
-        vKey: random32(1),
-        main: '',
-        sans: []
-      });
+
+      // Emit validation status
+      this.$emit('tls-validation-changed', this.isValid);
     },
 
-    removeDomain(index) {
-      this.value.spec.tls.domains.splice(index, 1);
+    // Set TLS Secret Name
+    updateSecretName(val) {
+      if (!this.value.spec.tls) {
+        this.value.spec.tls = {};
+      }
+
+      // Ensure domains is always an array when updating TLS fields
+      if (!Array.isArray(this.value.spec.tls.domains)) {
+        this.value.spec.tls.domains = [];
+      }
+
+      if (val) {
+        set(this.value, 'spec.tls.secretName', val);
+      } else {
+        remove(this.value, 'spec.tls.secretName');
+      }
     },
 
-    updateDomainSans(domain, value) {
-      domain.sans = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+    // Set TLS Certificate Resolver
+    updateCertResolver(val) {
+      if (!this.value.spec.tls) {
+        this.value.spec.tls = {};
+      }
+
+      // Ensure domains is always an array when updating TLS fields
+      if (!Array.isArray(this.value.spec.tls.domains)) {
+        this.value.spec.tls.domains = [];
+      }
+
+      if (val) {
+        set(this.value, 'spec.tls.certResolver', val);
+      } else {
+        remove(this.value, 'spec.tls.certResolver');
+      }
+    },
+
+    // Set TLS Options using Rancher utilities
+    ensureOptionsObject(val) {
+      // Ensure domains is always an array when updating TLS fields
+      if (!Array.isArray(this.value.spec.tls?.domains)) {
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
+        this.value.spec.tls.domains = [];
+      }
+
+      if (val) {
+        set(this.value, 'spec.tls.options.name', val);
+      } else {
+        remove(this.value, 'spec.tls.options');
+      }
+    },
+
+    // Set TLS Store using Rancher utilities
+    ensureStoreObject(val) {
+      // Ensure domains is always an array when updating TLS fields
+      if (!Array.isArray(this.value.spec.tls?.domains)) {
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
+        this.value.spec.tls.domains = [];
+      }
+
+      if (val) {
+        set(this.value, 'spec.tls.store.name', val);
+      } else {
+        remove(this.value, 'spec.tls.store');
+      }
+    },
+
+    ensureDomainKeys() {
+      // Ensure all domains have vKey for UI tracking
+      if (this.value.spec.tls?.domains) {
+        for (const domain of this.value.spec.tls.domains) {
+          if (!domain.vKey) {
+            domain.vKey = random32(1);
+          }
+        }
+      }
+    }
+  },
+
+  updated() {
+    this.ensureDomainKeys();
+  },
+
+  watch: {
+    isValid: {
+      handler(valid) {
+        this.$emit('tls-validation-changed', valid);
+      },
+      immediate: true
+    },
+
+    // Si les données TLS changent, réinitialiser l'état tlsMode
+    hasTlsFields: {
+      handler(hasFields) {
+        // Si on a des champs mais que le mode est désactivé, activer le mode
+        if (hasFields && !this.tlsMode) {
+          this.tlsMode = true;
+        }
+      }
+    },
+
+    // Quand tlsMode change, émettre l'événement de validation
+    tlsMode(enabled) {
+      // Si TLS est désactivé, c'est toujours valide
+      // Si TLS est activé, dépend des champs remplis
+      const isValid = !enabled || this.hasTlsFields;
+      this.$emit('tls-validation-changed', isValid);
     }
   }
 };
@@ -91,36 +267,53 @@ export default {
 
 <template>
   <div class="tls-configuration">
-    <!-- TLS Enable Checkbox -->
+    <!-- RadioGroup for enabling/disabling TLS -->
     <div class="row mb-20">
       <div class="col span-12">
-        <Checkbox
-          v-model:value="tlsEnabled"
+        <RadioGroup
+          v-model:value="tlsMode"
+          name="tls-mode"
+          :options="[false, true]"
+          :labels="[t('traefik.ingressRoute.tls.mode.disabled'), t('traefik.ingressRoute.tls.mode.enabled')]"
           :mode="mode"
-          :label="t('traefik.ingressRoute.tls.enable')"
+          @update:value="tlsModeChanged"
         />
       </div>
     </div>
 
-    <template v-if="tlsEnabled">
+    <!-- Validation message if TLS enabled but no fields filled -->
+    <Banner
+      v-if="tlsMode && !hasTlsFields && mode !== 'view'"
+      color="warning"
+      :label="t('traefik.ingressRoute.tls.validation.atLeastOne')"
+    />
+
+    <!-- TLS Configuration - visible when mode is enabled -->
+    <template v-if="tlsMode">
       <!-- TLS Secret and Options -->
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
-            v-model:value="value.spec.tls.secretName"
+            :value="tlsSecretValue"
             :mode="mode"
             :label="t('traefik.ingressRoute.tls.secretName.label')"
             :placeholder="t('traefik.ingressRoute.tls.secretName.placeholder')"
             :tooltip="t('traefik.ingressRoute.tls.secretName.tooltip')"
             :options="secretTargets"
+            :clearable="true"
+            @update:value="updateSecretName"
           />
         </div>
         <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.tls.options.name"
+          <LabeledSelect
+            :value="tlsOptionsValue"
             :mode="mode"
             :label="t('traefik.ingressRoute.tls.options.label')"
+            :placeholder="t('traefik.ingressRoute.tls.options.placeholder')"
             :tooltip="t('traefik.ingressRoute.tls.options.tooltip')"
+            :options="tlsOptionsTargets"
+            :clearable="true"
+            @update:value="ensureOptionsObject"
           />
         </div>
       </div>
@@ -129,19 +322,24 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model:value="value.spec.tls.certResolver"
+            :value="tlsCertResolverValue"
             :mode="mode"
             :label="t('traefik.ingressRoute.tls.certResolver.label')"
             :placeholder="t('traefik.ingressRoute.tls.certResolver.placeholder')"
             :tooltip="t('traefik.ingressRoute.tls.certResolver.tooltip')"
+            @update:value="updateCertResolver"
           />
         </div>
         <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.tls.store.name"
+          <LabeledSelect
+            :value="tlsStoreValue"
             :mode="mode"
             :label="t('traefik.ingressRoute.tls.store.label')"
+            :placeholder="t('traefik.ingressRoute.tls.store.placeholder')"
             :tooltip="t('traefik.ingressRoute.tls.store.tooltip')"
+            :options="tlsStoresTargets"
+            :clearable="true"
+            @update:value="ensureStoreObject"
           />
         </div>
       </div>
@@ -149,54 +347,20 @@ export default {
       <!-- Domains Section -->
       <div class="domains-section">
         <h5>{{ t('traefik.ingressRoute.tls.domains.label') }}</h5>
-        
-        <div v-for="(domain, i) in value.spec.tls.domains" :key="domain.vKey" class="row mb-10">
-          <div class="col span-5">
-            <LabeledInput
-              v-model:value="domain.main"
-              :mode="mode"
-              :label="t('traefik.ingressRoute.tls.domains.main.label')"
-              :placeholder="t('traefik.ingressRoute.tls.domains.main.placeholder')"
-            />
-          </div>
-          <div class="col span-5">
-            <LabeledInput
-              :model-value="sansAsString(domain)"
-              :mode="mode"
-              :label="t('traefik.ingressRoute.tls.domains.sans.label')"
-              :placeholder="t('traefik.ingressRoute.tls.domains.sans.placeholder')"
-              :tooltip="t('traefik.ingressRoute.tls.domains.sans.tooltip')"
-              @update:model-value="updateDomainSans(domain, $event)"
-            />
-          </div>
-          <div class="col span-2">
-            <button 
-              type="button" 
-              class="btn role-link remove-btn" 
-              @click="removeDomain(i)"
-            >
-              {{ t('generic.remove') }}
-            </button>
-          </div>
-        </div>
-
-        <div class="row mt-15">
-          <div class="col span-12">
-            <button 
-              type="button" 
-              class="btn role-secondary" 
-              @click="addDomain"
-            >
-              {{ t('traefik.ingressRoute.tls.domains.addDomain') }}
-            </button>
-          </div>
-        </div>
+        <TLSDomains
+          :value="value"
+          :mode="mode"
+          :namespace="namespace"
+        />
       </div>
+
     </template>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+/* Ensure global radio button styles are not scoped out */
+
 .domains-section {
   margin-top: 20px;
   padding-top: 20px;

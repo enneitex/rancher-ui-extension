@@ -1,13 +1,17 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import { Banner } from '@components/Banner';
 import { random32 } from '@shell/utils/string';
 
 export default {
-  emits:      ['remove'],
+  emits:      ['remove', 'validation-changed'],
   components: {
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
+    ArrayListGrouped,
+    Banner
   },
 
   props: {
@@ -25,6 +29,11 @@ export default {
       type:    Array,
       default: () => []
     },
+    
+    middlewareTargets: {
+      type:    Array,
+      default: () => []
+    },
 
     mode: {
       type:    String,
@@ -36,24 +45,18 @@ export default {
       default: true
     }
   },
+  
+  data() {
+    return {};
+  },
 
-  beforeUpdate() {
-    // Ensure services have vKey for UI tracking
-    if (this.value.services) {
-      for (const service of this.value.services) {
-        if (!service.vKey) {
-          service['vKey'] = random32(1);
-        }
-      }
+  created() {
+    // Initialize empty arrays if not present
+    if (!this.value.services) {
+      this.value.services = [];
     }
-
-    // Ensure middlewares have vKey for UI tracking
-    if (this.value.middlewares) {
-      for (const middleware of this.value.middlewares) {
-        if (!middleware.vKey) {
-          middleware['vKey'] = random32(1);
-        }
-      }
+    if (!this.value.middlewares) {
+      this.value.middlewares = [];
     }
   },
 
@@ -62,6 +65,34 @@ export default {
       return this.t('generic.route') + ' ' + (this.index + 1);
     },
 
+    isValid() {
+      const validMatch = !!this.value.match;
+      const validServices = this.value.services?.length > 0 && 
+                         this.value.services.every(s => !!s.name && !!s.port);
+      
+      return validMatch && validServices;
+    },
+
+    matchError() {
+      return !this.value.match ? this.t('validation.required', { key: this.t('traefik.ingressRoute.routes.match.label') }) : '';
+    },
+    
+    // Liste des options de middlewares pour le sélecteur
+    middlewareOptions() {
+      return this.middlewareTargets.map(middleware => ({
+        label: middleware.label,
+        value: middleware.value
+      }));
+    },
+  },
+
+  watch: {
+    isValid: {
+      handler(valid) {
+        this.$emit('validation-changed', valid);
+      },
+      immediate: true
+    },
   },
 
   methods: {
@@ -71,37 +102,6 @@ export default {
 
     focus() {
       this.$refs.match.focus();
-    },
-
-    addService() {
-      if (!this.value.services) {
-        this.$set(this.value, 'services', []);
-      }
-      this.value.services.push({
-        vKey:           random32(1),
-        name: '',
-        port: '',
-        kind: 'Service'
-      });
-    },
-
-    removeService(index) {
-      this.value.services.splice(index, 1);
-    },
-
-    addMiddleware() {
-      if (!this.value.middlewares) {
-        this.$set(this.value, 'middlewares', []);
-      }
-      this.value.middlewares.push({
-        vKey:      random32(1),
-        name:      '',
-        namespace: ''
-      });
-    },
-
-    removeMiddleware(index) {
-      this.value.middlewares.splice(index, 1);
     },
 
     updateServiceName(service, serviceName) {
@@ -163,6 +163,8 @@ export default {
           :label="t('traefik.ingressRoute.routes.match.label')"
           :placeholder="t('traefik.ingressRoute.routes.match.placeholder')"
           :tooltip="t('traefik.ingressRoute.routes.match.tooltip')"
+          :required="true"
+          :error="matchError"
         />
       </div>
     </div>
@@ -171,104 +173,89 @@ export default {
     <!-- Services Section -->
     <div class="services-section">
       <h5>{{ t('traefik.ingressRoute.routes.service.label') }}</h5>
-
-      <div v-for="(service, i) in value.services" :key="service.vKey" class="service-row">
-        <!-- Basic service configuration -->
-        <div class="row mb-10">
-          <div class="col span-5">
-            <LabeledSelect
-              v-model:value="service.name"
-              :mode="mode"
-              :label="t('traefik.ingressRoute.routes.service.label')"
-              :tooltip="t('traefik.ingressRoute.routes.service.tooltip')"
-              :placeholder="t('traefik.ingressRoute.routes.service.placeholder')"
-              :options="serviceTargets"
-              @update:model-value="updateServiceName(service, $event)"
-            />
+      
+      <ArrayListGrouped
+        v-model:value="value.services"
+        :mode="mode"
+        :add-label="`${t('generic.add')} ${t('traefik.ingressRoute.routes.service.label')}`"
+        :default-add-value="{ name: '', port: '', kind: 'Service' }"
+        :initial-empty-row="false"
+        @add="() => {}"
+      >
+        <template #default="{ row }">
+          <div class="row mb-10">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="row.value.name"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.routes.service.label')"
+                :tooltip="t('traefik.ingressRoute.routes.service.tooltip')"
+                :placeholder="t('traefik.ingressRoute.routes.service.placeholder')"
+                :options="serviceTargets"
+                :required="true"
+                :error="row.value.name ? '' : t('validation.required', { key: t('traefik.ingressRoute.routes.service.label') })"
+                @update:model-value="updateServiceName(row.value, $event)"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="row.value.port"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.routes.port.label')"
+                :placeholder="t('traefik.ingressRoute.routes.port.placeholder')"
+                :tooltip="t('traefik.ingressRoute.routes.port.tooltip')"
+                :options="getPortOptions(row.value)"
+                :required="true"
+                :error="row.value.port ? '' : t('validation.required', { key: t('traefik.ingressRoute.routes.port.label') })"
+                @update:model-value="updateServicePort(row.value, $event)"
+              />
+            </div>
           </div>
-          <div class="col span-5">
-            <LabeledSelect
-              v-model:value="service.port"
-              :mode="mode"
-              :label="t('traefik.ingressRoute.routes.port.label')"
-              :placeholder="t('traefik.ingressRoute.routes.port.placeholder')"
-              :tooltip="t('traefik.ingressRoute.routes.port.tooltip')"
-              :options="getPortOptions(service)"
-              @update:model-value="updateServicePort(service, $event)"
-            />
-          </div>
-          <div class="col span-2">
-            <button 
-              v-if="value.services.length > 1"
-              type="button" 
-              class="btn role-link remove-btn" 
-              @click="removeService(i)"
-            >
-              {{ t('generic.remove') }}
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="row mt-15">
-        <div class="col span-12">
-          <button 
-            type="button" 
-            class="btn role-secondary" 
-            @click="addService"
-          >
-            {{ t('generic.add') }} {{ t('traefik.ingressRoute.routes.service.label') }}
-          </button>
-        </div>
-      </div>
+        </template>
+      </ArrayListGrouped>
     </div>
 
     <!-- Middlewares Section -->
     <div class="middleware-section">
       <h5>{{ t('traefik.ingressRoute.middleware.label') }}</h5>
-
-      <div v-for="(middleware, i) in value.middlewares" :key="middleware.vKey" class="row mb-10">
-        <div class="col span-5">
-          <LabeledInput
-            v-model:value="middleware.name"
-            :mode="mode"
-            :label="t('traefik.ingressRoute.middleware.name.label')"
-            :placeholder="t('traefik.ingressRoute.middleware.name.placeholder')"
-            :tooltip="t('traefik.ingressRoute.middleware.name.tooltip')"
-          />
-        </div>
-        <div class="col span-5">
-          <LabeledInput
-            v-model:value="middleware.namespace"
-            :mode="mode"
-            :label="t('traefik.ingressRoute.middleware.namespace.label')"
-            :placeholder="t('traefik.ingressRoute.middleware.namespace.placeholder')"
-            :tooltip="t('traefik.ingressRoute.middleware.namespace.tooltip')"
-          />
-        </div>
-        <div class="col span-2">
-          <button 
-            type="button" 
-            class="btn role-link remove-btn" 
-            @click="removeMiddleware(i)"
-          >
-            {{ t('generic.remove') }}
-          </button>
-        </div>
-      </div>
-
-      <div class="row mt-15">
-        <div class="col span-12">
-          <button 
-            type="button" 
-            class="btn role-secondary" 
-            @click="addMiddleware"
-          >
-            {{ t('traefik.ingressRoute.middleware.addMiddleware') }}
-          </button>
-        </div>
-      </div>
+      
+      <Banner 
+        v-if="mode !== 'view' && middlewareTargets.length === 0"
+        color="info" 
+        :label="t('traefik.ingressRoute.middleware.noMiddlewaresAvailable')"
+      />
+      
+      <ArrayListGrouped
+        v-if="middlewareTargets.length > 0"
+        v-model:value="value.middlewares"
+        :mode="mode"
+        :add-label="`${t('generic.add')} ${t('traefik.ingressRoute.middleware.label')}`"
+        :default-add-value="{ name: '', namespace: '' }"
+        :initial-empty-row="false"
+        @add="() => {}"
+      >
+        <template #default="{ row }">
+          <div class="row mb-10">
+            <div class="col span-12">
+              <LabeledSelect
+                v-model:value="row.value.name"
+                :mode="mode"
+                :label="t('traefik.ingressRoute.middleware.name.label')"
+                :placeholder="t('traefik.ingressRoute.middleware.name.placeholder')"
+                :tooltip="t('traefik.ingressRoute.middleware.name.tooltip')"
+                :options="middlewareOptions"
+                @update:model-value="(value) => {
+                  row.value.name = value;
+                  const target = middlewareTargets.find(m => m.value === value);
+                  if (target) {
+                    row.value.namespace = target.namespace;
+                  }
+                }"
+              />
+            </div>
+          </div>
+        </template>
+      </ArrayListGrouped>
     </div>
   </div>
 </template>

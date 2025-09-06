@@ -1,10 +1,7 @@
-const PRODUCT_NAME = 'traefik';
-
 export function init($plugin: any, store: any) {
   const {
     product,
     basicType,
-    virtualType,
     configureType
   } = $plugin.DSL(store, $plugin.name);
 

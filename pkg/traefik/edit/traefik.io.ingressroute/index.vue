@@ -4,6 +4,7 @@ import { allHash } from '@shell/utils/promise';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { SERVICE, SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
@@ -13,10 +14,12 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
 import Routes from './Routes';
 import TLSConfiguration from './TLSConfiguration';
+import IngressClassTab from './IngressClassTab.vue';
 
 export default {
   name:         'CRUIngressRoute',
   inheritAttrs: false,
+  emits:        ['input'],
   components:   {
     CruResource,
     NameNsDescription,
@@ -26,23 +29,33 @@ export default {
     Tab,
     Tabbed,
     LabeledSelect,
-    Banner
+    Banner,
+    IngressClassTab
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     const promises = {
-      services:    this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      secrets:     this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      middlewares: this.$store.dispatch('cluster/findAll', { type: 'traefik.io.middleware' })
+      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      middlewares:    this.$store.dispatch('cluster/findAll', { type: 'traefik.io.middleware' }),
+      tlsOptions:     this.$store.dispatch('cluster/findAll', { type: 'traefik.io.tlsoption' }),
+      tlsStores:      this.$store.dispatch('cluster/findAll', { type: 'traefik.io.tlsstore' }),
+      ingressClasses: this.$store.dispatch('cluster/findAll', { type: 'networking.k8s.io.ingressclass', opt: { force: true } })
     };
 
     const hash = await allHash(promises);
-    
-    this.services = hash.services;
-    this.secrets = hash.secrets;
-    this.middlewares = hash.middlewares;
+
+    this.allServices = hash.services || [];
+    this.allSecrets = hash.secrets || [];
+    this.allMiddlewares = hash.middlewares || [];
+    this.tlsOptions = hash.tlsOptions || [];
+    this.tlsStores = hash.tlsStores || [];
+    this.ingressClasses = hash.ingressClasses || [];
+
+    // Filter resources by namespace
+    this.filterResourcesByNamespace();
   },
 
   data() {
@@ -72,13 +85,75 @@ export default {
     }
 
     return {
-      services:    [],
-      secrets:     [],
-      middlewares: []
+      allServices:    [],
+      allSecrets:     [],
+      allMiddlewares: [],
+      services:       [],
+      secrets:        [],
+      middlewares:    [],
+      tlsOptions:     [],
+      tlsStores:      [],
+      ingressClasses: [],
+      errors:         [],
+      routesValid:    false,
+      tlsValid:       true,
+      selectedIngressClass: '', // Store the selected ingress class
+
+      // Liste des chemins gérés par les composants enfants
+      fvReportedValidationPaths: [
+        'spec.routes.match',
+        'spec.routes.services.name',
+        'spec.routes.services.port',
+        'spec.entryPoints'
+      ],
+
+      // FormValidation ruleSets
+      fvFormRuleSets: [
+        // Routes validation - pour toutes les routes
+        {
+          path: 'spec.routes.match',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.routes.match.label'
+        },
+        // Service validation - pour tous les services dans toutes les routes
+        {
+          path: 'spec.routes.services.name',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.routes.service.label'
+        },
+        {
+          path: 'spec.routes.services.port',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.routes.port.label'
+        },
+        // Entry Points validation
+        {
+          path: 'spec.entryPoints',
+          rules: ['required'],
+          translationKey: 'traefik.ingressRoute.entryPoints.label'
+        }
+      ]
     };
   },
 
   computed: {
+    // Override doneParams to exclude 'product' parameter
+    doneParams() {
+      return {
+        cluster: this.$route.params.cluster,
+        resource: this.$route.params.resource || this.value.type
+      };
+    },
+
+    // Computed for tab error indicators
+    tabErrors() {
+      return {
+        entrypoints: !this.entryPointsValid,
+        routes:      !this.routesValid || this.fvGetPathErrors(['spec.routes.match', 'spec.routes.services.name', 'spec.routes.services.port']).length > 0,
+        tls:         !this.tlsValid
+      };
+    },
+
     entryPointOptions() {
       return [
         { label: this.t('traefik.ingressRoute.entryPoints.websecure'), value: 'websecure' }
@@ -89,9 +164,27 @@ export default {
       return this.mode === _VIEW;
     },
 
+    entryPointsValid() {
+      // Vérifie que spec.entryPoints est un tableau contenant 'websecure'
+      return Array.isArray(this.value.spec.entryPoints) &&
+             this.value.spec.entryPoints.includes('websecure');
+    },
+
+    // Use the FormValidation mixin for validation
+    validationPassed() {
+      // Validate both through FormValidation and the component validation events
+      return this.fvFormIsValid && this.routesValid && this.tlsValid && this.entryPointsValid;
+    },
+
+    validationErrors() {
+      const errors = [];
+
+      // Include errors from FormValidation
+      return [...this.fvUnreportedValidationErrors, ...errors, ...this.errors];
+    },
+
     serviceTargets() {
       return this.services
-        .filter(service => service.namespace === this.value.metadata.namespace)
         .map(service => ({
           label: service.metadata.name,
           value: service.metadata.name,
@@ -101,10 +194,7 @@ export default {
 
     secretTargets() {
       return this.secrets
-        .filter(secret => 
-          secret.namespace === this.value.metadata.namespace && 
-          secret._type === 'kubernetes.io/tls'
-        )
+        .filter(secret => secret._type === 'kubernetes.io/tls')
         .map(secret => ({
           label: secret.metadata.name,
           value: secret.metadata.name
@@ -113,21 +203,109 @@ export default {
 
     middlewareTargets() {
       return this.middlewares
-        .filter(middleware => middleware.metadata.namespace === this.value.metadata.namespace)
         .map(middleware => ({
           label: middleware.metadata.name,
           value: middleware.metadata.name,
           namespace: middleware.metadata.namespace
         }));
+    },
+
+    tlsOptionsTargets() {
+      return this.tlsOptions
+        .map(tlsOption => ({
+          label: tlsOption.metadata.name,
+          value: tlsOption.metadata.name
+        }));
+    },
+
+    tlsStoresTargets() {
+      return this.tlsStores
+        .map(tlsStore => ({
+          label: tlsStore.metadata.name,
+          value: tlsStore.metadata.name
+        }));
     }
   },
 
   created() {
+    this.registerBeforeHook(this.beforeSave, 'beforeSave');
     this.registerBeforeHook(this.willSave, 'willSave');
+
+    // Initialize the selected ingress class from existing annotation
+    this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
+  },
+
+  watch: {
+    'value.spec.routes': {
+      handler(routes) {
+        // Surveiller les routes pour mettre à jour les validations si nécessaire
+        this.routesValid = routes && routes.length > 0 && routes.every(route => !!route.match);
+      },
+      deep: true,
+      immediate: true
+    },
+
+    // Watch namespace changes to filter resources
+    'value.metadata.namespace': {
+      handler(namespace) {
+        if (namespace) {
+          this.filterResourcesByNamespace();
+        }
+      },
+      immediate: true
+    }
   },
 
   methods: {
+    beforeSave() {
+      // Capturer l'annotation IngressClass avant toute modification
+      this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
+    },
+
+    filterResourcesByNamespace() {
+      const namespace = this.value?.metadata?.namespace;
+      if (!namespace) {
+        return;
+      }
+
+      // Filter services, secrets, and middlewares by namespace
+      this.services = this.allServices.filter(s => s.metadata.namespace === namespace);
+      this.secrets = this.allSecrets.filter(s => s.metadata.namespace === namespace);
+      this.middlewares = this.allMiddlewares.filter(m => m.metadata.namespace === namespace);
+
+      // TLS options and stores are already filtered in computed properties
+      this.tlsOptions = this.tlsOptions.filter(t => t.metadata.namespace === namespace);
+      this.tlsStores = this.tlsStores.filter(t => t.metadata.namespace === namespace);
+    },
+
+    updateIngressClass() {
+      // Store the ingress class value and force update
+      this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
+      this.$forceUpdate();
+    },
+
+    forceUpdate() {
+      // Force a UI update to ensure changes to annotations are reflected
+      this.$forceUpdate();
+    },
+
     willSave() {
+      // Préservation de l'annotation IngressClass suivant le pattern Rancher
+      // S'assurer que les structures metadata et annotations existent
+      if (!this.value.metadata) {
+        this.value.metadata = {};
+      }
+      if (!this.value.metadata.annotations) {
+        this.value.metadata.annotations = {};
+      }
+
+      // Direct assignment/deletion following Rancher pattern
+      if (this.selectedIngressClass && this.selectedIngressClass !== '') {
+        this.value.metadata.annotations['kubernetes.io/ingress.class'] = this.selectedIngressClass;
+      } else {
+        delete this.value.metadata.annotations['kubernetes.io/ingress.class'];
+      }
+
       // Clean up vKey from all nested objects before saving
       this.value.spec.routes.forEach(route => {
         delete route.vKey;
@@ -153,14 +331,26 @@ export default {
         this.value.spec.tls.domains.forEach(domain => delete domain.vKey);
       }
 
-      // Clean up empty routes
-      this.value.spec.routes = this.value.spec.routes.filter(route => 
-        route.match && route.services?.some(s => s.name)
-      );
+      // Ne pas nettoyer les routes avec match vide pour permettre à l'API
+      // de générer des erreurs de validation appropriées
 
-      // Clean up TLS configuration
-      if (this.value.spec.tls && !this.value.spec.tls.secretName && !this.value.spec.tls.certResolver) {
-        delete this.value.spec.tls;
+      // Traitement TLS configuration
+      // Si tls n'a pas de champs remplis (mais existe),
+      // garder spec.tls comme un objet vide plutôt que de le supprimer
+      if (this.value.spec.tls) {
+        const hasTlsContent = !!(this.value.spec.tls.secretName ||
+                              this.value.spec.tls.certResolver ||
+                              (this.value.spec.tls.options && this.value.spec.tls.options.name) ||
+                              (this.value.spec.tls.store && this.value.spec.tls.store.name) ||
+                              (this.value.spec.tls.domains && this.value.spec.tls.domains.length > 0));
+
+        // Si aucun contenu TLS, s'assurer que c'est un objet vide
+        if (!hasTlsContent) {
+          this.value.spec.tls = {};
+        }
+      } else {
+        // Si tls n'existe pas, créer un objet vide
+        this.value.spec.tls = {};
       }
     }
   }
@@ -173,11 +363,10 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
-    :errors="errors"
+    :validation-passed="validationPassed"
+    :errors="validationErrors"
     @error="e => errors = e"
     @finish="save"
-    @cancel="done"
   >
     <div v-if="value">
       <div>
@@ -190,20 +379,30 @@ export default {
 
       <Tabbed :side-tabs="true">
         <!-- Entry Points Tab -->
-        <Tab 
-          name="entrypoints" 
-          :label="t('traefik.ingressRoute.entryPoints.label')" 
+        <Tab
+          name="entrypoints"
+          :label="t('traefik.ingressRoute.entryPoints.label')"
           :weight="10"
+          :error="tabErrors.entrypoints"
         >
           <div class="row">
             <div class="col span-12">
-              <Banner 
-                color="info" 
+              <Banner
+                color="info"
                 :label="t('traefik.ingressRoute.entryPoints.description')"
               />
             </div>
           </div>
-          
+
+          <div v-if="!entryPointsValid" class="row mb-10">
+            <div class="col span-12">
+              <Banner
+                color="error"
+                :label="t('traefik.ingressRoute.validation.entryPointsRequired')"
+              />
+            </div>
+          </div>
+
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
@@ -213,35 +412,56 @@ export default {
                 :multiple="true"
                 :taggable="true"
                 :options="entryPointOptions"
+                :error="!entryPointsValid ? t('traefik.ingressRoute.validation.entryPointsRequired') : null"
               />
             </div>
           </div>
         </Tab>
 
         <!-- Routes Tab -->
-        <Tab 
-          name="routes" 
-          :label="t('traefik.ingressRoute.routes.label')" 
+        <Tab
+          name="routes"
+          :label="t('traefik.ingressRoute.routes.label')"
           :weight="9"
+          :error="tabErrors.routes"
         >
           <Routes
             :value="value"
-            :mode="mode" 
+            :mode="mode"
             :service-targets="serviceTargets"
             :middleware-targets="middlewareTargets"
+            @validation-changed="val => routesValid = val"
           />
         </Tab>
 
         <!-- TLS Tab -->
-        <Tab 
-          name="tls" 
-          :label="t('traefik.ingressRoute.tls.label')" 
+        <Tab
+          name="tls"
+          :label="t('traefik.ingressRoute.tls.label')"
           :weight="8"
+          :error="tabErrors.tls"
         >
           <TLSConfiguration
             :value="value"
             :mode="mode"
             :secret-targets="secretTargets"
+            :tls-options-targets="tlsOptionsTargets"
+            :tls-stores-targets="tlsStoresTargets"
+            @tls-validation-changed="val => tlsValid = val"
+          />
+        </Tab>
+
+        <!-- IngressClass Tab -->
+        <Tab
+          name="ingress-class"
+          :label="t('traefik.ingressRoute.ingressClass.tab')"
+          :weight="7"
+        >
+          <IngressClassTab
+            :value="value"
+            :mode="mode"
+            :ingress-classes="ingressClasses"
+            @update="updateIngressClass"
           />
         </Tab>
 

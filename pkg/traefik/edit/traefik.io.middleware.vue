@@ -9,7 +9,6 @@
     :description="t('traefik.middleware.description')"
     @error="e=>errors = e"
     @finish="save"
-    @cancel="done"
   >
     <div class="row">
       <div class="col span-12">
@@ -28,16 +27,16 @@
 
     <Tabbed :side-tabs="true">
       <!-- Configuration Tab -->
-      <Tab 
-        name="config" 
-        :label="t('generic.configuration')" 
+      <Tab
+        name="config"
+        :label="t('generic.configuration')"
         :weight="10"
         :error="tabErrors.config"
       >
         <div class="row">
           <div class="col span-12">
-            <Banner 
-              color="info" 
+            <Banner
+              color="info"
               :label="t('traefik.middleware.description')"
             />
           </div>
@@ -134,7 +133,7 @@
           <!-- Headers Middleware -->
           <div v-else-if="middlewareType === 'headers'" class="config-section">
             <h4>{{ t('traefik.middleware.type.headers') }}</h4>
-            
+
             <!-- Custom Request Headers -->
             <div class="headers-subsection">
               <h5>Custom Request Headers</h5>
@@ -370,6 +369,14 @@ export default {
   },
 
   computed: {
+    // Override doneParams to exclude 'product' parameter
+    doneParams() {
+      return {
+        cluster: this.$route.params.cluster,
+        resource: this.$route.params.resource || this.value.type
+      };
+    },
+
     middlewareTypeOptions() {
       return [
         { label: this.t('traefik.middleware.type.addHeaders'), value: 'addHeaders' },

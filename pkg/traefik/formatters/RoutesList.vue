@@ -86,16 +86,16 @@ export default {
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
           const display = `${namespace}${name || '-'}${weight}`;
-          
+
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.row?.metadata?.namespace;
-          
+
           // Create link only if service has a valid name
           let targetLink = null;
           if (name && name !== '-') {
             targetLink = this.createServiceLink(name, serviceNamespace);
           }
-          
+
           return {
             display,
             targetLink
@@ -131,17 +131,17 @@ export default {
       const protocol = (hasWebsecure || hasTLS) ? 'https://' : 'http://';
 
       const fullUrl = `${protocol}${firstHost}${pathValue}`;
-      
+
       return this.isValidUrl(fullUrl) ? fullUrl : null;
     },
 
     createServiceLink(serviceName, namespace) {
       if (!serviceName) return null;
       if (!namespace) return null;
-      
+
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       // Create direct path instead of using router-link params
       return `/c/${cluster}/explorer/service/${namespace}/${serviceName}`;
     },
@@ -174,7 +174,7 @@ export default {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -235,7 +235,7 @@ export default {
 .service-link {
   color: var(--link);
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
     color: var(--link-hover);

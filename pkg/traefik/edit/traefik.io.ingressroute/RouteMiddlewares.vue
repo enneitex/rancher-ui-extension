@@ -91,9 +91,9 @@ export default {
         />
       </div>
       <div class="col span-2">
-        <button 
-          type="button" 
-          class="btn role-link remove-btn" 
+        <button
+          type="button"
+          class="btn role-link remove-btn"
           @click="removeMiddleware(i)"
         >
           {{ t('generic.remove') }}
@@ -103,9 +103,9 @@ export default {
 
     <div class="row mt-15">
       <div class="col span-12">
-        <button 
-          type="button" 
-          class="btn role-secondary" 
+        <button
+          type="button"
+          class="btn role-secondary"
           @click="addMiddleware"
         >
           {{ t('traefik.ingressRoute.middleware.addMiddleware') }}

@@ -1,17 +1,24 @@
 traefik:
   description: Traefik resources manage HTTP, TCP, and UDP routing with advanced load balancing, middleware, and TLS termination capabilities.
-  
+
   # IngressRoute specific translations
   ingressRoute:
     description: IngressRoute defines HTTP routing rules from external traffic to internal services based on host, path, and middleware configurations.
     ingressClass:
       label: Ingress Class
+      tab: Ingress Class
+      placeholder: "Select an ingress class"
+      description: "IngressClass specifies which ingress controller will handle this IngressRoute. If not specified, the default ingress controller will be used."
+      tooltip: "The ingress class to use for this IngressRoute (optional). Controls which ingress controller will handle this resource."
+      none: "None (use default)"
+      noIngressClasses: "No IngressClass resources found in the cluster. You may need to create an IngressClass first."
+      selected: "Using IngressClass: {ingressClass}"
     entryPoints:
       label: Entry Points
       description: Network entry points where Traefik listens for incoming traffic
       addEntryPoint: Add Entry Point
       web: "web (HTTP - 80)"
-      websecure: "websecure (HTTPS - 443)" 
+      websecure: "websecure (HTTPS - 443)"
       traefik: "traefik (Dashboard - 8080)"
     routes:
       label: Routes
@@ -19,6 +26,7 @@ traefik:
       count: Routes Count
       addRoute: Add Route
       removeRoute: Remove Route
+      routeLabel: "Route {index}"
       hosts:
         label: Hosts
       host:
@@ -67,24 +75,39 @@ traefik:
         tooltip: Route priority - higher values take precedence
     middleware:
       label: Middleware
-      selectMiddleware: Select a middleware to add
+      available: Available Middlewares
+      applied: Applied Middlewares
+      selectMiddleware: Select a middleware
+      clickToAdd: Click on a middleware in the list to add it
       addMiddleware: Add Middleware
-      orderInfo: Middlewares are applied in the same order as their declaration before forwarding requests to services. Use arrows to reorder.  
+      orderInfo: Middlewares are applied in the same order as their declaration before forwarding requests to services. Use arrows to reorder.
       removeMiddleware: Remove Middleware
       name:
         label: Middleware Name
-        placeholder: "middleware-name or namespace/middleware-name"
+        placeholder: "Select a middleware"
         required: Middleware name is required
         doesntExist: The selected middleware does not exist
       namespace:
         label: Namespace
         tooltip: Namespace of the middleware resource
       tooltip: Chain of middleware to apply to requests before reaching the service
+      alreadyAdded: This middleware is already added to the route
+      noMiddlewaresAvailable: No middlewares available in this namespace
     tls:
       label: TLS Configuration
       enable: Enable TLS
-      enabled: TLS Enabled
+      enabled: TLS is enabled for this IngressRoute
       disabled: TLS is disabled. The spec.tls field will be set to an empty object {}.
+      notConfigured: TLS is not configured for this IngressRoute. Using default TLS settings.
+      certificate:
+        title: Certificate
+      configuration:
+        title: TLS Configuration
+      mode:
+        enabled: Enabled
+        disabled: Disabled
+      validation:
+        atLeastOne: When TLS is enabled, at least one field must be configured
       secretName:
         label: TLS Secret Name
         placeholder: "e.g. my-tls-secret"
@@ -99,6 +122,8 @@ traefik:
         label: Domains
         addDomain: Add Domain
         removeDomain: Remove Domain
+        domain: "Domain {index}"
+        editTitle: "Edit Domain {index}"
         main:
           label: Main Domain
           placeholder: "e.g. example.com"
@@ -115,17 +140,29 @@ traefik:
         label: TLS Store
         placeholder: "e.g. default"
         tooltip: Reference to TLSStore resource for certificate storage
+      tlsDomains:
+        label: "TLS Domains"
+        tooltip: "Configure domains and Subject Alternative Names for TLS certificates"
+        available: "Available TLS Domains"
+        noAvailableDomains: "No available TLS domains found in this namespace"
+        defaultCertificate: "Default Certificate"
+        certificateStore: "Certificate Store"
+        inlineStore: "Inline Store"
+        commonName: "Common Name"
+        subjectAltNames: "Subject Alternative Names"
+        use: "Use This Domain"
+        selected: "Selected"
     validation:
       entryPointsRequired: At least one entry point must be specified
-      routesRequired: At least one route must be configured  
+      routesRequired: At least one route must be configured
       matchRequired: Match rule is required for each route
       serviceRequired: Target service is required for each route
       portRequired: Port is required when service is specified
       tlsSecretRequired: TLS secret name is required when TLS is enabled
       middlewareNameRequired: Middleware name is required
       domainRequired: Domain is required for TLS certificate
-      
-  # Middleware specific translations  
+
+  # Middleware specific translations
   middleware:
     description: Middleware components that can transform requests and responses before they reach services.
     type:
@@ -149,7 +186,7 @@ traefik:
     spec:
       label: Configuration
       tooltip: Middleware-specific configuration parameters
-      
+
   # TLS Options specific translations
   tlsOption:
     description: TLS Options define advanced TLS configurations including cipher suites, TLS versions, and client authentication.
@@ -157,7 +194,7 @@ traefik:
       label: Minimum TLS Version
       tooltip: Minimum supported TLS version
     maxVersion:
-      label: Maximum TLS Version  
+      label: Maximum TLS Version
       tooltip: Maximum supported TLS version
     cipherSuites:
       label: Cipher Suites
@@ -174,7 +211,7 @@ traefik:
       caFiles:
         label: CA Files
         tooltip: Certificate Authority files for client authentication
-      
+
   # Headers used in tables
   headers:
     hosts: "Hosts"
@@ -187,11 +224,11 @@ traefik:
     priority: "Priority"
     status: "Status"
     type: "Type"
-    
+
   # Common labels
   labels:
     ingressRoute: "IngressRoute"
-    middleware: "Middleware" 
+    middleware: "Middleware"
     tlsOption: "TLSOption"
     serversTransport: "ServersTransport"
     traefikService: "TraefikService"
@@ -199,11 +236,11 @@ traefik:
   product:
     label: "Traefik"
     description: "Modern HTTP reverse proxy and load balancer"
-    
+
 # Generic translations (missing from main rancher translations)
 generic:
   configuration: "Configuration"
-  status: "Status"  
+  status: "Status"
   route: "Route"
   routes: "Routes"
   yaml: "YAML"
@@ -258,14 +295,14 @@ generic:
 product:
   traefik: "Traefik"
 
-# Type labels  
+# Type labels
 typeLabel:
   'traefik.io.ingressroute': "IngressRoute"
-  'traefik.io.ingressroutetcp': "IngressRouteTCPs" 
+  'traefik.io.ingressroutetcp': "IngressRouteTCPs"
   'traefik.io.ingressrouteudp': "IngressRouteUDPs"
   'traefik.io.middleware': "Middlewares"
   'traefik.io.middlewaretcp': "MiddlewareTCPs"
   'traefik.io.tlsoption': "TLS Options"
-  'traefik.io.tlsstore': "TLS Stores" 
+  'traefik.io.tlsstore': "TLS Stores"
   'traefik.io.traefikservice': "Traefik Services"
   'traefik.io.serverstransport': "Servers Transports"

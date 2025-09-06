@@ -41,7 +41,7 @@ export default {
       if (Array.isArray(this.value)) {
         return this.value;
       }
-      
+
       // Sinon, utiliser servicesData depuis le row
       if (this.row?.servicesData) {
         return this.row.servicesData;
@@ -74,7 +74,7 @@ export default {
 .service-link {
   color: var(--link);
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
     color: var(--link-hover);

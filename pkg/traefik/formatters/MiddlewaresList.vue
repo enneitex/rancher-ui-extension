@@ -41,7 +41,7 @@ export default {
       if (Array.isArray(this.value)) {
         return this.value.filter(mw => mw && mw !== '-');
       }
-      
+
       // Sinon, utiliser middlewaresData depuis le row (avec liens)
       if (Array.isArray(this.row?.middlewaresData)) {
         return this.row.middlewaresData.filter(mw => mw && mw.display && mw.display !== '-');
@@ -87,7 +87,7 @@ export default {
 .middleware-link {
   color: var(--link);
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
     color: var(--link-hover);

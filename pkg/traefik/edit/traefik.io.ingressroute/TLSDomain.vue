@@ -2,7 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
-  emits:      ['update', 'remove'],
+  emits:      ['remove', 'validation-changed'],
   components: {
     LabeledInput
   },
@@ -29,36 +29,28 @@ export default {
     }
   },
 
-  data() {
-    return {
-      localDomain: { ...this.value }
-    };
-  },
-
-  watch: {
-    value: {
-      handler(newValue) {
-        this.localDomain = { ...newValue };
-      },
-      deep: true
-    },
-
-    localDomain: {
-      handler(newValue) {
-        this.$emit('update', newValue);
-      },
-      deep: true
-    }
-  },
-
   computed: {
     sansAsString: {
       get() {
-        return Array.isArray(this.localDomain.sans) ? this.localDomain.sans.join(', ') : '';
+        return Array.isArray(this.value.sans) ? this.value.sans.join(', ') : '';
       },
-      set(value) {
-        this.localDomain.sans = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+      set(val) {
+        this.value.sans = val ? val.split(',').map(s => s.trim()).filter(s => s) : [];
       }
+    },
+
+    isValid() {
+      // A domain entry is valid if at least main domain is provided
+      return !!this.value.main;
+    }
+  },
+
+  watch: {
+    isValid: {
+      handler(valid) {
+        this.$emit('validation-changed', valid, this.index);
+      },
+      immediate: true
     }
   },
 
@@ -74,16 +66,18 @@ export default {
   <div class="domain-row row mb-10">
     <div class="col span-5">
       <LabeledInput
-        v-model="localDomain.main"
+        v-model:value="value.main"
         :mode="mode"
         :label="t('traefik.ingressRoute.tls.domains.main.label')"
         :placeholder="t('traefik.ingressRoute.tls.domains.main.placeholder')"
         :rules="rules"
+        :required="true"
+        :error="!value.main ? t('validation.required', { key: t('traefik.ingressRoute.tls.domains.main.label') }) : ''"
       />
     </div>
     <div class="col span-5">
       <LabeledInput
-        v-model="sansAsString"
+        v-model:value="sansAsString"
         :mode="mode"
         :label="t('traefik.ingressRoute.tls.domains.sans.label')"
         :placeholder="t('traefik.ingressRoute.tls.domains.sans.placeholder')"
@@ -91,9 +85,9 @@ export default {
       />
     </div>
     <div class="col span-2">
-      <button 
-        type="button" 
-        class="btn role-link remove-btn" 
+      <button
+        type="button"
+        class="btn role-link remove-btn"
         @click="remove"
       >
         {{ t('generic.remove') }}

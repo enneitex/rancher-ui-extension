@@ -41,7 +41,7 @@ export default {
         const hasWebsecure = this.row?.hasWebsecure || this.row?.tlsEnabled;
         const protocol = hasWebsecure ? 'https://' : 'http://';
         const path = this.row?.pathDisplay || '';
-        
+
         return `${protocol}${this.hostDisplay}${path}`;
       }
       return null;

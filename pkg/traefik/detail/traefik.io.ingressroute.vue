@@ -2,6 +2,7 @@
   <ResourceTabs
     :value="value"
     :mode="mode"
+    :need-related="hasValidRelationships"
   >
     <!-- Routes Tab -->
     <Tab
@@ -47,6 +48,48 @@ export default {
     mode: {
       type: String,
       default: 'view'
+    }
+  },
+
+  data() {
+    return {
+      relationshipsInitialized: false
+    };
+  },
+
+  async mounted() {
+    // Initialize relationships once on mount
+    if (this.value && typeof this.value.refreshRelationships === 'function') {
+      this.value.refreshRelationships();
+      this.relationshipsInitialized = true;
+
+      // Wait for next render cycle without forcing update
+      await this.$nextTick();
+    }
+  },
+
+  computed: {
+    // Check if we have valid relationships
+    hasValidRelationships() {
+      // Access the getter to ensure reactivity
+      const relationships = this.value?.relationships || this.value?.metadata?.relationships;
+      return Array.isArray(relationships) && relationships.length > 0;
+    }
+  },
+
+  watch: {
+    // Watch for value changes and refresh relationships
+    value: {
+      handler(newValue) {
+        // Only refresh if value changed and not already initialized
+        if (newValue &&
+            typeof newValue.refreshRelationships === 'function' &&
+            !this.relationshipsInitialized) {
+          newValue.refreshRelationships();
+          this.relationshipsInitialized = true;
+        }
+      },
+      immediate: false  // Avoid execution before mounted
     }
   },
 

@@ -80,7 +80,7 @@ export default {
       return this.routes.map((route, index) => {
         // Extract hosts from match for URL calculation
         const hostMatches = route.match ? route.match.match(/Host\(`([^`]+)`\)/g) : [];
-        const hosts = hostMatches ? hostMatches.map(match => 
+        const hosts = hostMatches ? hostMatches.map(match =>
           match.match(/Host\(`([^`]+)`\)/)[1]
         ) : [];
 
@@ -94,7 +94,7 @@ export default {
           // Use the first host for URL calculation, or fallback
           const firstHost = hosts[0] || '';
           const fullPath = firstHost ? this.createFullPath(firstHost, pathValue) : '';
-          
+
           hostRules.push({
             host: firstHost,
             path: pathValue,
@@ -113,16 +113,16 @@ export default {
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
           const display = `${namespace}${name || '-'}${weight}`;
-          
+
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.value.metadata.namespace;
-          
+
           // Create link only if service has a valid name
           let targetLink = null;
           if (name && name !== '-') {
             targetLink = this.createServiceLink(name, serviceNamespace);
           }
-          
+
           return {
             display,
             targetLink,
@@ -135,16 +135,16 @@ export default {
           const name = mw.name;
           const namespace = mw.namespace ? `${mw.namespace}/` : '';
           const display = `${namespace}${name}`;
-          
+
           // Use the middleware's namespace if defined, otherwise fall back to IngressRoute's namespace
           const middlewareNamespace = mw.namespace || this.value.metadata.namespace;
-          
+
           // Create link only if middleware has a valid name
           let targetLink = null;
           if (name && name !== '-') {
             targetLink = this.createMiddlewareLink(name, middlewareNamespace);
           }
-          
+
           return {
             display,
             targetLink,
@@ -173,43 +173,43 @@ export default {
   methods: {
     createServiceLink(serviceName, namespace) {
       if (!serviceName) return null;
-      
+
       const targetNamespace = namespace || this.value?.metadata?.namespace;
       if (!targetNamespace) return null;
-      
+
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       // Create direct path instead of using router-link params
       return `/c/${cluster}/explorer/service/${targetNamespace}/${serviceName}`;
     },
 
     createMiddlewareLink(middlewareName, namespace) {
       if (!middlewareName) return null;
-      
+
       const targetNamespace = namespace || this.value?.metadata?.namespace;
       if (!targetNamespace) return null;
-      
+
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       // Create direct path for middleware (stays in explorer since middlewares are CRDs)
       return `/c/${cluster}/explorer/traefik.io.middleware/${targetNamespace}/${middlewareName}`;
     },
 
     createFullPath(host, path) {
       if (!host) return path;
-      
+
       // Détermine le protocole (assume HTTPS si TLS est configuré)
       const protocol = this.value.spec?.tls ? 'https' : 'http';
       const fullHost = `${protocol}://${host}`;
-      
+
       return path ? `${fullHost}${path}` : fullHost;
     },
 
     isValidUrl(url) {
       if (!url) return false;
-      
+
       try {
         new URL(url);
         return true;
@@ -240,7 +240,7 @@ export default {
 .service-link {
   color: var(--link);
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
     color: var(--link-hover);
@@ -253,13 +253,13 @@ export default {
 
 .text-center {
   text-align: center;
-  
+
   .icon {
     font-size: 2em;
     color: var(--muted);
     margin-bottom: 10px;
   }
-  
+
   p {
     color: var(--muted);
     font-style: italic;

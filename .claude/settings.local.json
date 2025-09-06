@@ -37,7 +37,19 @@
       "Read(/home/dev/kind/github/rancher/dashboard/shell/edit/networking.k8s.io.ingress/**)",
       "mcp__playwright__browser_navigate",
       "Read(/home/dev/**)",
-      "Read(/home/dev/.cache/yarn/v6/npm-@rancher-shell-3.0.5-rc.8-integrity/node_modules/@rancher/shell/cloud-credential/**)"
+      "Read(/home/dev/.cache/yarn/v6/npm-@rancher-shell-3.0.5-rc.8-integrity/node_modules/@rancher/shell/cloud-credential/**)",
+      "Read(/home/dev/**)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type",
+      "Read(/home/dev/kind/**)",
+      "mcp__playwright__browser_evaluate",
+      "Read(/home/dev/**)",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_close",
+      "WebFetch(domain:doc.traefik.io)",
+      "Read(/home/dev/kind/github/rancher/**)",
+      "Read(/home/dev/kind/github/rancher/**)"
     ],
     "deny": [],
     "ask": []
