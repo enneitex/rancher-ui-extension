@@ -1,6 +1,14 @@
 traefik:
   description: Traefik resources manage HTTP, TCP, and UDP routing with advanced load balancing, middleware, and TLS termination capabilities.
 
+  # Common translations
+  entryPoints:
+    title: EntryPoints
+    noEntryPoints: No entrypoint configured
+
+  route: Route
+  configuration: Configuration
+
   # IngressRoute specific translations
   ingressRoute:
     description: IngressRoute defines HTTP routing rules from external traffic to internal services based on host, path, and middleware configurations.
@@ -13,8 +21,8 @@ traefik:
       none: "None (use default)"
       noIngressClasses: "No IngressClass resources found in the cluster. You may need to create an IngressClass first."
     entryPoints:
-      label: Entry Points
-      description: Network entry points where Traefik listens for incoming traffic
+      label: EntryPoints
+      description: Network EntryPoints where Traefik listens for incoming traffic
       websecure: "websecure (HTTPS - 443)"
     routes:
       label: Routes
@@ -33,13 +41,14 @@ traefik:
         tooltip: Service port number or named port
     middleware:
       label: Middleware
-      noMiddlewaresAvailable: No middlewares available in this namespace
+      noMiddlewaresAvailable: No middleware available in this namespace
       name:
         label: Middleware Name
         placeholder: "Select a middleware"
         tooltip: Namespace of the middleware resource
     tls:
       label: TLS Configuration
+      enabled: TLS is enabled for this IngressRoute
       notConfigured: TLS is not configured for this IngressRoute. Using default TLS settings.
       mode:
         enabled: Enabled
@@ -79,12 +88,12 @@ traefik:
   ingressRouteTCP:
     description: IngressRouteTCP defines TCP routing rules for non-HTTP traffic like databases, messaging systems, and other TCP services.
     entryPoints:
-      label: Entry Points
-      description: TCP entry points where Traefik listens for incoming TCP traffic
+      label: EntryPoints
+      description: TCP entryPoints where Traefik listens for incoming TCP traffic
       placeholder: "e.g. 31000, 31001"
-      tooltip: "Comma-separated list of TCP entry points configured in Traefik. Examples: 31000, 31001"
+      tooltip: "Comma-separated list of TCP entryPoints configured in Traefik. Examples: 31000, 31001"
     validation:
-      entryPointsRequired: At least one entry point must be specified
+      entryPointsRequired: At least one entryPoint must be specified
     route:
       label: TCP Route
       match:
@@ -94,15 +103,16 @@ traefik:
       port:
         label: Port
     middleware:
-      label: TCP Middlewares
-      noMiddlewaresAvailable: No TCP middlewares available in this namespace
+      label: MiddlewareTCP
+      noMiddlewaresAvailable: No middlewareTCP available in this namespace
     tls:
+      enabled: TLS is enabled for this IngressRouteTCP
       label: TLS Configuration
       notConfigured: "TLS is not configured for this IngressRouteTCP. Using default TLS settings."
       passthrough:
         label: Enable TLS Passthrough
-        description: "TLS Passthrough is enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
-        tooltip: "When enabled, TLS traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
+        description: "When enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
+        tooltip: "When enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
 
   # Middleware specific translations
   middleware:
@@ -151,18 +161,9 @@ traefik:
   product:
     label: "Traefik"
 
-# Generic translations (only essential ones used)
-generic:
-  configuration: "Configuration"
-  route: "Route"
-  add: "Add"
-  remove: "Remove"
-  none: "None"
-  labelsAndAnnotations: "Labels & Annotations"
-
 # Type labels (only implemented types)
 typeLabel:
   'traefik.io.ingressroute': "IngressRoute"
-  'traefik.io.ingressroutetcp': "IngressRouteTCPs"
-  'traefik.io.middleware': "Middlewares"
-  'traefik.io.tlsoption': "TLS Options"
+  'traefik.io.ingressroutetcp': "IngressRouteTCP"
+  'traefik.io.middleware': "Middleware"
+  'traefik.io.tlsoption': "TLSOption"

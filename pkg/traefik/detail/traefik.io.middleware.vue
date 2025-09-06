@@ -104,7 +104,7 @@ export default {
       <!-- Configuration Tab -->
       <Tab
         name="config"
-        :label="t('generic.configuration')"
+        :label="t('traefik.configuration')"
         :weight="10"
       >
       <div class="row">

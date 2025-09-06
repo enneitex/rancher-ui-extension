@@ -9,7 +9,7 @@
       >
         <div class="banner-content">
           <i class="icon icon-lock" />
-          <span>{{ t('traefik.ingressRoute.tls.enabled') }}</span>
+          <span>{{ isTcp ? t('traefik.ingressRouteTCP.tls.enabled') : t('traefik.ingressRoute.tls.enabled') }}</span>
         </div>
       </Banner>
 

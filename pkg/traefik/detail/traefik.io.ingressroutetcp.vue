@@ -3,6 +3,7 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import RoutesTable from '../components/RoutesTable.vue';
 import TLSConfiguration from '../components/TLSConfiguration.vue';
+import EntryPoints from '../components/EntryPoints.vue';
 
 export default {
   name: 'IngressRouteTCPDetail',
@@ -11,7 +12,8 @@ export default {
     ResourceTabs,
     Tab,
     RoutesTable,
-    TLSConfiguration
+    TLSConfiguration,
+    EntryPoints
   },
 
   props: {
@@ -76,29 +78,34 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs
-    :value="value"
-    :mode="mode"
-    :need-related="hasValidRelationships"
-  >
-    <!-- Routes Tab -->
-    <Tab
-      name="routes"
-      :label="t('traefik.ingressRouteTCP.route.label')"
-      :weight="10"
+  <div>
+    <!-- EntryPoints section at the top -->
+    <EntryPoints :value="value" :mode="mode" />
+    
+    <ResourceTabs
+      :value="value"
+      :mode="mode"
+      :need-related="hasValidRelationships"
     >
-      <RoutesTable :value="value" :is-tcp="true" />
-    </Tab>
+      <!-- Routes Tab -->
+      <Tab
+        name="routes"
+        :label="t('traefik.ingressRouteTCP.route.label')"
+        :weight="10"
+      >
+        <RoutesTable :value="value" :is-tcp="true" />
+      </Tab>
 
-    <!-- TLS Tab -->
-    <Tab
-      name="tls"
-      :label="t('traefik.ingressRouteTCP.tls.label')"
-      :weight="9"
-    >
-      <TLSConfiguration :value="value" :is-tcp="true" />
-    </Tab>
-  </ResourceTabs>
+      <!-- TLS Tab -->
+      <Tab
+        name="tls"
+        :label="t('traefik.ingressRouteTCP.tls.label')"
+        :weight="9"
+      >
+        <TLSConfiguration :value="value" :is-tcp="true" />
+      </Tab>
+    </ResourceTabs>
+  </div>
 </template>
 
 <style lang="scss" scoped>

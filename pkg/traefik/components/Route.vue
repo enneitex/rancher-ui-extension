@@ -28,7 +28,7 @@ export default {
       type:    Array,
       default: () => []
     },
-    
+
     middlewareTargets: {
       type:    Array,
       default: () => []
@@ -49,7 +49,7 @@ export default {
       default: false
     }
   },
-  
+
   data() {
     return {};
   },
@@ -67,21 +67,21 @@ export default {
 
   computed: {
     routeTitle() {
-      return this.t('generic.route') + ' ' + (this.index + 1);
+      return this.t('traefik.route') + ' ' + (this.index + 1);
     },
 
     isValid() {
       const validMatch = !!this.value.match;
-      const validServices = this.value.services?.length > 0 && 
+      const validServices = this.value.services?.length > 0 &&
                          this.value.services.every(s => !!s.name && !!s.port);
-      
+
       return validMatch && validServices;
     },
 
     matchError() {
       return !this.value.match ? this.t('validation.required', { key: this.t('traefik.ingressRoute.routes.match.label') }) : '';
     },
-    
+
     // Liste des options de middlewares pour le sélecteur
     middlewareOptions() {
       return this.middlewareTargets.map(middleware => ({
@@ -134,7 +134,7 @@ export default {
       if (!selectedService || !selectedService.ports) {
         return [];
       }
-      
+
       return selectedService.ports.map(port => ({
         label: port.name ? `${port.name} (${port.port})` : port.port,
         value: port.name || port.port
@@ -148,10 +148,10 @@ export default {
   <div class="route-card">
     <div class="route-header">
       <h4>{{ routeTitle }}</h4>
-      <button 
+      <button
         v-if="canRemove"
-        type="button" 
-        class="btn role-link" 
+        type="button"
+        class="btn role-link"
         @click="remove"
       >
         {{ t('generic.remove') }}
@@ -178,7 +178,7 @@ export default {
     <!-- Services Section -->
     <div class="services-section">
       <h5>{{ t('traefik.ingressRoute.routes.service.label') }}</h5>
-      
+
       <ArrayListGrouped
         v-model:value="value.services"
         :mode="mode"
@@ -223,13 +223,13 @@ export default {
     <!-- Middlewares Section -->
     <div class="middleware-section">
       <h5>{{ isTcp ? t('traefik.ingressRouteTCP.middleware.label') : t('traefik.ingressRoute.middleware.label') }}</h5>
-      
-      <Banner 
+
+      <Banner
         v-if="mode !== 'view' && middlewareTargets.length === 0"
-        color="info" 
+        color="info"
         :label="isTcp ? t('traefik.ingressRouteTCP.middleware.noMiddlewaresAvailable') : t('traefik.ingressRoute.middleware.noMiddlewaresAvailable')"
       />
-      
+
       <ArrayListGrouped
         v-if="middlewareTargets.length > 0"
         v-model:value="value.middlewares"
