@@ -2,6 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import TLSDomains from './TLSDomains';
 import { random32 } from '@shell/utils/string';
@@ -14,6 +15,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
+    Checkbox,
     Banner,
     TLSDomains
   },
@@ -47,13 +49,23 @@ export default {
     namespace: {
       type: String,
       default: 'default'
+    },
+
+    supportPassthrough: {
+      type: Boolean,
+      default: false
+    },
+
+    isTcp: {
+      type: Boolean,
+      default: false
     }
   },
 
   data() {
     return {
       tlsMode: false, // État direct pour le mode TLS (true = enabled, false = disabled)
-      // État direct pour le mode TLS (true = enabled, false = disabled)
+      passthrough: false // État pour le TLS Passthrough (TCP uniquement)
     };
   },
 
@@ -67,6 +79,9 @@ export default {
     if (!Array.isArray(this.value.spec.tls.domains)) {
       this.value.spec.tls.domains = [];
     }
+
+    // Initialize passthrough state
+    this.passthrough = !!this.value.spec.tls.passthrough;
 
     // Initialiser le tlsMode en fonction de l'état actuel
     this.initTlsMode();
@@ -82,6 +97,7 @@ export default {
       return !!(
         tls.secretName ||
         tls.certResolver ||
+        tls.passthrough ||
         (tls.options && tls.options.name) ||
         (tls.store && tls.store.name) ||
         (tls.domains && tls.domains.length > 0)
@@ -229,6 +245,22 @@ export default {
           }
         }
       }
+    },
+
+    // Handle TLS Passthrough toggle
+    updatePassthrough(enabled) {
+      if (!this.value.spec.tls) {
+        this.value.spec.tls = {};
+      }
+
+      if (enabled) {
+        this.value.spec.tls.passthrough = true;
+      } else {
+        delete this.value.spec.tls.passthrough;
+      }
+
+      // Emit validation status
+      this.$emit('tls-validation-changed', this.isValid);
     }
   },
 
@@ -260,6 +292,11 @@ export default {
       // Si TLS est activé, dépend des champs remplis
       const isValid = !enabled || this.hasTlsFields;
       this.$emit('tls-validation-changed', isValid);
+    },
+
+    // Watch passthrough changes
+    passthrough(enabled) {
+      this.updatePassthrough(enabled);
     }
   }
 };
@@ -281,6 +318,12 @@ export default {
       </div>
     </div>
 
+    <Banner
+      v-if="!tlsMode && mode !== 'view'"
+      color="info"
+      :label="isTcp ? t('traefik.ingressRouteTCP.tls.notConfigured') : t('traefik.ingressRoute.tls.notConfigured')"
+    />
+
     <!-- Validation message if TLS enabled but no fields filled -->
     <Banner
       v-if="tlsMode && !hasTlsFields && mode !== 'view'"
@@ -290,6 +333,18 @@ export default {
 
     <!-- TLS Configuration - visible when mode is enabled -->
     <template v-if="tlsMode">
+
+      <div v-if="supportPassthrough" class="row mb-20">
+        <div class="col span-12">
+          <Checkbox
+            v-model:value="passthrough"
+            :mode="mode"
+            :label="t('traefik.ingressRouteTCP.tls.passthrough.label')"
+            :tooltip="t('traefik.ingressRouteTCP.tls.passthrough.tooltip')"
+          />
+        </div>
+      </div>
+
       <!-- TLS Secret and Options -->
       <div class="row mb-20">
         <div class="col span-6">

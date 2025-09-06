@@ -1,3 +1,101 @@
+<script>
+import ResourceTabs from '@shell/components/form/ResourceTabs';
+import Tab from '@shell/components/Tabbed/Tab';
+import { Banner } from '@components/Banner';
+import YamlEditor from '@shell/components/YamlEditor';
+import { get } from '@shell/utils/object';
+
+export default {
+  name: 'MiddlewareDetail',
+
+  components: {
+    ResourceTabs,
+    Tab,
+    Banner,
+    YamlEditor
+  },
+
+  props: {
+    value: {
+      type: Object,
+      required: true
+    },
+    mode: {
+      type: String,
+      default: 'view'
+    }
+  },
+
+  computed: {
+    middlewareType() {
+      if (!this.value.spec) return null;
+      return Object.keys(this.value.spec)[0] || null;
+    },
+
+    middlewareConfig() {
+      if (!this.middlewareType) return null;
+      return get(this.value, `spec.${this.middlewareType}`);
+    },
+
+    middlewareTypeDisplay() {
+      const typeMap = {
+        addHeaders: this.t('traefik.middleware.type.addHeaders'),
+        basicAuth: this.t('traefik.middleware.type.basicAuth'),
+        compress: this.t('traefik.middleware.type.compress'),
+        headers: this.t('traefik.middleware.type.headers'),
+        rateLimit: this.t('traefik.middleware.type.rateLimit'),
+        redirectScheme: this.t('traefik.middleware.type.redirectScheme'),
+        stripPrefix: this.t('traefik.middleware.type.stripPrefix'),
+        retry: this.t('traefik.middleware.type.retry'),
+        circuitBreaker: this.t('traefik.middleware.type.circuitBreaker'),
+        errors: this.t('traefik.middleware.type.errors'),
+        forwardAuth: this.t('traefik.middleware.type.forwardAuth'),
+        ipWhiteList: this.t('traefik.middleware.type.ipWhiteList'),
+        redirectRegex: this.t('traefik.middleware.type.redirectRegex'),
+        replacePath: this.t('traefik.middleware.type.replacePath'),
+        replacePathRegex: this.t('traefik.middleware.type.replacePathRegex'),
+        stripPrefixRegex: this.t('traefik.middleware.type.stripPrefixRegex')
+      };
+
+      return typeMap[this.middlewareType] || this.middlewareType || 'Unknown';
+    },
+
+    middlewareTypeDescription() {
+      const descriptions = {
+        addHeaders: 'Adds custom headers to requests',
+        basicAuth: 'Provides HTTP basic authentication',
+        compress: 'Enables response compression',
+        headers: 'Manages request and response headers',
+        rateLimit: 'Limits request rate per client',
+        redirectScheme: 'Redirects HTTP to HTTPS',
+        stripPrefix: 'Removes prefixes from request paths'
+      };
+
+      return descriptions[this.middlewareType] || 'Custom middleware configuration';
+    },
+
+    middlewareDescription() {
+      return `${this.middlewareTypeDisplay}: ${this.middlewareTypeDescription}`;
+    },
+
+    secretLink() {
+      if (!this.middlewareConfig?.secret) {
+        return null;
+      }
+
+      const cluster = this.$route.params.cluster;
+      if (!cluster) return null;
+
+      const namespace = this.value.metadata.namespace;
+      if (!namespace) return null;
+
+      // Create direct path instead of using router-link params
+      return `/c/${cluster}/explorer/secret/${namespace}/${this.middlewareConfig.secret}`;
+    }
+  }
+};
+</script>
+
 <template>
   <ResourceTabs
     :value="value"
@@ -222,104 +320,6 @@
     </Tab>
   </ResourceTabs>
 </template>
-
-<script>
-import ResourceTabs from '@shell/components/form/ResourceTabs';
-import Tab from '@shell/components/Tabbed/Tab';
-import { Banner } from '@components/Banner';
-import YamlEditor from '@shell/components/YamlEditor';
-import { get } from '@shell/utils/object';
-
-export default {
-  name: 'MiddlewareDetail',
-
-  components: {
-    ResourceTabs,
-    Tab,
-    Banner,
-    YamlEditor
-  },
-
-  props: {
-    value: {
-      type: Object,
-      required: true
-    },
-    mode: {
-      type: String,
-      default: 'view'
-    }
-  },
-
-  computed: {
-    middlewareType() {
-      if (!this.value.spec) return null;
-      return Object.keys(this.value.spec)[0] || null;
-    },
-
-    middlewareConfig() {
-      if (!this.middlewareType) return null;
-      return get(this.value, `spec.${this.middlewareType}`);
-    },
-
-    middlewareTypeDisplay() {
-      const typeMap = {
-        addHeaders: this.t('traefik.middleware.type.addHeaders'),
-        basicAuth: this.t('traefik.middleware.type.basicAuth'),
-        compress: this.t('traefik.middleware.type.compress'),
-        headers: this.t('traefik.middleware.type.headers'),
-        rateLimit: this.t('traefik.middleware.type.rateLimit'),
-        redirectScheme: this.t('traefik.middleware.type.redirectScheme'),
-        stripPrefix: this.t('traefik.middleware.type.stripPrefix'),
-        retry: this.t('traefik.middleware.type.retry'),
-        circuitBreaker: this.t('traefik.middleware.type.circuitBreaker'),
-        errors: this.t('traefik.middleware.type.errors'),
-        forwardAuth: this.t('traefik.middleware.type.forwardAuth'),
-        ipWhiteList: this.t('traefik.middleware.type.ipWhiteList'),
-        redirectRegex: this.t('traefik.middleware.type.redirectRegex'),
-        replacePath: this.t('traefik.middleware.type.replacePath'),
-        replacePathRegex: this.t('traefik.middleware.type.replacePathRegex'),
-        stripPrefixRegex: this.t('traefik.middleware.type.stripPrefixRegex')
-      };
-
-      return typeMap[this.middlewareType] || this.middlewareType || 'Unknown';
-    },
-
-    middlewareTypeDescription() {
-      const descriptions = {
-        addHeaders: 'Adds custom headers to requests',
-        basicAuth: 'Provides HTTP basic authentication',
-        compress: 'Enables response compression',
-        headers: 'Manages request and response headers',
-        rateLimit: 'Limits request rate per client',
-        redirectScheme: 'Redirects HTTP to HTTPS',
-        stripPrefix: 'Removes prefixes from request paths'
-      };
-
-      return descriptions[this.middlewareType] || 'Custom middleware configuration';
-    },
-
-    middlewareDescription() {
-      return `${this.middlewareTypeDisplay}: ${this.middlewareTypeDescription}`;
-    },
-
-    secretLink() {
-      if (!this.middlewareConfig?.secret) {
-        return null;
-      }
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      const namespace = this.value.metadata.namespace;
-      if (!namespace) return null;
-
-      // Create direct path instead of using router-link params
-      return `/c/${cluster}/explorer/secret/${namespace}/${this.middlewareConfig.secret}`;
-    }
-  }
-};
-</script>
 
 <style lang="scss" scoped>
 .middleware-type-badge {

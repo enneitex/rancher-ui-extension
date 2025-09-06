@@ -2,8 +2,8 @@
   <div class="tls-view-container">
     <!-- TLS Enabled State -->
     <div v-if="tlsConfig">
-      <Banner 
-        color="success" 
+      <Banner
+        color="success"
         :closable="false"
         class="mb-20"
       >
@@ -12,7 +12,20 @@
           <span>{{ t('traefik.ingressRoute.tls.enabled') }}</span>
         </div>
       </Banner>
-      
+
+      <!-- TLS Passthrough for TCP Routes -->
+      <Banner
+        v-if="isTcp && tlsConfig.passthrough"
+        color="warning"
+        :closable="false"
+        class="mb-20"
+      >
+        <div class="banner-content">
+          <i class="icon icon-shuffle" />
+          <span>{{ t('traefik.ingressRouteTCP.tls.passthrough.description') }}</span>
+        </div>
+      </Banner>
+
       <div class="tls-cards-grid">
         <!-- Certificate Card -->
         <Card v-if="hasCertificateInfo" class="tls-card" :show-actions="false">
@@ -107,14 +120,14 @@
     </div>
 
     <!-- TLS Disabled State -->
-    <Banner 
+    <Banner
       v-else
-      color="info" 
+      color="info"
       :closable="false"
     >
       <div class="banner-content">
         <i class="icon icon-info-circle" />
-        <span>{{ t('traefik.ingressRoute.tls.notConfigured') }}</span>
+        <span>{{ isTcp ? t('traefik.ingressRouteTCP.tls.notConfigured') : t('traefik.ingressRoute.tls.notConfigured') }}</span>
       </div>
     </Banner>
   </div>
@@ -144,6 +157,10 @@ export default {
     value: {
       type: Object,
       required: true
+    },
+    isTcp: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -176,7 +193,7 @@ export default {
 
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 
@@ -191,7 +208,7 @@ export default {
 
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 
@@ -206,7 +223,7 @@ export default {
 
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
-      
+
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 
@@ -232,11 +249,11 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
-  
+
   .icon {
     font-size: 1.2em;
   }
-  
+
   span {
     font-weight: 500;
   }
@@ -247,16 +264,16 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 20px;
-  
+
   // Responsive breakpoints
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
-  
+
   @media (min-width: 769px) and (max-width: 1200px) {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   }
-  
+
   @media (min-width: 1201px) {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -265,7 +282,7 @@ export default {
 .tls-card {
   height: fit-content;
   min-height: 150px;
-  
+
   .card-title {
     display: flex;
     align-items: center;
@@ -274,13 +291,13 @@ export default {
     font-size: 0.95em;
     font-weight: 600;
     color: var(--text-primary);
-    
+
     .icon {
       font-size: 1.1em;
       color: var(--text-secondary);
     }
   }
-  
+
   .info-row {
     display: flex;
     flex-direction: row;
@@ -288,29 +305,29 @@ export default {
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
     gap: 8px;
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     label {
       font-weight: 500;
       font-size: 0.9em;
       color: var(--text-secondary);
       margin: 0;
       flex-shrink: 0;
-      
+
       &:after {
         content: ':';
       }
     }
-    
+
     .value {
       color: var(--text-primary);
       font-size: 0.9em;
       word-break: break-word;
     }
-    
+
     .resource-link {
       display: inline-flex;
       align-items: center;
@@ -318,45 +335,45 @@ export default {
       text-decoration: none;
       font-size: 0.9em;
       word-break: break-word;
-      
+
       &:hover {
         text-decoration: underline;
       }
     }
   }
-  
+
   .domains-list {
     max-height: 200px;
     overflow-y: auto;
-    
+
     .domain-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 8px 0;
       border-bottom: 1px solid var(--border);
-      
+
       &:last-child {
         border-bottom: none;
       }
-      
+
       .domain-main {
         display: flex;
         align-items: center;
         gap: 6px;
         font-size: 0.9em;
         color: var(--text-primary);
-        
+
         .icon {
           font-size: 0.6em;
           color: var(--text-secondary);
         }
       }
-      
+
       .domain-sans {
         display: flex;
         align-items: center;
-        
+
         .sans-badge {
           cursor: help;
         }

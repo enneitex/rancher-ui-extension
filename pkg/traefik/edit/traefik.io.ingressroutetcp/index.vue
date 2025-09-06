@@ -12,6 +12,7 @@ import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import Tabbed from '@shell/components/Tabbed';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import Routes from '../../components/Routes';
@@ -19,7 +20,7 @@ import TLSConfiguration from '../common/TLSConfiguration';
 import IngressClassTab from '../../components/IngressClassTab.vue';
 
 export default {
-  name:         'CRUIngressRoute',
+  name:         'CRUIngressRouteTCP',
   inheritAttrs: false,
   emits:        ['input'],
   components:   {
@@ -31,6 +32,7 @@ export default {
     Tab,
     Tabbed,
     LabeledSelect,
+    LabeledInput,
     Banner,
     Loading,
     IngressClassTab
@@ -55,7 +57,7 @@ export default {
             { var: 'secrets', classify: true }
           ]
         },
-        'traefik.io.middleware': {
+        'traefik.io.middlewaretcp': {
           applyTo: [
             { var: 'middlewares', classify: true }
           ]
@@ -90,9 +92,9 @@ export default {
 
   data() {
     const emptySpec = {
-      entryPoints: ['websecure'],
+      entryPoints: [],
       routes: [{
-        match:       '',
+        match:       'HostSNI(`*`)',
         services:    [{ name: '', port: '', kind: 'Service' }],
         middlewares: []
       }]
@@ -103,11 +105,11 @@ export default {
     } else {
       // Ensure existing spec structure for edit mode
       this.value.spec = this.value.spec || {};
-      this.value.spec.entryPoints = this.value.spec.entryPoints || ['websecure'];
+      this.value.spec.entryPoints = this.value.spec.entryPoints || [];
       this.value.spec.routes = this.value.spec.routes || [];
       if (this.value.spec.routes.length === 0) {
         this.value.spec.routes.push({
-          match:       '',
+          match:       'HostSNI(`*`)',
           services:    [{ name: '', port: '', kind: 'Service' }],
           middlewares: []
         });
@@ -115,10 +117,10 @@ export default {
     }
 
     return {
-      // Ressources chargées par ResourceManager (automatiquement filtrées par namespace)
+      // Ressources chargées par ResourceManager
       services:       [],
       secrets:        [],
-      middlewares:    [],
+      middlewaretcps: [],
       tlsOptions:     [],
       tlsStores:      [],
 
@@ -130,7 +132,10 @@ export default {
       routesValid:    false,
       tlsValid:       true,
 
-      // Liste des chemins gérés par les composants enfants
+      // Entry points as comma-separated string for UI
+      entryPointsString: (this.value.spec.entryPoints || []).join(', '),
+
+      // FormValidation configuration
       fvReportedValidationPaths: [
         'spec.routes.match',
         'spec.routes.services.name',
@@ -138,30 +143,29 @@ export default {
         'spec.entryPoints'
       ],
 
-      // FormValidation ruleSets
       fvFormRuleSets: [
-        // Routes validation - pour toutes les routes
+        // Match validation
         {
           path: 'spec.routes.match',
           rules: ['required'],
-          translationKey: 'traefik.ingressRoute.routes.match.label'
+          translationKey: 'traefik.ingressRouteTCP.route.match.label'
         },
-        // Service validation - pour tous les services dans toutes les routes
+        // Service validation
         {
           path: 'spec.routes.services.name',
           rules: ['required'],
-          translationKey: 'traefik.ingressRoute.routes.service.label'
+          translationKey: 'traefik.ingressRouteTCP.route.service.label'
         },
         {
           path: 'spec.routes.services.port',
           rules: ['required'],
-          translationKey: 'traefik.ingressRoute.routes.port.label'
+          translationKey: 'traefik.ingressRouteTCP.route.port.label'
         },
         // Entry Points validation
         {
           path: 'spec.entryPoints',
           rules: ['required'],
-          translationKey: 'traefik.ingressRoute.entryPoints.label'
+          translationKey: 'traefik.ingressRouteTCP.entryPoints.label'
         }
       ]
     };
@@ -185,32 +189,22 @@ export default {
       };
     },
 
-    entryPointOptions() {
-      return [
-        { label: this.t('traefik.ingressRoute.entryPoints.websecure'), value: 'websecure' }
-      ];
-    },
 
     isView() {
       return this.mode === _VIEW;
     },
 
     entryPointsValid() {
-      // Vérifie que spec.entryPoints est un tableau contenant 'websecure'
-      return Array.isArray(this.value.spec.entryPoints) &&
-             this.value.spec.entryPoints.includes('websecure');
+      return this.value.spec.entryPoints && this.value.spec.entryPoints.length > 0;
     },
 
     // Use the FormValidation mixin for validation
     validationPassed() {
-      // Validate both through FormValidation and the component validation events
       return this.fvFormIsValid && this.routesValid && this.tlsValid && this.entryPointsValid;
     },
 
     validationErrors() {
       const errors = [];
-
-      // Include errors from FormValidation
       return [...this.fvUnreportedValidationErrors, ...errors, ...this.errors];
     },
 
@@ -232,8 +226,8 @@ export default {
         }));
     },
 
-    middlewareTargets() {
-      return this.middlewares
+    middlewareTcpTargets() {
+      return this.middlewaretcps
         .map(middleware => ({
           label: middleware.metadata.name,
           value: middleware.metadata.name,
@@ -265,17 +259,26 @@ export default {
   watch: {
     'value.spec.routes': {
       handler(routes) {
-        // Surveiller les routes pour mettre à jour les validations si nécessaire
+        // Watch routes to update validations if necessary
         this.routesValid = routes && routes.length > 0 && routes.every(route => !!route.match);
       },
       deep: true,
       immediate: true
     },
 
+    // Watch entryPointsString and sync with array
+    entryPointsString(val) {
+      if (val) {
+        // Split by comma and trim whitespace
+        this.value.spec.entryPoints = val.split(',').map(ep => ep.trim()).filter(ep => ep);
+      } else {
+        this.value.spec.entryPoints = [];
+      }
+    },
+
     // Watch namespace changes to reload resources
     async 'value.metadata.namespace'(neu) {
       if (neu && !this.$fetchState.pending) {
-        // Configuration avec le nouveau namespace
         const config = {
           namespace: neu,
           data: {
@@ -285,8 +288,8 @@ export default {
             [SECRET]: {
               applyTo: [{ var: 'secrets', classify: true }]
             },
-            'traefik.io.middleware': {
-              applyTo: [{ var: 'middlewares', classify: true }]
+            'traefik.io.middlewaretcp': {
+              applyTo: [{ var: 'middlewaretcps', classify: true }]
             },
             'traefik.io.tlsoption': {
               applyTo: [{ var: 'tlsOptions', classify: true }]
@@ -297,19 +300,16 @@ export default {
           }
         };
 
-        // Recharger les ressources pour le nouveau namespace
         await this.resourceManagerFetchSecondaryResources(config);
       }
     }
   },
 
   methods: {
-
     willSave() {
       // IngressClassTab component already manages the ingress class annotation directly
-      // No need for additional processing here
 
-      // Clean up vKey from all nested objects before saving
+      // Clean up vKey from all routes
       this.value.spec.routes.forEach(route => {
         delete route.vKey;
         if (route.services) {
@@ -334,15 +334,11 @@ export default {
         this.value.spec.tls.domains.forEach(domain => delete domain.vKey);
       }
 
-      // Ne pas nettoyer les routes avec match vide pour permettre à l'API
-      // de générer des erreurs de validation appropriées
-
-      // Traitement TLS configuration
-      // Si tls n'a pas de champs remplis (mais existe),
-      // garder spec.tls comme un objet vide plutôt que de le supprimer
+      // Handle TLS configuration
       if (this.value.spec.tls) {
         const hasTlsContent = !!(this.value.spec.tls.secretName ||
                               this.value.spec.tls.certResolver ||
+                              this.value.spec.tls.passthrough ||
                               (this.value.spec.tls.options && this.value.spec.tls.options.name) ||
                               (this.value.spec.tls.store && this.value.spec.tls.store.name) ||
                               (this.value.spec.tls.domains && this.value.spec.tls.domains.length > 0));
@@ -384,7 +380,7 @@ export default {
         <!-- Entry Points Tab -->
         <Tab
           name="entrypoints"
-          :label="t('traefik.ingressRoute.entryPoints.label')"
+          :label="t('traefik.ingressRouteTCP.entryPoints.label')"
           :weight="10"
           :error="tabErrors.entrypoints"
         >
@@ -392,7 +388,7 @@ export default {
             <div class="col span-12">
               <Banner
                 color="info"
-                :label="t('traefik.ingressRoute.entryPoints.description')"
+                :label="t('traefik.ingressRouteTCP.entryPoints.description')"
               />
             </div>
           </div>
@@ -401,21 +397,20 @@ export default {
             <div class="col span-12">
               <Banner
                 color="error"
-                :label="t('traefik.ingressRoute.validation.entryPointsRequired')"
+                :label="t('traefik.ingressRouteTCP.validation.entryPointsRequired')"
               />
             </div>
           </div>
 
           <div class="row">
             <div class="col span-12">
-              <LabeledSelect
-                v-model:value="value.spec.entryPoints"
+              <LabeledInput
+                v-model:value="entryPointsString"
                 :mode="mode"
-                :label="t('traefik.ingressRoute.entryPoints.label')"
-                :multiple="true"
-                :taggable="true"
-                :options="entryPointOptions"
-                :error="!entryPointsValid ? t('traefik.ingressRoute.validation.entryPointsRequired') : null"
+                :label="t('traefik.ingressRouteTCP.entryPoints.label')"
+                :placeholder="t('traefik.ingressRouteTCP.entryPoints.placeholder')"
+                :tooltip="t('traefik.ingressRouteTCP.entryPoints.tooltip')"
+                :error="!entryPointsValid ? t('traefik.ingressRouteTCP.validation.entryPointsRequired') : null"
               />
             </div>
           </div>
@@ -424,7 +419,7 @@ export default {
         <!-- Routes Tab -->
         <Tab
           name="routes"
-          :label="t('traefik.ingressRoute.routes.label')"
+          :label="t('traefik.ingressRouteTCP.route.label')"
           :weight="9"
           :error="tabErrors.routes"
         >
@@ -434,7 +429,7 @@ export default {
             :value="value"
             :mode="mode"
             :service-targets="serviceTargets"
-            :middleware-targets="middlewareTargets"
+            :middleware-targets="middlewareTcpTargets"
             @validation-changed="val => routesValid = val"
           />
         </Tab>
@@ -442,7 +437,7 @@ export default {
         <!-- TLS Tab -->
         <Tab
           name="tls"
-          :label="t('traefik.ingressRoute.tls.label')"
+          :label="t('traefik.ingressRouteTCP.tls.label')"
           :weight="8"
           :error="tabErrors.tls"
         >
@@ -455,6 +450,8 @@ export default {
             :tls-options-targets="tlsOptionsTargets"
             :tls-stores-targets="tlsStoresTargets"
             :namespace="value.metadata.namespace"
+            :support-passthrough="true"
+            :is-tcp="true"
             @tls-validation-changed="val => tlsValid = val"
           />
         </Tab>

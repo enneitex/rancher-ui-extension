@@ -39,6 +39,11 @@ export default {
     useTabbedHash: {
       type:    Boolean,
       default: undefined
+    },
+
+    isTcp: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -129,12 +134,18 @@ export default {
     },
 
     addRoute() {
-      const newRoute = {
-        vKey:        random32(1),
-        match:       '',
-        services:    [{ name: '', port: '', kind: 'Service' }],
-        middlewares: []
-      };
+      const newRoute = this.isTcp 
+        ? {
+            vKey:     random32(1),
+            match:    'HostSNI(`*`)',
+            services: [{ name: '', port: '' }]
+          }
+        : {
+            vKey:        random32(1),
+            match:       '',
+            services:    [{ name: '', port: '', kind: 'Service' }],
+            middlewares: []
+          };
 
       this.value.spec.routes.push(newRoute);
 
@@ -205,6 +216,7 @@ export default {
               :service-targets="serviceTargets"
               :middleware-targets="middlewareTargets"
               :can-remove="value.spec.routes.length > 1"
+              :is-tcp="isTcp"
               @remove="removeRoute(idx)"
               @validation-changed="(valid) => routeValidationChanged(valid, idx)"
             />

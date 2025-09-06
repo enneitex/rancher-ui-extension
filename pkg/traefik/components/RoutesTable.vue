@@ -32,7 +32,6 @@ import ServicesList from '../formatters/ServicesList.vue';
 import MiddlewaresList from '../formatters/MiddlewaresList.vue';
 import { get } from '@shell/utils/object';
 import { random32 } from '@shell/utils/string';
-import { SERVICE } from '@shell/config/types';
 
 export default {
   name: 'RoutesTable',
@@ -48,6 +47,10 @@ export default {
     value: {
       type: Object,
       required: true
+    },
+    isTcp: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -60,7 +63,7 @@ export default {
       return [
         {
           name: 'routes',
-          label: this.t('traefik.headers.hosts'),
+          label: this.isTcp ? this.t('traefik.headers.match') : this.t('traefik.headers.hosts'),
           value: 'routeDisplay'
         },
         {
@@ -70,7 +73,7 @@ export default {
         },
         {
           name: 'middlewares',
-          label: this.t('traefik.ingressRoute.middleware.label'),
+          label: this.isTcp ? this.t('traefik.ingressRouteTCP.middleware.label') : this.t('traefik.ingressRoute.middleware.label'),
           value: 'middlewares'
         }
       ];
@@ -103,7 +106,7 @@ export default {
             serviceName: '', // Not used for display in this context
             servicePort: '',
             serviceTargetTo: null,
-            isUrl: this.isValidUrl(fullPath)
+            isUrl: !this.isTcp && this.isValidUrl(fullPath) // Disable URL for TCP routes
           });
         }
 
@@ -193,12 +196,16 @@ export default {
       const cluster = this.$route.params.cluster;
       if (!cluster) return null;
 
-      // Create direct path for middleware (stays in explorer since middlewares are CRDs)
-      return `/c/${cluster}/explorer/traefik.io.middleware/${targetNamespace}/${middlewareName}`;
+      // Create direct path for middleware (use middlewaretcp for TCP routes)
+      const middlewareType = this.isTcp ? 'traefik.io.middlewaretcp' : 'traefik.io.middleware';
+      return `/c/${cluster}/explorer/${middlewareType}/${targetNamespace}/${middlewareName}`;
     },
 
     createFullPath(host, path) {
       if (!host) return path;
+      
+      // For TCP routes, don't create URLs
+      if (this.isTcp) return '';
 
       // Détermine le protocole (assume HTTPS si TLS est configuré)
       const protocol = this.value.spec?.tls ? 'https' : 'http';

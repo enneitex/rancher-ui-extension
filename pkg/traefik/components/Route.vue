@@ -3,7 +3,6 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { Banner } from '@components/Banner';
-import { random32 } from '@shell/utils/string';
 
 export default {
   emits:      ['remove', 'validation-changed'],
@@ -43,6 +42,11 @@ export default {
     canRemove: {
       type:    Boolean,
       default: true
+    },
+
+    isTcp: {
+      type:    Boolean,
+      default: false
     }
   },
   
@@ -55,7 +59,8 @@ export default {
     if (!this.value.services) {
       this.value.services = [];
     }
-    if (!this.value.middlewares) {
+    // TCP routes don't have middlewares
+    if (!this.isTcp && !this.value.middlewares) {
       this.value.middlewares = [];
     }
   },
@@ -178,7 +183,7 @@ export default {
         v-model:value="value.services"
         :mode="mode"
         :add-label="`${t('generic.add')} ${t('traefik.ingressRoute.routes.service.label')}`"
-        :default-add-value="{ name: '', port: '', kind: 'Service' }"
+        :default-add-value="isTcp ? { name: '', port: '' } : { name: '', port: '', kind: 'Service' }"
         :initial-empty-row="false"
         @add="() => {}"
       >
@@ -217,19 +222,19 @@ export default {
 
     <!-- Middlewares Section -->
     <div class="middleware-section">
-      <h5>{{ t('traefik.ingressRoute.middleware.label') }}</h5>
+      <h5>{{ isTcp ? t('traefik.ingressRouteTCP.middleware.label') : t('traefik.ingressRoute.middleware.label') }}</h5>
       
       <Banner 
         v-if="mode !== 'view' && middlewareTargets.length === 0"
         color="info" 
-        :label="t('traefik.ingressRoute.middleware.noMiddlewaresAvailable')"
+        :label="isTcp ? t('traefik.ingressRouteTCP.middleware.noMiddlewaresAvailable') : t('traefik.ingressRoute.middleware.noMiddlewaresAvailable')"
       />
       
       <ArrayListGrouped
         v-if="middlewareTargets.length > 0"
         v-model:value="value.middlewares"
         :mode="mode"
-        :add-label="`${t('generic.add')} ${t('traefik.ingressRoute.middleware.label')}`"
+        :add-label="`${t('generic.add')} ${isTcp ? t('traefik.ingressRouteTCP.middleware.label') : t('traefik.ingressRoute.middleware.label')}`"
         :default-add-value="{ name: '', namespace: '' }"
         :initial-empty-row="false"
         @add="() => {}"

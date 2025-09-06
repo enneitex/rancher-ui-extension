@@ -5,7 +5,7 @@ import RoutesTable from '../components/RoutesTable.vue';
 import TLSConfiguration from '../components/TLSConfiguration.vue';
 
 export default {
-  name: 'IngressRouteDetail',
+  name: 'IngressRouteTCPDetail',
 
   components: {
     ResourceTabs,
@@ -84,19 +84,19 @@ export default {
     <!-- Routes Tab -->
     <Tab
       name="routes"
-      :label="t('traefik.ingressRoute.routes.label')"
+      :label="t('traefik.ingressRouteTCP.route.label')"
       :weight="10"
     >
-      <RoutesTable :value="value" />
+      <RoutesTable :value="value" :is-tcp="true" />
     </Tab>
 
     <!-- TLS Tab -->
     <Tab
       name="tls"
-      :label="t('traefik.ingressRoute.tls.label')"
+      :label="t('traefik.ingressRouteTCP.tls.label')"
       :weight="9"
     >
-      <TLSConfiguration :value="value" />
+      <TLSConfiguration :value="value" :is-tcp="true" />
     </Tab>
   </ResourceTabs>
 </template>

@@ -51,8 +51,6 @@
 </template>
 
 <script>
-import { SERVICE } from '@shell/config/types';
-
 export default {
   name: 'RoutesListFormatter',
 
@@ -68,6 +66,11 @@ export default {
   },
 
   computed: {
+    // Detect if this is a TCP route
+    isTCPRoute() {
+      return this.row?._type === 'traefik.io.ingressroutetcp';
+    },
+
     matchRules() {
       // Obtenir les routes depuis la ressource
       const routes = this.row?.spec?.routes || [];
@@ -77,15 +80,20 @@ export default {
         const matchRule = route.match;
         if (!matchRule) return { matchRule: '-', primaryUrl: null, services: [] };
 
-        // Calculer l'URL primaire comme dans HostMatch
-        const primaryUrl = this.calculatePrimaryUrl(matchRule);
+        // Pour TCP, pas d'URL cliquable
+        const primaryUrl = this.isTCPRoute ? null : this.calculatePrimaryUrl(matchRule);
 
         // Créer les données des services avec liens cliquables
         const services = (route.services || []).map(service => {
           const name = service.name;
+          const port = service.port ? `:${service.port}` : '';
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
-          const display = `${namespace}${name || '-'}${weight}`;
+          
+          // Pour TCP, afficher le port
+          const display = this.isTCPRoute 
+            ? `${namespace}${name || '-'}${port}${weight}`
+            : `${namespace}${name || '-'}${weight}`;
 
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.row?.metadata?.namespace;

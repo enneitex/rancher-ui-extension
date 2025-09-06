@@ -49,7 +49,8 @@
       "mcp__playwright__browser_close",
       "WebFetch(domain:doc.traefik.io)",
       "Read(/home/dev/kind/github/rancher/**)",
-      "Read(/home/dev/kind/github/rancher/**)"
+      "Read(/home/dev/kind/github/rancher/**)",
+      "Bash(kubectl get:*)"
     ],
     "deny": [],
     "ask": []
