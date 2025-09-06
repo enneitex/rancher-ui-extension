@@ -1,10 +1,11 @@
 <script>
 import merge from 'lodash/merge';
-import { allHash } from '@shell/utils/promise';
+import { allHashSettled } from '@shell/utils/promise';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { SERVICE, SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+import ResourceManager from '@shell/mixins/resource-manager';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
@@ -12,6 +13,7 @@ import Labels from '@shell/components/form/Labels';
 import Tabbed from '@shell/components/Tabbed';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
+import Loading from '@shell/components/Loading';
 import Routes from './Routes';
 import TLSConfiguration from './TLSConfiguration';
 import IngressClassTab from './IngressClassTab.vue';
@@ -30,32 +32,60 @@ export default {
     Tabbed,
     LabeledSelect,
     Banner,
+    Loading,
     IngressClassTab
   },
 
-  mixins: [CreateEditView, FormValidation],
+  mixins: [CreateEditView, FormValidation, ResourceManager],
 
   async fetch() {
+    // Configuration pour le ResourceManager
+    const namespace = this.value?.metadata?.namespace || null;
+    
+    const secondaryResourceDataConfig = {
+      namespace,
+      data: {
+        [SERVICE]: {
+          applyTo: [
+            { var: 'services', classify: true }
+          ]
+        },
+        [SECRET]: {
+          applyTo: [
+            { var: 'secrets', classify: true }
+          ]
+        },
+        'traefik.io.middleware': {
+          applyTo: [
+            { var: 'middlewares', classify: true }
+          ]
+        },
+        'traefik.io.tlsoption': {
+          applyTo: [
+            { var: 'tlsOptions', classify: true }
+          ]
+        },
+        'traefik.io.tlsstore': {
+          applyTo: [
+            { var: 'tlsStores', classify: true }
+          ]
+        }
+      }
+    };
+    
+    // Charger les ressources namespaced avec ResourceManager
+    await this.resourceManagerFetchSecondaryResources(secondaryResourceDataConfig);
+    
+    // Charger les ressources non-namespaced séparément
     const promises = {
-      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      middlewares:    this.$store.dispatch('cluster/findAll', { type: 'traefik.io.middleware' }),
-      tlsOptions:     this.$store.dispatch('cluster/findAll', { type: 'traefik.io.tlsoption' }),
-      tlsStores:      this.$store.dispatch('cluster/findAll', { type: 'traefik.io.tlsstore' }),
       ingressClasses: this.$store.dispatch('cluster/findAll', { type: 'networking.k8s.io.ingressclass', opt: { force: true } })
     };
-
-    const hash = await allHash(promises);
-
-    this.allServices = hash.services || [];
-    this.allSecrets = hash.secrets || [];
-    this.allMiddlewares = hash.middlewares || [];
-    this.tlsOptions = hash.tlsOptions || [];
-    this.tlsStores = hash.tlsStores || [];
-    this.ingressClasses = hash.ingressClasses || [];
-
-    // Filter resources by namespace
-    this.filterResourcesByNamespace();
+    
+    const hash = await allHashSettled(promises);
+    
+    if (hash.ingressClasses?.status === 'fulfilled') {
+      this.ingressClasses = hash.ingressClasses.value || [];
+    }
   },
 
   data() {
@@ -85,19 +115,20 @@ export default {
     }
 
     return {
-      allServices:    [],
-      allSecrets:     [],
-      allMiddlewares: [],
+      // Ressources chargées par ResourceManager (automatiquement filtrées par namespace)
       services:       [],
       secrets:        [],
       middlewares:    [],
       tlsOptions:     [],
       tlsStores:      [],
+      
+      // Ressources non-namespaced
       ingressClasses: [],
+      
+      // État du composant
       errors:         [],
       routesValid:    false,
       tlsValid:       true,
-      selectedIngressClass: '', // Store the selected ingress class
 
       // Liste des chemins gérés par les composants enfants
       fvReportedValidationPaths: [
@@ -228,11 +259,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.beforeSave, 'beforeSave');
     this.registerBeforeHook(this.willSave, 'willSave');
-
-    // Initialize the selected ingress class from existing annotation
-    this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
   },
 
   watch: {
@@ -245,66 +272,42 @@ export default {
       immediate: true
     },
 
-    // Watch namespace changes to filter resources
-    'value.metadata.namespace': {
-      handler(namespace) {
-        if (namespace) {
-          this.filterResourcesByNamespace();
-        }
-      },
-      immediate: true
+    // Watch namespace changes to reload resources
+    async 'value.metadata.namespace'(neu) {
+      if (neu && !this.$fetchState.pending) {
+        // Configuration avec le nouveau namespace
+        const config = {
+          namespace: neu,
+          data: {
+            [SERVICE]: {
+              applyTo: [{ var: 'services', classify: true }]
+            },
+            [SECRET]: {
+              applyTo: [{ var: 'secrets', classify: true }]
+            },
+            'traefik.io.middleware': {
+              applyTo: [{ var: 'middlewares', classify: true }]
+            },
+            'traefik.io.tlsoption': {
+              applyTo: [{ var: 'tlsOptions', classify: true }]
+            },
+            'traefik.io.tlsstore': {
+              applyTo: [{ var: 'tlsStores', classify: true }]
+            }
+          }
+        };
+        
+        // Recharger les ressources pour le nouveau namespace
+        await this.resourceManagerFetchSecondaryResources(config);
+      }
     }
   },
 
   methods: {
-    beforeSave() {
-      // Capturer l'annotation IngressClass avant toute modification
-      this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
-    },
-
-    filterResourcesByNamespace() {
-      const namespace = this.value?.metadata?.namespace;
-      if (!namespace) {
-        return;
-      }
-
-      // Filter services, secrets, and middlewares by namespace
-      this.services = this.allServices.filter(s => s.metadata.namespace === namespace);
-      this.secrets = this.allSecrets.filter(s => s.metadata.namespace === namespace);
-      this.middlewares = this.allMiddlewares.filter(m => m.metadata.namespace === namespace);
-
-      // TLS options and stores are already filtered in computed properties
-      this.tlsOptions = this.tlsOptions.filter(t => t.metadata.namespace === namespace);
-      this.tlsStores = this.tlsStores.filter(t => t.metadata.namespace === namespace);
-    },
-
-    updateIngressClass() {
-      // Store the ingress class value and force update
-      this.selectedIngressClass = this.value?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
-      this.$forceUpdate();
-    },
-
-    forceUpdate() {
-      // Force a UI update to ensure changes to annotations are reflected
-      this.$forceUpdate();
-    },
 
     willSave() {
-      // Préservation de l'annotation IngressClass suivant le pattern Rancher
-      // S'assurer que les structures metadata et annotations existent
-      if (!this.value.metadata) {
-        this.value.metadata = {};
-      }
-      if (!this.value.metadata.annotations) {
-        this.value.metadata.annotations = {};
-      }
-
-      // Direct assignment/deletion following Rancher pattern
-      if (this.selectedIngressClass && this.selectedIngressClass !== '') {
-        this.value.metadata.annotations['kubernetes.io/ingress.class'] = this.selectedIngressClass;
-      } else {
-        delete this.value.metadata.annotations['kubernetes.io/ingress.class'];
-      }
+      // IngressClassTab component already manages the ingress class annotation directly
+      // No need for additional processing here
 
       // Clean up vKey from all nested objects before saving
       this.value.spec.routes.forEach(route => {
@@ -425,7 +428,9 @@ export default {
           :weight="9"
           :error="tabErrors.routes"
         >
+          <Loading v-if="isLoadingSecondaryResources" />
           <Routes
+            v-else
             :value="value"
             :mode="mode"
             :service-targets="serviceTargets"
@@ -441,12 +446,15 @@ export default {
           :weight="8"
           :error="tabErrors.tls"
         >
+          <Loading v-if="isLoadingSecondaryResources" />
           <TLSConfiguration
+            v-else
             :value="value"
             :mode="mode"
             :secret-targets="secretTargets"
             :tls-options-targets="tlsOptionsTargets"
             :tls-stores-targets="tlsStoresTargets"
+            :namespace="value.metadata.namespace"
             @tls-validation-changed="val => tlsValid = val"
           />
         </Tab>
@@ -461,7 +469,6 @@ export default {
             :value="value"
             :mode="mode"
             :ingress-classes="ingressClasses"
-            @update="updateIngressClass"
           />
         </Tab>
 
