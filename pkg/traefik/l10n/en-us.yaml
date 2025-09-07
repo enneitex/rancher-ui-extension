@@ -141,12 +141,10 @@ traefik:
   # TLS Options specific translations
   tlsOption:
     description: TLS Options define advanced TLS configurations including cipher suites, TLS versions, and client authentication.
-    minVersion:
-      label: Minimum TLS Version
-    maxVersion:
-      label: Maximum TLS Version
-    cipherSuites:
-      label: Cipher Suites
+    minVersion: Minimum TLS Version
+    maxVersion: Maximum TLS Version
+    cipherSuites: Cipher Suites
+    curvePreferences: Curve Preferences
     clientAuth:
       label: Client Authentication
       caFiles:
