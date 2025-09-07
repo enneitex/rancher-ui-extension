@@ -111,7 +111,7 @@ traefik:
       notConfigured: "TLS is not configured for this IngressRouteTCP. Using default TLS settings."
       passthrough:
         label: Enable TLS Passthrough
-        description: "When enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
+        description: "TLS Passthrough is enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
         tooltip: "When enabled, traffic is forwarded as-is to the backend service without terminating TLS at Traefik."
 
   # Middleware specific translations
