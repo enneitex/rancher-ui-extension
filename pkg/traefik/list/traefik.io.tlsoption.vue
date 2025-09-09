@@ -30,19 +30,19 @@ export default {
         NAMESPACE,
         {
           name:     'minVersion',
-          labelKey: 'traefik.tlsOption.minVersion',
+          labelKey: 'traefik.tlsOption.minVersion.label',
           value:    'spec.minVersion',
           sort:     'spec.minVersion',
         },
         {
           name:     'maxVersion',
-          labelKey: 'traefik.tlsOption.maxVersion',
+          labelKey: 'traefik.tlsOption.maxVersion.label',
           value:    'spec.maxVersion',
           sort:     'spec.maxVersion',
         },
         {
           name:      'cipherSuites',
-          labelKey:  'traefik.tlsOption.cipherSuites',
+          labelKey:  'traefik.tlsOption.cipherSuites.label',
           value:     'spec.cipherSuites',
           sort:      false,
         },

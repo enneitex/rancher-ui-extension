@@ -50,7 +50,8 @@
       "WebFetch(domain:doc.traefik.io)",
       "Read(/home/dev/kind/github/rancher/**)",
       "Read(/home/dev/kind/github/rancher/**)",
-      "Bash(kubectl get:*)"
+      "Bash(kubectl get:*)",
+      "Bash(kubectl explain:*)"
     ],
     "deny": [],
     "ask": []

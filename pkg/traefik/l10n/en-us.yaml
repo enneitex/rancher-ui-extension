@@ -141,14 +141,72 @@ traefik:
   # TLS Options specific translations
   tlsOption:
     description: TLS Options define advanced TLS configurations including cipher suites, TLS versions, and client authentication.
-    minVersion: Minimum TLS Version
-    maxVersion: Maximum TLS Version
-    cipherSuites: Cipher Suites
-    curvePreferences: Curve Preferences
+
+    # Configuration section
+    configuration:
+      description: "TLS Options configuration grouped in themed cards for better readability. Each card shows relevant configuration options when available."
+
+    # Tab labels
+    tabs:
+      configuration: Configuration
+      tlsVersions: TLS Versions
+      cipherSuites: Cipher Suites
+      clientAuth: Client Authentication
+      advanced: Advanced Options
+
+    # TLS Versions section
+    tlsVersions:
+      description: Configure the supported TLS versions for secure connections. MinVersion sets the minimum acceptable TLS version, while MaxVersion sets the maximum.
+    minVersion:
+      label: Minimum TLS Version
+      tooltip: "Sets the minimum TLS version that will be accepted by the server. If not specified, default Traefik settings are used."
+    maxVersion:
+      label: Maximum TLS Version
+      tooltip: "Sets the maximum TLS version that will be accepted by the server. If not specified, default Traefik settings are used."
+
+    # Cipher Suites section
+    cipherSuites:
+      label: Cipher Suites
+      description: "Configure specific cipher suites and server preferences. Cipher suites define the cryptographic algorithms used for TLS connections."
+      add: Add Cipher Suite
+      placeholder: "e.g. TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+      tooltip: "List of cipher suites to use. If empty, Go's default cipher suites are used. Each cipher suite must be a valid TLS cipher suite identifier."
+    preferServerCipherSuites:
+      label: Prefer Server Cipher Suites
+      tooltip: "When enabled, the server's cipher suite preferences are used instead of the client's preferences during TLS handshake."
+
+    # Client Authentication section
     clientAuth:
       label: Client Authentication
-      caFiles:
-        label: CA Files
+      description: "Configure TLS client certificate authentication policies. This defines how the server handles client certificates during the TLS handshake."
+      type:
+        label: Authentication Type
+        tooltip: "Defines the client authentication type to apply during TLS handshake."
+      secrets:
+        label: Client CA Secret Names
+        add: Add Secret
+        placeholder: "e.g. client-ca-secret"
+        tooltip: "Names of Kubernetes secrets containing certificate details for client authentication. Required when authentication type needs certificate verification."
+
+    # Advanced Options section
+    advanced:
+      description: "Advanced TLS configuration options including ALPN protocols, elliptic curve preferences, and session management."
+    alpnProtocols:
+      label: ALPN Protocols
+      add: Add Protocol
+      placeholder: "e.g. http/1.1, h2, h3"
+      tooltip: "List of supported application level protocols for the TLS handshake, in order of preference. More info: https://doc.traefik.io/traefik/v3.5/https/tls/#alpn-protocols"
+    curvePreferences:
+      label: Curve Preferences
+      add: Add Curve
+      placeholder: "e.g. CurveP256, CurveP384"
+      tooltip: "Defines the preferred elliptic curves used during ECDHE handshakes. More info: https://doc.traefik.io/traefik/v3.5/https/tls/#curve-preferences"
+    sniStrict:
+      label: SNI Strict Mode
+      tooltip: "When enabled, Traefik only allows connections from clients that specify a server_name extension matching the configured domains."
+    disableSessionTickets:
+      label: Disable Session Tickets
+      tooltip: "Disables TLS session resumption via session tickets. When enabled, prevents the reuse of session tickets for subsequent connections."
 
   # Headers used in tables
   headers:

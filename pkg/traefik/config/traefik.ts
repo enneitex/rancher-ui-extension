@@ -10,7 +10,7 @@ export function init($plugin: any, store: any) {
     icon: 'globe',
     inStore: 'cluster',
     inExplorer: true,
-    weight: 90,
+    weight: 96,
     showNamespaceFilter: true,
     removeable: false
   });
