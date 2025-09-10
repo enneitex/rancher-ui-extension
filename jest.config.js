@@ -55,6 +55,9 @@ module.exports = {
   coverageReporters: ['text'],
   coverageDirectory: 'coverage',
 
+  // Setup pour les tests
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+
   // Options de test
   verbose: true,
   testTimeout: 10000,
