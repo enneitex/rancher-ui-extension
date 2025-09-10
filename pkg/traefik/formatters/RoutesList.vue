@@ -89,9 +89,9 @@ export default {
           const port = service.port ? `:${service.port}` : '';
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
-          
+
           // Pour TCP, afficher le port
-          const display = this.isTCPRoute 
+          const display = this.isTCPRoute
             ? `${namespace}${name || '-'}${port}${weight}`
             : `${namespace}${name || '-'}${weight}`;
 
@@ -133,10 +133,8 @@ export default {
       const pathMatch = matchRule.match(/Path(?:Prefix)?\(`([^`]*)`\)/);
       const pathValue = pathMatch ? pathMatch[1] : '';
 
-      // Déterminer le protocole
-      const hasWebsecure = this.row?.spec?.entryPoints?.includes('websecure');
-      const hasTLS = !!(this.row?.spec?.tls);
-      const protocol = (hasWebsecure || hasTLS) ? 'https://' : 'http://';
+      // Utiliser toujours HTTPS pour la sécurité
+      const protocol = 'https://';
 
       const fullUrl = `${protocol}${firstHost}${pathValue}`;
 

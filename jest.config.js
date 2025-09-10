@@ -37,7 +37,10 @@ module.exports = {
       useESM: false,
       tsconfig: {
         target: 'ES2015',
-        module: 'commonjs'
+        module: 'commonjs',
+        types: ['jest', 'node'],
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
       }
     }
   },
