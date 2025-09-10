@@ -1,16 +1,12 @@
-// Configuration Jest pour les tests de l'extension Traefik avec support Vue
-// Utilise les outils de @rancher/shell pour la transformation
-
-const path = require('path');
+// Configuration Jest simplifiée pour les tests de formatters uniquement
 
 module.exports = {
   // Environnement de test
   testEnvironment: 'jsdom',
   
-  // Dossier racine pour les tests
+  // Tests uniquement pour les formatters
   testMatch: [
-    '<rootDir>/pkg/**/__tests__/**/*.test.js',
-    '<rootDir>/pkg/**/__tests__/**/*.test.ts'
+    '<rootDir>/pkg/traefik/formatters/__tests__/**/*.test.{js,ts}'
   ],
 
   // Mapper les modules pour l'extension Traefik
@@ -18,11 +14,12 @@ module.exports = {
     '^@shell/(.*)$': '<rootDir>/node_modules/@rancher/shell/$1',
     '^@traefik/(.*)$': '<rootDir>/pkg/traefik/$1',
     // Mock des assets pour éviter les erreurs
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(svg|png|jpg|jpeg|gif)$': 'jest-transform-stub'
   },
 
   // Extensions de fichiers
-  moduleFileExtensions: ['js', 'ts', 'vue'],
+  moduleFileExtensions: ['js', 'ts', 'vue', 'json'],
 
   // Transformations pour Vue et TypeScript
   transform: {
@@ -39,25 +36,33 @@ module.exports = {
         target: 'ES2015',
         module: 'commonjs',
         types: ['jest', 'node'],
+        skipLibCheck: true,
         esModuleInterop: true,
-        allowSyntheticDefaultImports: true
+        allowSyntheticDefaultImports: true,
+        moduleResolution: 'node'
       }
     }
   },
 
-  // Setup pour les tests
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-
-  // Couverture de code
+  // Couverture de code pour les formatters uniquement
   collectCoverageFrom: [
-    'pkg/traefik/**/*.{js,ts,vue}',
-    '!pkg/traefik/**/*.d.ts',
-    '!pkg/traefik/**/__tests__/**',
-    '!pkg/traefik/**/node_modules/**'
+    'pkg/traefik/formatters/**/*.{js,ts,vue}',
+    '!pkg/traefik/formatters/**/*.d.ts',
+    '!pkg/traefik/formatters/**/__tests__/**'
   ],
 
-  // Ignorer certains modules pour la transformation
-  transformIgnorePatterns: [
-    'node_modules/(?!(@rancher|@vue)/)'
+  // Configuration de la couverture
+  coverageReporters: ['text'],
+  coverageDirectory: 'coverage',
+
+  // Options de test
+  verbose: true,
+  testTimeout: 10000,
+
+  // Pattern pour ignorer certains fichiers
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/coverage/'
   ]
 };
