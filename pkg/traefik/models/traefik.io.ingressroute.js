@@ -87,44 +87,20 @@ export default class IngressRoute extends SteveModel {
         // Extract middlewares from routes
         if (route.middlewares && Array.isArray(route.middlewares)) {
           route.middlewares.forEach(middleware => {
-            if (middleware) {
-              // Middleware can be a string with format "namespace-name@provider" or just "name"
-              const middlewareName = typeof middleware === 'string' ? middleware : middleware.name;
+            if (middleware && middleware.name) {
+              const middlewareName = middleware.name;
+              const middlewareNamespace = middleware.namespace || namespace;
+              const middlewareId = `${middlewareNamespace}/${middlewareName}`;
 
-              if (middlewareName) {
-                // Remove provider suffix if present (@kubernetes)
-                const cleanName = middlewareName.replace(/@.*$/, '');
-
-                // Handle cross-namespace middlewares (format: namespace-name)
-                let middlewareId;
-                if (cleanName.includes('-') && !cleanName.startsWith(`${namespace}-`)) {
-                  // Likely a cross-namespace reference
-                  const parts = cleanName.split('-');
-                  if (parts.length >= 2) {
-                    const possibleNamespace = parts[0];
-                    const possibleName = parts.slice(1).join('-');
-                    middlewareId = `${possibleNamespace}/${possibleName}`;
-                  } else {
-                    middlewareId = `${namespace}/${cleanName}`;
-                  }
-                } else {
-                  // Same namespace reference
-                  const name = cleanName.startsWith(`${namespace}-`)
-                    ? cleanName.substring(namespace.length + 1)
-                    : cleanName;
-                  middlewareId = `${namespace}/${name}`;
-                }
-
-                relationships.push({
-                  toType: 'traefik.io.middleware',
-                  toId: middlewareId,
-                  rel: 'uses',
-                  selector: null,
-                  fromType: 'traefik.io.ingressroute',
-                  fromId: `${namespace}/${this.metadata.name}`,
-                  state: 'active'
-                });
-              }
+              relationships.push({
+                toType: 'traefik.io.middleware',
+                toId: middlewareId,
+                rel: 'uses',
+                selector: null,
+                fromType: 'traefik.io.ingressroute',
+                fromId: `${namespace}/${this.metadata.name}`,
+                state: 'active'
+              });
             }
           });
         }

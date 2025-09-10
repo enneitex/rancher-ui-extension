@@ -1,19 +1,3 @@
-<template>
-  <div v-if="primaryUrl" class="host-match-formatter">
-    <a
-      :href="primaryUrl.fullUrl"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="host-link"
-      :title="`Ouvrir ${primaryUrl.fullUrl}`"
-    >
-      {{ matchRule }}
-      <i class="icon icon-external-link" />
-    </a>
-  </div>
-  <span v-else class="host-text">{{ matchRule || '-' }}</span>
-</template>
-
 <script>
 export default {
   name: 'HostMatchFormatter',
@@ -79,6 +63,22 @@ export default {
   }
 };
 </script>
+
+<template>
+  <div v-if="primaryUrl" class="host-match-formatter">
+    <a
+      :href="primaryUrl.fullUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="host-link"
+      :title="`Ouvrir ${primaryUrl.fullUrl}`"
+    >
+      {{ matchRule }}
+      <i class="icon icon-external-link" />
+    </a>
+  </div>
+  <span v-else class="host-text">{{ matchRule || '-' }}</span>
+</template>
 
 <style lang="scss" scoped>
 .host-match-formatter {

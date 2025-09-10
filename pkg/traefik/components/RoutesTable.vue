@@ -136,8 +136,9 @@ export default {
         // Format middlewares for display with clickable links
         const middlewaresData = (route.middlewares || []).map(mw => {
           const name = mw.name;
-          const namespace = mw.namespace ? `${mw.namespace}/` : '';
-          const display = `${namespace}${name}`;
+          // Only show namespace prefix if explicitly defined in the middleware object
+          const namespacePrefix = mw.namespace ? `${mw.namespace}/` : '';
+          const display = `${namespacePrefix}${name}`;
 
           // Use the middleware's namespace if defined, otherwise fall back to IngressRoute's namespace
           const middlewareNamespace = mw.namespace || this.value.metadata.namespace;

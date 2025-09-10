@@ -2,33 +2,6 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class TLSOption extends SteveModel {
 
-  get detailLocation() {
-    return {
-      name:   `c-cluster-product-resource-id`,
-      params: {
-        product:   this.$rootGetters['productId'],
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
-        id:        this.id,
-      }
-    };
-  }
-
-  get doneOverride() {
-    return {
-      name:   `c-cluster-product-resource`,
-      params: {
-        product:   this.$rootGetters['productId'],
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
-      }
-    };
-  }
-
-  get parentLocationOverride() {
-    return this.doneOverride;
-  }
-
   // TLS Version validation
   get tlsVersions() {
     return [

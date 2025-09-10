@@ -119,22 +119,86 @@ traefik:
     description: Middleware components that can transform requests and responses before they reach services.
     type:
       label: Middleware Type
-      addHeaders: Add Headers
-      basicAuth: Basic Authentication
-      compress: Compression
-      errors: Error Pages
-      forwardAuth: Forward Authentication
-      headers: Headers
-      ipWhiteList: IP Whitelist
-      rateLimit: Rate Limiting
-      redirectRegex: Redirect Regex
-      redirectScheme: Redirect Scheme
-      replacePath: Replace Path
-      replacePathRegex: Replace Path Regex
-      stripPrefix: Strip Prefix
-      stripPrefixRegex: Strip Prefix Regex
-      retry: Retry
-      circuitBreaker: Circuit Breaker
+    types:
+      label: Type
+      addPrefix:
+        label: Add Prefix
+        description: Updates the path of a request before forwarding it
+      addHeaders:
+        label: Add Headers
+        description: Adds custom headers to requests
+      basicAuth:
+        label: Basic Authentication
+        description: Restricts access to your services to known users
+      buffering:
+        label: Buffering
+        description: Buffers the request/response
+      chain:
+        label: Chain
+        description: Defines reusable combinations of other pieces of middleware
+      circuitBreaker:
+        label: Circuit Breaker
+        description: Prevents calling unhealthy services
+      compress:
+        label: Compression
+        description: Compresses responses before sending them to the client, using gzip, brotli, or zstd compression
+      contentType:
+        label: Content Type
+        description: Handles Content-Type auto-detection
+      digestAuth:
+        label: Digest Authentication
+        description: Adds Digest Authentication
+      errors:
+        label: Error Pages
+        description: Returns a custom page in lieu of the default, according to configured ranges of HTTP Status codes
+      forwardAuth:
+        label: Forward Authentication
+        description: Delegates the request authentication to a Service
+      grpcWeb:
+        label: gRPC-Web
+        description: gRPC-Web middleware configuration
+      headers:
+        label: Headers
+        description: Manages the requests and responses headers
+      inFlightReq:
+        label: In Flight Requests
+        description: Limits the number of simultaneous connections
+      ipAllowList:
+        label: IP Allow List
+        description: Limits allowed requests based on the client IP
+      ipWhiteList:
+        label: IP Whitelist
+        description: IP Whitelist middleware (deprecated, use ipAllowList)
+      passTLSClientCert:
+        label: Pass TLS Client Cert
+        description: Passes TLS Client Certificate information
+      plugin:
+        label: Plugin
+        description: Plugin middleware configuration
+      rateLimit:
+        label: Rate Limiting
+        description: Ensures that services will receive a fair amount of requests, and allows one to define what fair is
+      redirectRegex:
+        label: Redirect Regex
+        description: Redirects a request using regex matching and replacement
+      redirectScheme:
+        label: Redirect Scheme
+        description: Redirects requests from a scheme/port to another
+      replacePath:
+        label: Replace Path
+        description: Replaces the path of the request URL and store the original path in an X-Replaced-Path header
+      replacePathRegex:
+        label: Replace Path Regex
+        description: Replaces the path of a URL using regex matching and replacement
+      retry:
+        label: Retry
+        description: Reissues requests a given number of times to a backend server if that server does not reply
+      stripPrefix:
+        label: Strip Prefix
+        description: Removes the specified prefixes from the URL path
+      stripPrefixRegex:
+        label: Strip Prefix Regex
+        description: Removes the matching prefixes from the URL path
     spec:
       label: Configuration
 
