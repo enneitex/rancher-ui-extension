@@ -56,6 +56,9 @@ export default {
 
   computed: {
     routes() {
+      if (!this.value || !this.value.spec) {
+        return [];
+      }
       return get(this.value, 'spec.routes') || [];
     },
 
@@ -80,6 +83,11 @@ export default {
     },
 
     routesForTable() {
+      // Ensure we always return an array, even if routes is empty or undefined
+      if (!this.routes || !Array.isArray(this.routes)) {
+        return [];
+      }
+      
       return this.routes.map((route, index) => {
         // Extract hosts from match for URL calculation
         const hostMatches = route.match ? route.match.match(/Host\(`([^`]+)`\)/g) : [];

@@ -149,19 +149,6 @@ export default class IngressRoute extends SteveModel {
           state: 'active'
         });
       }
-
-      // Certificate Resolvers (Let's Encrypt, etc)
-      if (this.spec.tls.certResolver) {
-        relationships.push({
-          toType: 'traefik.io.certresolver',
-          toId: this.spec.tls.certResolver,
-          rel: 'uses',
-          selector: null,
-          fromType: 'traefik.io.ingressroute',
-          fromId: `${namespace}/${this.metadata.name}`,
-          state: 'active'
-        });
-      }
     }
 
     // Remove duplicates based on toType and toId
