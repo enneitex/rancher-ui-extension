@@ -72,7 +72,7 @@ rancher-ui-extension/
 
 
 #### 2. Configuration Rancher
-- **Version compatible**: Rancher >= 2.10.0 
+- **Version compatible**: Rancher >= 2.10.0
 - **UI Extensions**: Version 3.0.0 < 4.0.0
 - **Dépendance principale**: `@rancher/shell`
 
@@ -112,17 +112,11 @@ rancher-ui-extension/
 ## Notes de développement
 
 ### Commandes utiles
+
 ```bash
 API=rancher.dev.local yarn dev
-
-Lancer l'UI avec playwright sur l'url https://localhost:8005
-
-utiliser le compte admin pour se connecter, mot de passe: adminadmin
 ```
 
-### Notes importantes
-
-à chaque nouvelle session la première action est de lancer l'UI de dev et de l'ouvrir avec playwright
 
 
 ### Bonnes pratiques à respecter
@@ -195,7 +189,7 @@ Pour maintenir la cohérence avec l'UI Rancher:
 - **Documentation officielle Rancher Extensions v3**: https://extensions.rancher.io/extensions/next/home
 - **Storybook Rancher**: https://rancher.github.io/storybook/ - Catalogue complet des composants UI
 - **Exemples d'extensions**: https://github.com/rancher/ui-plugin-examples
-- **Extensions de référence**: 
+- **Extensions de référence**:
   - kubewarden-ui (composants réutilisables et tests)
 
 ### Patterns et bonnes pratiques issues de la documentation

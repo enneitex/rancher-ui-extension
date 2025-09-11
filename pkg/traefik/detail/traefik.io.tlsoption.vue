@@ -127,14 +127,21 @@ export default {
     },
 
     getSecretLink(secretName) {
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
+      if (!secretName) return null;
 
       const namespace = this.value.metadata.namespace;
       if (!namespace) return null;
 
-      // Create direct path to secret
-      return `/c/${cluster}/explorer/secret/${namespace}/${secretName}`;
+      // Use Rancher standard route object instead of hardcoded path
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          product:   'explorer',
+          resource:  'secret',
+          id:        secretName,
+          namespace: namespace,
+        }
+      };
     },
 
     t(key) {

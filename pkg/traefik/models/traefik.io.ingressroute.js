@@ -1,3 +1,5 @@
+import { SERVICE } from '@shell/config/types';
+import { get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class IngressRoute extends SteveModel {
@@ -164,5 +166,157 @@ export default class IngressRoute extends SteveModel {
     });
 
     return uniqueRelationships;
+  }
+
+  // Rancher-standard methods for linking
+  targetTo(workloads, serviceName) {
+    if (!serviceName) {
+      return null;
+    }
+
+    const id = `${ this.namespace }/${ serviceName }`;
+
+    // Check if it targets a workload (similar to Rancher's Ingress pattern)
+    const isTargetsWorkload = serviceName.startsWith('ingress-');
+
+    if (isTargetsWorkload) {
+      const workload = workloads?.find((w) => w.id === id);
+      return workload?.detailLocation || null;
+    } else {
+      // Standard service link using Rancher route pattern (matching original Ingress model)
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          resource:  SERVICE,
+          id:        serviceName,
+          namespace: this.namespace,
+        }
+      };
+    }
+  }
+
+  createRulesForListPage(workloads) {
+    const routes = this.spec?.routes || [];
+
+    return routes.flatMap((route) => {
+      const services = route?.services || [];
+
+      return services.map((service) => this.createServiceForListPage(workloads, route, service));
+    });
+  }
+
+  createServiceForListPage(workloads, route, service) {
+    const serviceName = get(service, 'name');
+    const servicePort = get(service, 'port');
+    const serviceNamespace = get(service, 'namespace') || this.namespace;
+
+    let display = serviceName || '-';
+    if (servicePort) {
+      display += `:${servicePort}`;
+    }
+
+    return {
+      matchRule:       route?.match || '',
+      serviceName,
+      servicePort,
+      serviceNamespace,
+      display,
+      serviceTargetTo: this.targetTo(workloads, serviceName),
+      targetLink:      this.createServiceLink(workloads, serviceName)
+    };
+  }
+
+  createServiceLink(workloads, serviceName) {
+    return {
+      to:      this.targetTo(workloads, serviceName),
+      text:    serviceName,
+      options: { internal: true }
+    };
+  }
+
+  createMiddlewareLink(middlewareName, namespace) {
+    if (!middlewareName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  'traefik.io.middleware',
+        id:        middlewareName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  createTLSLink(resourceType, resourceName, namespace) {
+    if (!resourceName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  resourceType,
+        id:        resourceName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  // Helper getters for TLS resources following Rancher patterns
+  get tlsSecretLink() {
+    const secretName = get(this.spec, 'tls.secretName');
+    return secretName ? this.createTLSLink('secret', secretName, this.namespace) : null;
+  }
+
+  get tlsOptionsLink() {
+    const optionsName = get(this.spec, 'tls.options.name');
+    const optionsNamespace = get(this.spec, 'tls.options.namespace') || this.namespace;
+    return optionsName ? this.createTLSLink('traefik.io.tlsoption', optionsName, optionsNamespace) : null;
+  }
+
+  get tlsStoreLink() {
+    const storeName = get(this.spec, 'tls.store.name');
+    const storeNamespace = get(this.spec, 'tls.store.namespace') || this.namespace;
+    return storeName ? this.createTLSLink('traefik.io.tlsstore', storeName, storeNamespace) : null;
+  }
+
+  get routes() {
+    return get(this.spec, 'routes') || [];
+  }
+
+  get entryPoints() {
+    return get(this.spec, 'entryPoints') || [];
+  }
+
+  get tlsConfig() {
+    return get(this.spec, 'tls') || null;
+  }
+
+  get details() {
+    const out = this._details;
+
+    // Add entry points info
+    if (this.entryPoints && this.entryPoints.length) {
+      out.push({
+        label:   this.t('traefik.ingressRoute.entryPoints.label'),
+        content: this.entryPoints.join(', '),
+      });
+    }
+
+    // Add TLS info
+    if (this.tlsConfig) {
+      out.push({
+        label:   this.t('traefik.ingressRoute.tls.enabled.label'),
+        content: this.tlsConfig.secretName || this.t('traefik.ingressRoute.tls.enabled.default'),
+      });
+    }
+
+    return out;
   }
 }

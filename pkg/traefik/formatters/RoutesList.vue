@@ -145,11 +145,16 @@ export default {
       if (!serviceName) return null;
       if (!namespace) return null;
 
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      // Create direct path instead of using router-link params
-      return `/c/${cluster}/explorer/service/${namespace}/${serviceName}`;
+      // Use Rancher standard route object instead of hardcoded path
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          product:   'explorer',
+          resource:  'service',
+          id:        serviceName,
+          namespace: namespace,
+        }
+      };
     },
 
     isValidUrl(url) {

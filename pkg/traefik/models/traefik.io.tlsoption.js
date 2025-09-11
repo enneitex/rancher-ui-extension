@@ -212,4 +212,70 @@ export default class TLSOption extends SteveModel {
 
     return errors;
   }
+
+  // Rancher-standard methods
+  createSecretLink(secretName, namespace) {
+    if (!secretName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  'secret',
+        id:        secretName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  // Helper getters for client auth secret links
+  get clientAuthSecretLinks() {
+    return this.clientAuthSecrets.map(secretName => ({
+      secretName,
+      link: this.createSecretLink(secretName, this.namespace)
+    }));
+  }
+
+  get details() {
+    const out = this._details;
+
+    // Add TLS version info
+    if (this.minTlsVersion) {
+      const versionLabel = this.tlsVersions.find(v => v.value === this.minTlsVersion)?.label || this.minTlsVersion;
+      out.push({
+        label:   this.t('traefik.tlsOption.minVersion.label'),
+        content: versionLabel,
+      });
+    }
+
+    if (this.maxTlsVersion) {
+      const versionLabel = this.tlsVersions.find(v => v.value === this.maxTlsVersion)?.label || this.maxTlsVersion;
+      out.push({
+        label:   this.t('traefik.tlsOption.maxVersion.label'),
+        content: versionLabel,
+      });
+    }
+
+    // Add client auth info
+    if (this.clientAuthType !== 'NoClientCert') {
+      const authTypeObj = this.clientAuthTypes.find(t => t.value === this.clientAuthType);
+      out.push({
+        label:   this.t('traefik.tlsOption.clientAuth.label'),
+        content: authTypeObj?.label || this.clientAuthType,
+      });
+    }
+
+    // Add ALPN protocols info
+    if (this.alpnProtocols.length > 0) {
+      out.push({
+        label:   this.t('traefik.tlsOption.alpnProtocols.label'),
+        content: this.alpnProtocols.join(', '),
+      });
+    }
+
+    return out;
+  }
 }

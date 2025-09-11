@@ -132,4 +132,60 @@ export default class Middleware extends SteveModel {
 
     return uniqueRelationships;
   }
+
+  // Rancher-standard methods
+  createSecretLink(secretName, namespace) {
+    if (!secretName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  'secret',
+        id:        secretName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  // Helper getters for secret links
+  get basicAuthSecretLink() {
+    const secretName = this.spec?.basicAuth?.secret;
+    return secretName ? this.createSecretLink(secretName, this.namespace) : null;
+  }
+
+  get digestAuthSecretLink() {
+    const secretName = this.spec?.digestAuth?.secret;
+    return secretName ? this.createSecretLink(secretName, this.namespace) : null;
+  }
+
+  get rateLimitRedisSecretLink() {
+    const secretName = this.spec?.rateLimit?.redis?.secret;
+    return secretName ? this.createSecretLink(secretName, this.namespace) : null;
+  }
+
+  get details() {
+    const out = this._details;
+
+    // Add middleware type info
+    if (this.primaryMiddlewareType) {
+      out.push({
+        label:   this.t('traefik.middleware.type.label'),
+        content: this.primaryMiddlewareType,
+      });
+    }
+
+    // Add warning for multiple types
+    if (this.hasMultipleTypes) {
+      out.push({
+        label:   this.t('traefik.middleware.multipleTypes.label'),
+        content: this.middlewareTypes.join(', '),
+      });
+    }
+
+    return out;
+  }
 }

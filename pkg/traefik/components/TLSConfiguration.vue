@@ -186,49 +186,17 @@ export default {
       return this.tlsConfig?.domains && this.tlsConfig.domains.length > 0;
     },
 
+    // Use model methods for creating TLS resource links (following Rancher patterns)
     secretLink() {
-      if (!this.tlsConfig?.secretName) {
-        return null;
-      }
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      const namespace = this.value.metadata.namespace;
-      if (!namespace) return null;
-
-      // Create direct path instead of using router-link params
-      return `/c/${cluster}/explorer/secret/${namespace}/${this.tlsConfig.secretName}`;
+      return this.value.tlsSecretLink;
     },
 
     tlsOptionsLink() {
-      if (!this.tlsConfig?.options?.name) {
-        return null;
-      }
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      const namespace = this.value.metadata.namespace;
-      if (!namespace) return null;
-
-      // Create direct path for TLSOption resource
-      return `/c/${cluster}/explorer/traefik.io.tlsoption/${namespace}/${this.tlsConfig.options.name}`;
+      return this.value.tlsOptionsLink;
     },
 
     tlsStoreLink() {
-      if (!this.tlsConfig?.store?.name) {
-        return null;
-      }
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      const namespace = this.value.metadata.namespace;
-      if (!namespace) return null;
-
-      // Create direct path for TLSStore resource
-      return `/c/${cluster}/explorer/traefik.io.tlsstore/${namespace}/${this.tlsConfig.store.name}`;
+      return this.value.tlsStoreLink;
     }
   },
 

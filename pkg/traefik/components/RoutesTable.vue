@@ -55,6 +55,13 @@ export default {
   },
 
   computed: {
+    // Get workloads for service linking (following Rancher Ingress pattern)
+    workloads() {
+      // For now, return empty array as the targetTo method handles services directly
+      // This could be extended in the future if we need to support workload targeting
+      return [];
+    },
+
     routes() {
       if (!this.value || !this.value.spec) {
         return [];
@@ -128,10 +135,10 @@ export default {
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.value.metadata.namespace;
 
-          // Create link only if service has a valid name
+          // Use model method for creating service links (following Rancher patterns)
           let targetLink = null;
           if (name && name !== '-') {
-            targetLink = this.createServiceLink(name, serviceNamespace);
+            targetLink = this.value.targetTo(this.workloads, name);
           }
 
           return {
@@ -151,10 +158,10 @@ export default {
           // Use the middleware's namespace if defined, otherwise fall back to IngressRoute's namespace
           const middlewareNamespace = mw.namespace || this.value.metadata.namespace;
 
-          // Create link only if middleware has a valid name
+          // Use model method for creating middleware links (following Rancher patterns)
           let targetLink = null;
           if (name && name !== '-') {
-            targetLink = this.createMiddlewareLink(name, middlewareNamespace);
+            targetLink = this.value.createMiddlewareLink(name, middlewareNamespace);
           }
 
           return {
@@ -183,32 +190,6 @@ export default {
   },
 
   methods: {
-    createServiceLink(serviceName, namespace) {
-      if (!serviceName) return null;
-
-      const targetNamespace = namespace || this.value?.metadata?.namespace;
-      if (!targetNamespace) return null;
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      // Create direct path instead of using router-link params
-      return `/c/${cluster}/explorer/service/${targetNamespace}/${serviceName}`;
-    },
-
-    createMiddlewareLink(middlewareName, namespace) {
-      if (!middlewareName) return null;
-
-      const targetNamespace = namespace || this.value?.metadata?.namespace;
-      if (!targetNamespace) return null;
-
-      const cluster = this.$route.params.cluster;
-      if (!cluster) return null;
-
-      // Create direct path for middleware (use middlewaretcp for TCP routes)
-      const middlewareType = this.isTcp ? 'traefik.io.middlewaretcp' : 'traefik.io.middleware';
-      return `/c/${cluster}/explorer/${middlewareType}/${targetNamespace}/${middlewareName}`;
-    },
 
     createFullPath(host, path) {
       if (!host) return path;
