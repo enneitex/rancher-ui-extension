@@ -1,3 +1,4 @@
+import { SERVICE } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class IngressRouteTCP extends SteveModel {
@@ -210,5 +211,92 @@ export default class IngressRouteTCP extends SteveModel {
   // Get routes for list view (compatibility with RoutesList formatter)
   get targetRoutes() {
     return this.spec?.routes || [];
+  }
+
+  // Rancher-standard methods for linking (similar to IngressRoute)
+  targetTo(workloads, serviceName) {
+    if (!serviceName) {
+      return null;
+    }
+
+    const id = `${ this.namespace }/${ serviceName }`;
+
+    // Check if it targets a workload (similar to Rancher's Ingress pattern)
+    const isTargetsWorkload = serviceName.startsWith('ingress-');
+
+    if (isTargetsWorkload) {
+      const workload = workloads?.find((w) => w.id === id);
+      return workload?.detailLocation || null;
+    } else {
+      // Standard service link using Rancher route pattern (matching original Ingress model)
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          resource:  SERVICE,
+          product:   'explorer',
+          id:        serviceName,
+          namespace: this.namespace,
+        }
+      };
+    }
+  }
+
+  createMiddlewareLink(middlewareName, namespace) {
+    if (!middlewareName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    // For TCP routes, middlewares are of type traefik.io.middlewaretcp
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  'traefik.io.middlewaretcp',
+        product:   'traefik',
+        id:        middlewareName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  createTLSLink(resourceType, resourceName, namespace) {
+    if (!resourceName) {
+      return null;
+    }
+
+    const targetNamespace = namespace || this.namespace;
+
+    // Determine the correct product based on API group
+    // Resources from traefik.io API group belong to Traefik product, others to explorer
+    const product = resourceType.startsWith('traefik.io.') ? 'traefik' : 'explorer';
+
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  resourceType,
+        product:   product,
+        id:        resourceName,
+        namespace: targetNamespace,
+      }
+    };
+  }
+
+  // Helper getters for TLS resources following Rancher patterns
+  get tlsSecretLink() {
+    const secretName = this.spec?.tls?.secretName;
+    return secretName ? this.createTLSLink('secret', secretName, this.namespace) : null;
+  }
+
+  get tlsOptionsLink() {
+    const optionsName = this.spec?.tls?.options?.name;
+    const optionsNamespace = this.spec?.tls?.options?.namespace || this.namespace;
+    return optionsName ? this.createTLSLink('traefik.io.tlsoption', optionsName, optionsNamespace) : null;
+  }
+
+  get tlsStoreLink() {
+    const storeName = this.spec?.tls?.store?.name;
+    const storeNamespace = this.spec?.tls?.store?.namespace || this.namespace;
+    return storeName ? this.createTLSLink('traefik.io.tlsstore', storeName, storeNamespace) : null;
   }
 }

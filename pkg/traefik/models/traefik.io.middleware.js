@@ -167,26 +167,4 @@ export default class Middleware extends SteveModel {
     const secretName = this.spec?.rateLimit?.redis?.secret;
     return secretName ? this.createSecretLink(secretName, this.namespace) : null;
   }
-
-  get details() {
-    const out = this._details;
-
-    // Add middleware type info
-    if (this.primaryMiddlewareType) {
-      out.push({
-        label:   this.t('traefik.middleware.type.label'),
-        content: this.primaryMiddlewareType,
-      });
-    }
-
-    // Add warning for multiple types
-    if (this.hasMultipleTypes) {
-      out.push({
-        label:   this.t('traefik.middleware.multipleTypes.label'),
-        content: this.middlewareTypes.join(', '),
-      });
-    }
-
-    return out;
-  }
 }

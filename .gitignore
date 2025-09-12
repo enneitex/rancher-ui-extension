@@ -9,8 +9,8 @@ tmp
 .mcp.json
 *.png
 doc/
-.claude/
+CLAUDE.md
 *.sh
-.claude/
+.claude
 pkg/traefik/examples/
-examples/
+examples

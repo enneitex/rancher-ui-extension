@@ -94,7 +94,7 @@ export default {
       if (!this.routes || !Array.isArray(this.routes)) {
         return [];
       }
-      
+
       return this.routes.map((route, index) => {
         // Extract hosts from match for URL calculation
         const hostMatches = route.match ? route.match.match(/Host\(`([^`]+)`\)/g) : [];
@@ -109,9 +109,9 @@ export default {
         // Create one hostRule for the entire route (not per service)
         const hostRules = [];
         if (route.match) {
-          // Use the first host for URL calculation, or fallback
+          // Use the new unified URL parsing logic
+          const fullPath = this.createFullPath(route.match);
           const firstHost = hosts[0] || '';
-          const fullPath = firstHost ? this.createFullPath(firstHost, pathValue) : '';
 
           hostRules.push({
             host: firstHost,
@@ -121,7 +121,7 @@ export default {
             serviceName: '', // Not used for display in this context
             servicePort: '',
             serviceTargetTo: null,
-            isUrl: !this.isTcp && this.isValidUrl(fullPath) // Disable URL for TCP routes
+            isUrl: !this.isTcp && fullPath !== null // Disable URL for TCP routes or invalid URLs
           });
         }
 
@@ -131,13 +131,9 @@ export default {
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
           const display = `${namespace}${name || '-'}${weight}`;
-
-          // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
-          const serviceNamespace = service.namespace || this.value.metadata.namespace;
-
           // Use model method for creating service links (following Rancher patterns)
           let targetLink = null;
-          if (name && name !== '-') {
+          if (name && name !== '-' && typeof this.value.targetTo === 'function') {
             targetLink = this.value.targetTo(this.workloads, name);
           }
 
@@ -160,7 +156,7 @@ export default {
 
           // Use model method for creating middleware links (following Rancher patterns)
           let targetLink = null;
-          if (name && name !== '-') {
+          if (name && name !== '-' && typeof this.value.createMiddlewareLink === 'function') {
             targetLink = this.value.createMiddlewareLink(name, middlewareNamespace);
           }
 
@@ -191,17 +187,28 @@ export default {
 
   methods: {
 
-    createFullPath(host, path) {
-      if (!host) return path;
-      
+    createFullPath(matchRule) {
+      if (!matchRule) return null;
+
       // For TCP routes, don't create URLs
-      if (this.isTcp) return '';
+      if (this.isTcp) return null;
 
-      // Détermine le protocole (assume HTTPS si TLS est configuré)
-      const protocol = this.value.spec?.tls ? 'https' : 'http';
-      const fullHost = `${protocol}://${host}`;
+      // Extraire le premier host depuis la règle match (logique identique à RoutesList)
+      const hostMatch = matchRule.match(/Host\(`([^`]+)`\)/);
+      if (!hostMatch) return null;
 
-      return path ? `${fullHost}${path}` : fullHost;
+      const firstHost = hostMatch[1].split(',')[0].trim(); // Prendre le premier host si multiple
+
+      // Extraire le path optionnel
+      const pathMatch = matchRule.match(/Path(?:Prefix)?\(`([^`]*)`\)/);
+      const pathValue = pathMatch ? pathMatch[1] : '';
+
+      // Utiliser toujours HTTPS pour la sécurité (comme dans RoutesList)
+      const protocol = 'https://';
+
+      const fullUrl = `${protocol}${firstHost}${pathValue}`;
+
+      return this.isValidUrl(fullUrl) ? fullUrl : null;
     },
 
     isValidUrl(url) {

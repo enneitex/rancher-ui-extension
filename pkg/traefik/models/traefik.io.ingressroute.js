@@ -260,11 +260,15 @@ export default class IngressRoute extends SteveModel {
 
     const targetNamespace = namespace || this.namespace;
 
+    // Determine the correct product based on API group
+    // Resources from traefik.io API group belong to Traefik product, others to explorer
+    const product = resourceType.startsWith('traefik.io.') ? 'traefik' : 'explorer';
+
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  resourceType,
-        product:   'traefik',
+        product:   product,
         id:        resourceName,
         namespace: targetNamespace,
       }
@@ -299,27 +303,5 @@ export default class IngressRoute extends SteveModel {
 
   get tlsConfig() {
     return get(this.spec, 'tls') || null;
-  }
-
-  get details() {
-    const out = this._details;
-
-    // Add entry points info
-    if (this.entryPoints && this.entryPoints.length) {
-      out.push({
-        label:   this.t('traefik.ingressRoute.entryPoints.label'),
-        content: this.entryPoints.join(', '),
-      });
-    }
-
-    // Add TLS info
-    if (this.tlsConfig) {
-      out.push({
-        label:   this.t('traefik.ingressRoute.tls.enabled.label'),
-        content: this.tlsConfig.secretName || this.t('traefik.ingressRoute.tls.enabled.default'),
-      });
-    }
-
-    return out;
   }
 }

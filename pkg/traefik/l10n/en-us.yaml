@@ -48,6 +48,10 @@ traefik:
         tooltip: Namespace of the middleware resource
     tls:
       label: TLS Configuration
+      certificate:
+        title: TLS Certificate
+      configuration:
+        title: TLS Settings
       enabled: TLS is enabled for this IngressRoute
       notConfigured: TLS is not configured for this IngressRoute. Using default TLS settings.
       mode:

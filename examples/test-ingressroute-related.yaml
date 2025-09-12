@@ -12,7 +12,7 @@ metadata:
   name: test-service
   namespace: traefik-test
 spec:
-  selector:
+  selector:a
     app: test
   ports:
     - name: http
