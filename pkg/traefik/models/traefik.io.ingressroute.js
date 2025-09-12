@@ -188,6 +188,7 @@ export default class IngressRoute extends SteveModel {
         name:   'c-cluster-product-resource-namespace-id',
         params: {
           resource:  SERVICE,
+          product:   'explorer',
           id:        serviceName,
           namespace: this.namespace,
         }
@@ -245,6 +246,7 @@ export default class IngressRoute extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  'traefik.io.middleware',
+        product:   'traefik',
         id:        middlewareName,
         namespace: targetNamespace,
       }
@@ -262,6 +264,7 @@ export default class IngressRoute extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  resourceType,
+        product:   'traefik',
         id:        resourceName,
         namespace: targetNamespace,
       }

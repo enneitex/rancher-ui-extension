@@ -128,14 +128,6 @@ export default {
   },
 
   computed: {
-    // Override doneParams to exclude 'product' parameter
-    doneParams() {
-      return {
-        cluster: this.$route.params.cluster,
-        resource: this.$route.params.resource || this.value.type
-      };
-    },
-
     // Computed for tab error indicators
     tabErrors() {
       return {

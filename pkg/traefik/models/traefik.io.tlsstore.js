@@ -152,6 +152,7 @@ export default class TLSStore extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  'secret',
+        product:   'explorer',
         id:        secretName,
         namespace: targetNamespace,
       }
@@ -160,7 +161,7 @@ export default class TLSStore extends SteveModel {
 
   // Helper getters for secret links
   get defaultCertificateSecretLink() {
-    return this.defaultCertificateSecretName ? 
+    return this.defaultCertificateSecretName ?
       this.createSecretLink(this.defaultCertificateSecretName, this.namespace) : null;
   }
 
@@ -205,7 +206,7 @@ export default class TLSStore extends SteveModel {
     // Validate certificate secret names
     const allSecrets = [this.defaultCertificateSecretName, ...this.certificates.map(c => c.secretName)].filter(Boolean);
     const duplicates = allSecrets.filter((secret, index) => allSecrets.indexOf(secret) !== index);
-    
+
     if (duplicates.length > 0) {
       errors.push(this.t('traefik.tlsStore.validation.duplicateCertificates', { secrets: duplicates.join(', ') }));
     }

@@ -225,6 +225,7 @@ export default class TLSOption extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  'secret',
+        product:   'explorer',
         id:        secretName,
         namespace: targetNamespace,
       }
