@@ -1,0 +1,48 @@
+apiVersion: v1
+entries:
+  extension-server:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.10.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-09-12T19:58:24.035008277+02:00"
+    description: Extension server
+    digest: 9250ebd74dbce0ce1f047723145b4b23f908cf1d5367a9958bf54558181148b2
+    home: https://rancher.com
+    icon: https://docs.ranchermanager.rancher.io/img/rancher-logo-horiz-color.svg
+    keywords:
+    - applications
+    - infrastructure
+    name: extension-server
+    type: application
+    urls:
+    - assets/traefik/extension-server-0.1.0.tgz
+    version: 0.1.0
+  traefik:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.10.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-09-12T18:11:42.701288082Z"
+    description: UI Extension for Traefik Proxy
+    digest: 776f91157b2c133b3ae442578b59853a889d0007643d06dc1f63b9f96ce9aa82
+    name: traefik
+    type: application
+    urls:
+    - assets/traefik/traefik-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-09-12T18:11:42.700903961Z"
