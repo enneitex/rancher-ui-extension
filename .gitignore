@@ -1,0 +1,16 @@
+node_modules
+dist-pkg
+tmp
+.DS_Store
+.nuxt
+.nuxt-prod
+.idea
+.env
+.mcp.json
+*.png
+doc/
+.claude/
+*.sh
+.claude/
+pkg/traefik/examples/
+examples/
