@@ -1,0 +1,14 @@
+grafana:
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+  ingress:
+    enabled: true
+    hosts:
+    - grafana.dev.local
+  grafana.ini:
+    auth.anonymous:
+      enabled: "true"
+      org_name: "Main Org."
+      org_role: "Viewer"

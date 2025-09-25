@@ -1,0 +1,30 @@
+victoriaMetrics:
+  title: "Victoria Metrics"
+  dashboard:
+    loading: "Loading Victoria Metrics dashboard..."
+    error: "Error loading dashboard"
+    noData: "No data available"
+    fallbackToPrometheus: "Falling back to Prometheus monitoring"
+    
+  config:
+    title: "Victoria Metrics Configuration"
+    namespace: "Namespace"
+    service: "Service Name"
+    port: "Port"
+    endpoints: "Custom Endpoints"
+    
+  status:
+    available: "Victoria Metrics Available"
+    unavailable: "Victoria Metrics Unavailable"
+    prometheus: "Using Prometheus Monitoring"
+    none: "No Monitoring Available"
+    
+  cluster:
+    metrics:
+      overview:
+        title: "Cluster Overview"
+      k8s:
+        title: "Kubernetes Components"
+      etcd:
+        title: "ETCD Cluster"
+      noMetrics: "No monitoring metrics available. Please install Victoria Metrics or Prometheus monitoring."
