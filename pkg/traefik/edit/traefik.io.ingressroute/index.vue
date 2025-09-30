@@ -328,25 +328,6 @@ export default {
 
       // Ne pas nettoyer les routes avec match vide pour permettre à l'API
       // de générer des erreurs de validation appropriées
-
-      // Traitement TLS configuration
-      // Si tls n'a pas de champs remplis (mais existe),
-      // garder spec.tls comme un objet vide plutôt que de le supprimer
-      if (this.value.spec.tls) {
-        const hasTlsContent = !!(this.value.spec.tls.secretName ||
-                              this.value.spec.tls.certResolver ||
-                              (this.value.spec.tls.options && this.value.spec.tls.options.name) ||
-                              (this.value.spec.tls.store && this.value.spec.tls.store.name) ||
-                              (this.value.spec.tls.domains && this.value.spec.tls.domains.length > 0));
-
-        // Si aucun contenu TLS, s'assurer que c'est un objet vide
-        if (!hasTlsContent) {
-          this.value.spec.tls = {};
-        }
-      } else {
-        // Si tls n'existe pas, créer un objet vide
-        this.value.spec.tls = {};
-      }
     }
   }
 };

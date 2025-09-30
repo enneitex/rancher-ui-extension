@@ -34,13 +34,9 @@ export default {
   },
 
   mounted() {
-    // Ensure tls object exists
-    if (!this.value.spec.tls) {
-      this.value.spec.tls = {};
-    }
-
-    // Ensure domains array exists
-    if (!this.value.spec.tls.domains) {
+    // Ensure domains array exists for ArrayListGrouped
+    // spec.tls should already exist when this component is rendered
+    if (this.value.spec.tls && !this.value.spec.tls.domains) {
       this.value.spec.tls.domains = [];
     }
   },

@@ -70,18 +70,8 @@ export default {
   },
 
   mounted() {
-    // Always ensure spec.tls exists
-    if (!this.value.spec.tls) {
-      this.value.spec.tls = {};
-    }
-
-    // Ensure domains is always an array
-    if (!Array.isArray(this.value.spec.tls.domains)) {
-      this.value.spec.tls.domains = [];
-    }
-
     // Initialize passthrough state
-    this.passthrough = !!this.value.spec.tls.passthrough;
+    this.passthrough = !!this.value.spec.tls?.passthrough;
 
     // Initialiser le tlsMode en fonction de l'état actuel
     this.initTlsMode();
@@ -149,16 +139,12 @@ export default {
     // Gère le changement de mode TLS (enable/disable)
     tlsModeChanged(enabled) {
       if (!enabled) {
-        // Clear all TLS fields but keep the object empty
-        this.value.spec.tls = {};
+        // Clear all TLS fields by deleting the object
+        delete this.value.spec.tls;
       } else {
-        // Ensure TLS object exists with domains array
+        // Ensure TLS object exists when enabling
         if (!this.value.spec.tls) {
           this.value.spec.tls = {};
-        }
-        // Ensure domains is always an array
-        if (!Array.isArray(this.value.spec.tls.domains)) {
-          this.value.spec.tls.domains = [];
         }
       }
 
@@ -168,16 +154,10 @@ export default {
 
     // Set TLS Secret Name
     updateSecretName(val) {
-      if (!this.value.spec.tls) {
-        this.value.spec.tls = {};
-      }
-
-      // Ensure domains is always an array when updating TLS fields
-      if (!Array.isArray(this.value.spec.tls.domains)) {
-        this.value.spec.tls.domains = [];
-      }
-
       if (val) {
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
         set(this.value, 'spec.tls.secretName', val);
       } else {
         remove(this.value, 'spec.tls.secretName');
@@ -186,16 +166,10 @@ export default {
 
     // Set TLS Certificate Resolver
     updateCertResolver(val) {
-      if (!this.value.spec.tls) {
-        this.value.spec.tls = {};
-      }
-
-      // Ensure domains is always an array when updating TLS fields
-      if (!Array.isArray(this.value.spec.tls.domains)) {
-        this.value.spec.tls.domains = [];
-      }
-
       if (val) {
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
         set(this.value, 'spec.tls.certResolver', val);
       } else {
         remove(this.value, 'spec.tls.certResolver');
@@ -204,15 +178,10 @@ export default {
 
     // Set TLS Options using Rancher utilities
     ensureOptionsObject(val) {
-      // Ensure domains is always an array when updating TLS fields
-      if (!Array.isArray(this.value.spec.tls?.domains)) {
+      if (val) {
         if (!this.value.spec.tls) {
           this.value.spec.tls = {};
         }
-        this.value.spec.tls.domains = [];
-      }
-
-      if (val) {
         set(this.value, 'spec.tls.options.name', val);
       } else {
         remove(this.value, 'spec.tls.options');
@@ -221,15 +190,10 @@ export default {
 
     // Set TLS Store using Rancher utilities
     ensureStoreObject(val) {
-      // Ensure domains is always an array when updating TLS fields
-      if (!Array.isArray(this.value.spec.tls?.domains)) {
+      if (val) {
         if (!this.value.spec.tls) {
           this.value.spec.tls = {};
         }
-        this.value.spec.tls.domains = [];
-      }
-
-      if (val) {
         set(this.value, 'spec.tls.store.name', val);
       } else {
         remove(this.value, 'spec.tls.store');
@@ -249,14 +213,15 @@ export default {
 
     // Handle TLS Passthrough toggle
     updatePassthrough(enabled) {
-      if (!this.value.spec.tls) {
-        this.value.spec.tls = {};
-      }
-
       if (enabled) {
+        if (!this.value.spec.tls) {
+          this.value.spec.tls = {};
+        }
         this.value.spec.tls.passthrough = true;
       } else {
-        delete this.value.spec.tls.passthrough;
+        if (this.value.spec.tls) {
+          delete this.value.spec.tls.passthrough;
+        }
       }
 
       // Emit validation status

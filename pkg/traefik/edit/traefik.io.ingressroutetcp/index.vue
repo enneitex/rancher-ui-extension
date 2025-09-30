@@ -325,24 +325,6 @@ export default {
       if (this.value.spec.tls?.domains) {
         this.value.spec.tls.domains.forEach(domain => delete domain.vKey);
       }
-
-      // Handle TLS configuration
-      if (this.value.spec.tls) {
-        const hasTlsContent = !!(this.value.spec.tls.secretName ||
-                              this.value.spec.tls.certResolver ||
-                              this.value.spec.tls.passthrough ||
-                              (this.value.spec.tls.options && this.value.spec.tls.options.name) ||
-                              (this.value.spec.tls.store && this.value.spec.tls.store.name) ||
-                              (this.value.spec.tls.domains && this.value.spec.tls.domains.length > 0));
-
-        // Si aucun contenu TLS, s'assurer que c'est un objet vide
-        if (!hasTlsContent) {
-          this.value.spec.tls = {};
-        }
-      } else {
-        // Si tls n'existe pas, créer un objet vide
-        this.value.spec.tls = {};
-      }
     }
   }
 };
