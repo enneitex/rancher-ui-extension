@@ -5,20 +5,24 @@
       :key="i"
       class="rule-item"
     >
-      <!-- Règle de match cliquable -->
+      <!-- Règle de match cliquable avec tooltip conditionnel -->
       <div class="match-part">
         <a
           v-if="rule.primaryUrl"
+          v-clean-tooltip="shouldShowTooltip(rule.matchRule) ? rule.matchRule : null"
           :href="rule.primaryUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="rule-link"
-          :title="`Ouvrir ${rule.primaryUrl}`"
+          class="rule-link truncate"
         >
-          {{ rule.matchRule }}
+          <span class="match-text">{{ rule.matchRule }}</span>
           <i class="icon icon-external-link" />
         </a>
-        <span v-else class="rule-text">
+        <span
+          v-else
+          v-clean-tooltip="shouldShowTooltip(rule.matchRule) ? rule.matchRule : null"
+          class="rule-text truncate"
+        >
           {{ rule.matchRule }}
         </span>
       </div>
@@ -120,6 +124,13 @@ export default {
   },
 
   methods: {
+    shouldShowTooltip(text) {
+      if (!text) return false;
+      // Estimation: considérer qu'on dépasse si plus de ~80 caractères
+      // (approximation basée sur max-width: 300px et taille moyenne des caractères)
+      return text.length > 80;
+    },
+
     calculatePrimaryUrl(matchRule) {
       if (!matchRule) return null;
 
@@ -195,7 +206,7 @@ export default {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  min-width: 400px;
+  width: 400px;
 }
 
 .services-part {
@@ -216,21 +227,36 @@ export default {
   gap: 2px;
 }
 
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .rule-link {
   color: var(--link);
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0; // Important pour permettre l'ellipsis dans flex
 
   &:hover {
     text-decoration: underline;
     color: var(--link-hover);
   }
 
+  .match-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .icon {
     font-size: 0.8em;
     opacity: 0.7;
+    flex-shrink: 0; // Empêche l'icône de rétrécir
   }
 }
 
