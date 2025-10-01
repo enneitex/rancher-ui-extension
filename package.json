@@ -6,7 +6,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@playwright/test": "^1.55.0",
     "@rancher/shell": "3.0.5"
   },
   "devDependencies": {
