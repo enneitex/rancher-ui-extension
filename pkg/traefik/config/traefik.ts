@@ -7,6 +7,7 @@ export function init($plugin: any, store: any) {
 
   // Registering Traefik as a cluster-level product
   product({
+    ifHaveGroup: 'traefik.io',
     icon: 'globe',
     inStore: 'cluster',
     inExplorer: true,
