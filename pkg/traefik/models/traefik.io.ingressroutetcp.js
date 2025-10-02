@@ -182,7 +182,7 @@ export default class IngressRouteTCP extends SteveModel {
   // Get services summary for list view
   get targetServices() {
     const services = [];
-    
+
     if (this.spec?.routes && Array.isArray(this.spec.routes)) {
       this.spec.routes.forEach(route => {
         if (route.services && Array.isArray(route.services)) {
@@ -298,5 +298,10 @@ export default class IngressRouteTCP extends SteveModel {
     const storeName = this.spec?.tls?.store?.name;
     const storeNamespace = this.spec?.tls?.store?.namespace || this.namespace;
     return storeName ? this.createTLSLink('traefik.io.tlsstore', storeName, storeNamespace) : null;
+  }
+
+  // remove when upgrading to rancher 2.13.x
+  get disableResourceDetailDrawer() {
+    return true;
   }
 }

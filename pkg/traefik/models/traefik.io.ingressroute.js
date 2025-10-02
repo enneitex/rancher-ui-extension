@@ -304,4 +304,9 @@ export default class IngressRoute extends SteveModel {
   get tlsConfig() {
     return get(this.spec, 'tls') || null;
   }
+
+  // remove when upgrading to rancher 2.13.x
+  get disableResourceDetailDrawer() {
+    return true;
+  }
 }

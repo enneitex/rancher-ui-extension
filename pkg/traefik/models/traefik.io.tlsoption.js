@@ -321,4 +321,9 @@ export default class TLSOption extends SteveModel {
       link: this.createSecretLink(secretName, this.namespace)
     }));
   }
+
+  // remove when upgrading to rancher 2.13.x
+  get disableResourceDetailDrawer() {
+    return true;
+  }
 }

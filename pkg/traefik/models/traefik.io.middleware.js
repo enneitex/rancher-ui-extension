@@ -167,4 +167,9 @@ export default class Middleware extends SteveModel {
     const secretName = this.spec?.rateLimit?.redis?.secret;
     return secretName ? this.createSecretLink(secretName, this.namespace) : null;
   }
+
+  // remove when upgrading to rancher 2.13.x
+  get disableResourceDetailDrawer() {
+    return true;
+  }
 }
