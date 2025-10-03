@@ -130,11 +130,13 @@ export default {
           const name = service.name;
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
-          const display = `${namespace}${name || '-'}${weight}`;
+          const kind = service.kind || 'Service';
+          const kindDisplay = kind !== 'Service' ? ` (${kind})` : '';
+          const display = `${namespace}${name || '-'}${kindDisplay}${weight}`;
           // Use model method for creating service links (following Rancher patterns)
           let targetLink = null;
           if (name && name !== '-' && typeof this.value.targetTo === 'function') {
-            targetLink = this.value.targetTo(this.workloads, name);
+            targetLink = this.value.targetTo(this.workloads, name, kind);
           }
 
           return {

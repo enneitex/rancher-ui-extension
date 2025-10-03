@@ -73,13 +73,28 @@ export default {
     isValid() {
       const validMatch = !!this.value.match;
       const validServices = this.value.services?.length > 0 &&
-                         this.value.services.every(s => !!s.name && !!s.port);
+      this.value.services.every(s => {
+        // Service name is always required
+        if (!s.name) return false;
+
+        // Port is only required for K8s Services, not for TraefikService
+        const selectedService = this.serviceTargets.find(svc => svc.value === s.name);
+        if (selectedService?.kind === 'TraefikService') {
+          return true; // TraefikService doesn't need port
+        }
+
+        return !!s.port; // K8s Service needs port
+      });
 
       return validMatch && validServices;
     },
 
     matchError() {
       return !this.value.match ? this.t('validation.required', { key: this.t('traefik.ingressRoute.routes.match.label') }) : '';
+    },
+
+    hasOrOperators() {
+      return this.value.match && this.value.match.includes('||');
     },
 
     // Liste des options de middlewares pour le sélecteur
@@ -114,12 +129,21 @@ export default {
       const serviceNameValue = typeof serviceName === 'string' ? serviceName : serviceName?.label || serviceName?.value || '';
       service.name = serviceNameValue;
 
-      // Find the selected service in serviceTargets to auto-fill port
+      // Find the selected service in serviceTargets to auto-fill port and kind
       const selectedService = this.serviceTargets.find(s => s.value === serviceNameValue);
-      if (selectedService && selectedService.ports && selectedService.ports.length > 0) {
-        const firstPort = selectedService.ports[0];
-        // Auto-select first port (prefer name over port number)
-        service.port = firstPort.name || firstPort.port || '';
+      if (selectedService) {
+        // Auto-detect and set the service kind (Service or TraefikService)
+        service.kind = selectedService.kind || 'Service';
+
+        // Auto-fill port only for K8s Services (not TraefikService)
+        if (selectedService.kind === 'Service' && selectedService.ports && selectedService.ports.length > 0) {
+          const firstPort = selectedService.ports[0];
+          // Auto-select first port (prefer name over port number)
+          service.port = firstPort.name || firstPort.port || '';
+        } else if (selectedService.kind === 'TraefikService') {
+          // TraefikServices don't have ports in the IngressRoute reference
+          service.port = '';
+        }
       }
     },
 
@@ -139,6 +163,11 @@ export default {
         label: port.name ? `${port.name} (${port.port})` : port.port,
         value: port.name || port.port
       }));
+    },
+
+    isTraefikService(service) {
+      const selectedService = this.serviceTargets.find(s => s.value === service.name);
+      return selectedService?.kind === 'TraefikService';
     }
   }
 };
@@ -174,6 +203,16 @@ export default {
       </div>
     </div>
 
+    <!-- Warning for multiple OR operators -->
+    <div v-if="hasOrOperators && mode !== 'view'" class="row mb-15">
+      <div class="col span-12">
+        <Banner
+          color="warning"
+          :label="t('traefik.ingressRoute.routes.match.warningMultipleOr')"
+        />
+      </div>
+    </div>
+
 
     <!-- Services Section -->
     <div class="services-section">
@@ -189,7 +228,7 @@ export default {
       >
         <template #default="{ row }">
           <div class="row mb-10">
-            <div class="col span-6">
+            <div :class="isTraefikService(row.value) ? 'col span-12' : 'col span-6'">
               <LabeledSelect
                 v-model:value="row.value.name"
                 :mode="mode"
@@ -202,7 +241,7 @@ export default {
                 @update:model-value="updateServiceName(row.value, $event)"
               />
             </div>
-            <div class="col span-6">
+            <div v-if="!isTraefikService(row.value)" class="col span-6">
               <LabeledSelect
                 v-model:value="row.value.port"
                 :mode="mode"

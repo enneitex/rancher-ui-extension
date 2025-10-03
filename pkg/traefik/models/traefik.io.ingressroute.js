@@ -169,19 +169,24 @@ export default class IngressRoute extends SteveModel {
   }
 
   // Rancher-standard methods for linking
-  targetTo(workloads, serviceName) {
+  targetTo(workloads, serviceName, serviceKind = 'Service') {
     if (!serviceName) {
       return null;
     }
 
     const id = `${ this.namespace }/${ serviceName }`;
 
-    // Check if it targets a workload (similar to Rancher's Ingress pattern)
-    const isTargetsWorkload = serviceName.startsWith('ingress-');
-
-    if (isTargetsWorkload) {
-      const workload = workloads?.find((w) => w.id === id);
-      return workload?.detailLocation || null;
+    if (serviceKind === 'TraefikService') {
+      // TraefikService link to Traefik product
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          resource:  'traefik.io.traefikservice',
+          product:   'traefik',
+          id:        serviceName,
+          namespace: this.namespace,
+        }
+      };
     } else {
       // Standard service link using Rancher route pattern (matching original Ingress model)
       return {
@@ -210,6 +215,7 @@ export default class IngressRoute extends SteveModel {
     const serviceName = get(service, 'name');
     const servicePort = get(service, 'port');
     const serviceNamespace = get(service, 'namespace') || this.namespace;
+    const serviceKind = get(service, 'kind') || 'Service';
 
     let display = serviceName || '-';
     if (servicePort) {
@@ -222,14 +228,14 @@ export default class IngressRoute extends SteveModel {
       servicePort,
       serviceNamespace,
       display,
-      serviceTargetTo: this.targetTo(workloads, serviceName),
-      targetLink:      this.createServiceLink(workloads, serviceName)
+      serviceTargetTo: this.targetTo(workloads, serviceName, serviceKind),
+      targetLink:      this.createServiceLink(workloads, serviceName, serviceKind)
     };
   }
 
-  createServiceLink(workloads, serviceName) {
+  createServiceLink(workloads, serviceName, serviceKind = 'Service') {
     return {
-      to:      this.targetTo(workloads, serviceName),
+      to:      this.targetTo(workloads, serviceName, serviceKind),
       text:    serviceName,
       options: { internal: true }
     };
@@ -303,10 +309,5 @@ export default class IngressRoute extends SteveModel {
 
   get tlsConfig() {
     return get(this.spec, 'tls') || null;
-  }
-
-  // remove when upgrading to rancher 2.13.x
-  get disableResourceDetailDrawer() {
-    return true;
   }
 }

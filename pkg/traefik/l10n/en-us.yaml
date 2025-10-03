@@ -30,11 +30,12 @@ traefik:
       match:
         label: Match Rule
         placeholder: "e.g. Host(`example.com`) && Path(`/api`)"
-        tooltip: "Traefik matching rules using Go template syntax. Examples: Host(`domain.com`), Path(`/api`), PathPrefix(`/v1`)"
+        tooltip: "Traefik matching rules. See https://doc.traefik.io/traefik/routing/routers/#rules for examples."
+        warningMultipleOr: "Your match rule contains OR operators (||). This may lead to unexpected behavior. Consider creating separate routes for better clarity and maintainability."
       service:
         label: Target Service
         placeholder: Select a service
-        tooltip: Kubernetes service that will receive the matched traffic
+        tooltip: Kubernetes Service or TraefikService that will receive the matched traffic. TraefikService allows advanced load-balancing features.
       port:
         label: Port
         placeholder: "e.g. 80 or http"

@@ -220,25 +220,16 @@ export default class IngressRouteTCP extends SteveModel {
     }
 
     const id = `${ this.namespace }/${ serviceName }`;
-
-    // Check if it targets a workload (similar to Rancher's Ingress pattern)
-    const isTargetsWorkload = serviceName.startsWith('ingress-');
-
-    if (isTargetsWorkload) {
-      const workload = workloads?.find((w) => w.id === id);
-      return workload?.detailLocation || null;
-    } else {
-      // Standard service link using Rancher route pattern (matching original Ingress model)
-      return {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          resource:  SERVICE,
-          product:   'explorer',
-          id:        serviceName,
-          namespace: this.namespace,
-        }
-      };
-    }
+    // Standard service link using Rancher route pattern (matching original Ingress model)
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  SERVICE,
+        product:   'explorer',
+        id:        serviceName,
+        namespace: this.namespace,
+      }
+    };
   }
 
   createMiddlewareLink(middlewareName, namespace) {
@@ -298,10 +289,5 @@ export default class IngressRouteTCP extends SteveModel {
     const storeName = this.spec?.tls?.store?.name;
     const storeNamespace = this.spec?.tls?.store?.namespace || this.namespace;
     return storeName ? this.createTLSLink('traefik.io.tlsstore', storeName, storeNamespace) : null;
-  }
-
-  // remove when upgrading to rancher 2.13.x
-  get disableResourceDetailDrawer() {
-    return true;
   }
 }

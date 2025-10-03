@@ -2455,10 +2455,10 @@
   resolved "https://registry.npmjs.org/@rancher/icons/-/icons-2.0.38.tgz"
   integrity sha512-biVHLVwiuModxOCgM5YhPVwbu9LmZFQAQ1YWlRUiAHyFe7zh3lmw2KWEdg4k0963it1DMKuMve45VWYU5YeaWA==
 
-"@rancher/shell@3.0.5":
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/@rancher/shell/-/shell-3.0.5.tgz#5e2fa4a9bde6f870f9960605f8a2a68c22ae1119"
-  integrity sha512-9hD81Udt0kijsA87vvTQCzS+sUFk0b+qeh3M38nI2OAZhyrGRedHUL44FZHjLRr2Qw53Vo9CH+xX9b6dCqubRg==
+"@rancher/shell@3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@rancher/shell/-/shell-3.0.6.tgz#9a17353698b611db106db7b644e792c93e0a96ad"
+  integrity sha512-kBpyb6JlapNYvMtQEqcVYLSIbPbuImBh3oDpoxB/1Elz0FayAvJzD/2ZjH8UEWGOidFKa74M5lgr/4l/sfZe2Q==
   dependencies:
     "@aws-sdk/client-ec2" "3.863.0"
     "@aws-sdk/client-eks" "3.879.0"
@@ -2526,7 +2526,7 @@
     express "4.17.1"
     file-saver "2.0.2"
     floating-vue "5.2.2"
-    focus-trap "7.6.2"
+    focus-trap "7.6.5"
     frontmatter-markdown-loader "3.7.0"
     identicon.js "2.3.3"
     intl-messageformat "7.8.4"
@@ -7859,10 +7859,10 @@ floating-vue@5.2.2:
     "@floating-ui/dom" "~1.1.1"
     vue-resize "^2.0.0-alpha.1"
 
-focus-trap@7.6.2:
-  version "7.6.2"
-  resolved "https://registry.npmjs.org/focus-trap/-/focus-trap-7.6.2.tgz"
-  integrity sha512-9FhUxK1hVju2+AiQIDJ5Dd//9R2n2RAfJ0qfhF4IHGHgcoEUTMpbTeG/zbEuwaiYXfuAH6XE0/aCyxDdRM+W5w==
+focus-trap@7.6.5:
+  version "7.6.5"
+  resolved "https://registry.yarnpkg.com/focus-trap/-/focus-trap-7.6.5.tgz#56f0814286d43c1a2688e9bc4f31f17ae047fb76"
+  integrity sha512-7Ke1jyybbbPZyZXFxEftUtxFGLMpE2n6A+z//m4CRDlj0hW+o3iYSmh8nFlYMurOiJVDmJRilUQtJr08KfIxlg==
   dependencies:
     tabbable "^6.2.0"
 

@@ -331,7 +331,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
@@ -397,9 +399,7 @@ export default {
           :weight="9"
           :error="tabErrors.routes"
         >
-          <Loading v-if="isLoadingSecondaryResources" />
           <Routes
-            v-else
             :value="value"
             :mode="mode"
             :service-targets="serviceTargets"
@@ -415,9 +415,7 @@ export default {
           :weight="8"
           :error="tabErrors.tls"
         >
-          <Loading v-if="isLoadingSecondaryResources" />
           <TLSConfiguration
-            v-else
             :value="value"
             :mode="mode"
             :secret-targets="secretTargets"

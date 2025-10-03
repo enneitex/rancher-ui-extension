@@ -4,9 +4,9 @@ import { Banner } from '@components/Banner';
 
 export default {
   name: 'IngressClassTab',
-  
+
   emits: ['update'],
-  
+
   components: {
     LabeledSelect,
     Banner
@@ -26,9 +26,9 @@ export default {
     ingressClasses: {
       type:    Array,
       default: () => []
-    }
+    },
   },
-  
+
   computed: {
     // Direct computed property following Rancher patterns
     currentIngressClass: {
@@ -40,24 +40,24 @@ export default {
         if (!this.value.metadata) {
           this.value.metadata = {};
         }
-        
+
         if (!this.value.metadata.annotations) {
           this.value.metadata.annotations = {};
         }
-        
+
         if (val && val !== '') {
           // Direct assignment following Rancher pattern
           this.value.metadata.annotations['kubernetes.io/ingress.class'] = val;
         } else {
-          // Direct delete following Rancher pattern  
+          // Direct delete following Rancher pattern
           delete this.value.metadata.annotations['kubernetes.io/ingress.class'];
         }
-        
+
         // Emit update event to notify parent
         this.$emit('update');
       }
     },
-    
+
     ingressClassOptions() {
       const options = this.ingressClasses.map(ingressClass => ({
         label: ingressClass.metadata.name,
@@ -82,8 +82,8 @@ export default {
   <div class="ingress-class-tab">
     <div class="row mb-20">
       <div class="col span-12">
-        <Banner 
-          color="info" 
+        <Banner
+          color="info"
           :label="t('traefik.ingressRoute.ingressClass.description')"
         />
       </div>
@@ -118,7 +118,7 @@ export default {
 .ingress-class-tab {
   .row {
     margin-bottom: 20px;
-    
+
     &:last-child {
       margin-bottom: 0;
     }

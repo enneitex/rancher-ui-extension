@@ -5,23 +5,21 @@
       :key="i"
       class="rule-item"
     >
-      <!-- Règle de match cliquable avec tooltip conditionnel -->
+      <!-- Règle de match cliquable -->
       <div class="match-part">
         <a
           v-if="rule.primaryUrl"
-          v-clean-tooltip="shouldShowTooltip(rule.matchRule) ? rule.matchRule : null"
           :href="rule.primaryUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="rule-link truncate"
+          class="rule-link"
         >
           <span class="match-text">{{ rule.matchRule }}</span>
           <i class="icon icon-external-link" />
         </a>
         <span
           v-else
-          v-clean-tooltip="shouldShowTooltip(rule.matchRule) ? rule.matchRule : null"
-          class="rule-text truncate"
+          class="rule-text"
         >
           {{ rule.matchRule }}
         </span>
@@ -29,7 +27,7 @@
 
       <!-- Services ciblés avec flèche -->
       <div v-if="rule.services && rule.services.length" class="services-part">
-        <span class="arrow">></span>
+        <i class="icon icon-chevron-right" />
         <div class="services-list">
           <div
             v-for="(service, j) in rule.services"
@@ -93,11 +91,13 @@ export default {
           const port = service.port ? `:${service.port}` : '';
           const weight = service.weight ? ` (${service.weight}%)` : '';
           const namespace = service.namespace ? `${service.namespace}/` : '';
+          const kind = service.kind || 'Service';
+          const kindDisplay = kind !== 'Service' ? ` (${kind})` : '';
 
           // Pour TCP, afficher le port
           const display = this.isTCPRoute
-            ? `${namespace}${name || '-'}${port}${weight}`
-            : `${namespace}${name || '-'}${weight}`;
+            ? `${namespace}${name || '-'}${port}${kindDisplay}${weight}`
+            : `${namespace}${name || '-'}${kindDisplay}${weight}`;
 
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.row?.metadata?.namespace;
@@ -105,7 +105,7 @@ export default {
           // Create link only if service has a valid name
           let targetLink = null;
           if (name && name !== '-') {
-            targetLink = this.createServiceLink(name, serviceNamespace);
+            targetLink = this.createServiceLink(name, serviceNamespace, kind);
           }
 
           return {
@@ -124,13 +124,6 @@ export default {
   },
 
   methods: {
-    shouldShowTooltip(text) {
-      if (!text) return false;
-      // Estimation: considérer qu'on dépasse si plus de ~80 caractères
-      // (approximation basée sur max-width: 300px et taille moyenne des caractères)
-      return text.length > 80;
-    },
-
     calculatePrimaryUrl(matchRule) {
       if (!matchRule) return null;
 
@@ -152,20 +145,33 @@ export default {
       return this.isValidUrl(fullUrl) ? fullUrl : null;
     },
 
-    createServiceLink(serviceName, namespace) {
+    createServiceLink(serviceName, namespace, serviceKind = 'Service') {
       if (!serviceName) return null;
       if (!namespace) return null;
 
-      // Use Rancher standard route object instead of hardcoded path
-      return {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          product:   'explorer',
-          resource:  'service',
-          id:        serviceName,
-          namespace: namespace,
-        }
-      };
+      // Route to TraefikService or native Service based on kind
+      if (serviceKind === 'TraefikService') {
+        return {
+          name:   'c-cluster-product-resource-namespace-id',
+          params: {
+            product:   'traefik',
+            resource:  'traefik.io.traefikservice',
+            id:        serviceName,
+            namespace: namespace,
+          }
+        };
+      } else {
+        // Use Rancher standard route object for native services
+        return {
+          name:   'c-cluster-product-resource-namespace-id',
+          params: {
+            product:   'explorer',
+            resource:  'service',
+            id:        serviceName,
+            namespace: namespace,
+          }
+        };
+      }
     },
 
     isValidUrl(url) {
@@ -206,32 +212,19 @@ export default {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  width: 400px;
+  min-width: 150px;
 }
 
 .services-part {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-}
-
-.arrow {
-  color: var(--muted);
-  font-weight: bold;
-  margin-top: 2px;
 }
 
 .services-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
 }
 
 .rule-link {
@@ -281,10 +274,6 @@ export default {
 
 .service-name {
   color: var(--body-text);
-}
-
-.service-separator {
-  color: var(--muted);
 }
 
 .text-muted {

@@ -69,6 +69,11 @@ export default {
           applyTo: [
             { var: 'tlsStores', classify: true }
           ]
+        },
+        'traefik.io.traefikservice': {
+          applyTo: [
+            { var: 'traefikServices', classify: true }
+          ]
         }
       }
     };
@@ -116,11 +121,12 @@ export default {
 
     return {
       // Ressources chargées par ResourceManager (automatiquement filtrées par namespace)
-      services:       [],
-      secrets:        [],
-      middlewares:    [],
-      tlsOptions:     [],
-      tlsStores:      [],
+      services:        [],
+      secrets:         [],
+      middlewares:     [],
+      tlsOptions:      [],
+      tlsStores:       [],
+      traefikServices: [],
 
       // Ressources non-namespaced
       ingressClasses: [],
@@ -134,7 +140,6 @@ export default {
       fvReportedValidationPaths: [
         'spec.routes.match',
         'spec.routes.services.name',
-        'spec.routes.services.port',
         'spec.entryPoints'
       ],
 
@@ -152,11 +157,9 @@ export default {
           rules: ['required'],
           translationKey: 'traefik.ingressRoute.routes.service.label'
         },
-        {
-          path: 'spec.routes.services.port',
-          rules: ['required'],
-          translationKey: 'traefik.ingressRoute.routes.port.label'
-        },
+        // Note: Port validation is NOT managed by FormValidation because it depends on service.kind
+        // Port is only required for K8s Services, not for TraefikService
+        // This validation is handled by the Route component's isValid() method
         // Entry Points validation
         {
           path: 'spec.entryPoints',
@@ -172,7 +175,7 @@ export default {
     tabErrors() {
       return {
         entrypoints: !this.entryPointsValid,
-        routes:      !this.routesValid || this.fvGetPathErrors(['spec.routes.match', 'spec.routes.services.name', 'spec.routes.services.port']).length > 0,
+        routes:      !this.routesValid || this.fvGetPathErrors(['spec.routes.match', 'spec.routes.services.name']).length > 0,
         tls:         !this.tlsValid
       };
     },
@@ -207,12 +210,26 @@ export default {
     },
 
     serviceTargets() {
-      return this.services
+      // Services K8s natifs sans préfixe
+      const k8sServices = this.services
         .map(service => ({
           label: service.metadata.name,
           value: service.metadata.name,
+          kind: 'Service',
           ports: service.spec?.ports || []
         }));
+
+      // TraefikServices avec préfixe distinctif
+      const traefikSvcs = this.traefikServices
+        .map(service => ({
+          label: `[TraefikService] ${service.metadata.name}`,
+          value: service.metadata.name,
+          kind: 'TraefikService',
+          ports: [] // TraefikServices n'ont pas de ports dans la référence
+        }));
+
+      // Fusionner les deux listes, Services K8s en premier
+      return [...k8sServices, ...traefikSvcs];
     },
 
     secretTargets() {
@@ -285,6 +302,9 @@ export default {
             },
             'traefik.io.tlsstore': {
               applyTo: [{ var: 'tlsStores', classify: true }]
+            },
+            'traefik.io.traefikservice': {
+              applyTo: [{ var: 'traefikServices', classify: true }]
             }
           }
         };
@@ -314,6 +334,10 @@ export default {
             if (typeof service.port === 'object') {
               service.port = service.port?.label || service.port?.value || '';
             }
+            // Ensure kind is set (default to 'Service' for backward compatibility)
+            if (!service.kind) {
+              service.kind = 'Service';
+            }
           });
         }
         if (route.middlewares) {
@@ -334,7 +358,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
@@ -401,9 +427,7 @@ export default {
           :weight="9"
           :error="tabErrors.routes"
         >
-          <Loading v-if="isLoadingSecondaryResources" />
           <Routes
-            v-else
             :value="value"
             :mode="mode"
             :service-targets="serviceTargets"
@@ -419,9 +443,7 @@ export default {
           :weight="8"
           :error="tabErrors.tls"
         >
-          <Loading v-if="isLoadingSecondaryResources" />
           <TLSConfiguration
-            v-else
             :value="value"
             :mode="mode"
             :secret-targets="secretTargets"

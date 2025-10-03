@@ -112,18 +112,7 @@ export default {
       ],
 
       // FormValidation ruleSets
-      fvFormRuleSets: [
-        {
-          path: 'metadata.name',
-          rules: ['required'],
-          translationKey: 'nameNsDescription.name.label'
-        },
-        {
-          path: 'metadata.namespace',
-          rules: ['required'],
-          translationKey: 'nameNsDescription.namespace.label'
-        }
-      ]
+      fvFormRuleSets: []
     };
   },
 
@@ -274,7 +263,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
@@ -467,7 +458,6 @@ export default {
                           searchable: true,
                           clearable: true
                         }"
-                        :loading="!secrets || $fetchState.pending"
                         :disabled="mode === 'view'"
                       />
                     </div>
