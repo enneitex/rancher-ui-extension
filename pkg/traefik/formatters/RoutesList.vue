@@ -230,10 +230,7 @@ export default {
 .rule-link {
   color: var(--link);
   text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0; // Important pour permettre l'ellipsis dans flex
+  display: inline;
 
   &:hover {
     text-decoration: underline;
@@ -248,7 +245,8 @@ export default {
   .icon {
     font-size: 0.8em;
     opacity: 0.7;
-    flex-shrink: 0; // Empêche l'icône de rétrécir
+    margin-left: 4px;
+    vertical-align: baseline;
   }
 }
 
