@@ -1,0 +1,20 @@
+{
+  "name": "traefik",
+  "description": "Rancher UI Extension for Traefik Proxy",
+  "icon": "https://raw.githubusercontent.com/enneitex/rancher-ui-extension/main/pkg/traefik/assets/icon-traefik.svg",
+  "version": "0.1.5",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "traefik-0.1.5.umd.min.js"
+}
