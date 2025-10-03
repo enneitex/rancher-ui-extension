@@ -210,9 +210,9 @@ export default {
 
 .match-part {
   display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  min-width: 150px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .services-part {
@@ -241,9 +241,8 @@ export default {
   }
 
   .match-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .icon {
