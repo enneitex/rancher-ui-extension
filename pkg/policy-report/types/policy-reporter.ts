@@ -1,0 +1,104 @@
+import { Links } from './core';
+
+interface V1ObjectMeta {
+  name?: string;
+  namespace?: string;
+  labels?: { [key: string]: string };
+  annotations?: { [key: string]: string };
+  [key: string]: any;
+}
+
+export const POLICY_REPORTER_PRODUCT = 'policy-reporter';
+export const POLICY_REPORTER_RESOURCE = 'PolicyReporter';
+export const POLICY_REPORTER_CHART = 'policy-reporter';
+
+export const POLICY_REPORTER_REPO = 'https://kyverno.github.io/policy-reporter';
+
+export interface Resource {
+  apiVersion: string;
+  fieldPath?: string;
+  kind: string;
+  name: string;
+  namespace?: string;
+  resourceVersion: string;
+  uid: string;
+}
+
+export interface Scope {
+  apiVersion: string;
+  kind: string;
+  name: string;
+  namespace?: string;
+  uid?: string;
+}
+
+/* eslint-disable no-unused-vars */
+export enum Severity {
+  INFO = 'info',
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
+export enum Result {
+  SKIP = 'skip',
+  PASS = 'pass',
+  WARN = 'warn',
+  FAIL = 'fail',
+  ERROR = 'error'
+}
+/* eslint-enable no-unused-vars */
+
+export interface PolicyReportSummary {
+  pass?: number;
+  fail?: number;
+  warn?: number;
+  error?: number;
+  skip?: number;
+}
+
+export interface PolicyReportResult {
+  category?: string;
+  kind?: string;
+  message?: string;
+  policy: string;
+  policyName?: string;
+  properties?: {[key: string]: string};
+  resourceSelector?: {
+    matchExpressions?: {
+      key: string;
+      operator: string;
+      values?: string[];
+    };
+    matchLabels?: {[key: string]: string};
+  };
+  resources?: Resource[];
+  result?: Result;
+  rule?: string;
+  scope?: Scope;
+  scored?: boolean;
+  severity?: Severity;
+  source?: string;
+  timestamp?: {
+    nanos: number;
+    seconds: number;
+  }
+}
+
+export interface PolicyReport {
+  apiVersion: string;
+  id: string;
+  kind: string;
+  links?: Links;
+  metadata: V1ObjectMeta;
+  results?: Array<PolicyReportResult>
+  scope?: Scope
+  summary?: PolicyReportSummary
+  type: string;
+  uid: string;
+}
+
+export interface ClusterPolicyReport extends PolicyReport {
+  scope: Scope;
+}

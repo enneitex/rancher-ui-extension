@@ -24,7 +24,7 @@ export default class IngressRoute extends SteveModel {
   }
 
   get ingressClass() {
-    return this.metadata?.annotations?.['kubernetes.io/ingress.class'] || '-';
+    return this.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
   }
 
   // Reactive getter for relationships - regenerates if empty

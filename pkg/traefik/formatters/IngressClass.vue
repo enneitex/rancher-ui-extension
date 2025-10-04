@@ -5,7 +5,7 @@
 <script>
 export default {
   name: 'IngressClassFormatter',
-  
+
   props: {
     value: {
       type: [String, Object],
@@ -16,11 +16,11 @@ export default {
       default: () => ({})
     }
   },
-  
+
   computed: {
     ingressClass() {
       // Try to get the ingress class from the annotation
-      return this.row?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '-';
+      return this.row?.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
     }
   }
 };

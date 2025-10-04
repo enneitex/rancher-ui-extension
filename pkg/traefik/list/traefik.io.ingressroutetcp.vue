@@ -42,10 +42,10 @@ export default {
           sort:      'ingressClass',
         },
         {
-          name:     'entryPoints',
-          labelKey: 'traefik.headers.entryPoints',
-          value:    'formattedEntryPoints',
-          sort:     'spec.entryPoints',
+          name:      'entryPoints',
+          labelKey:  'traefik.headers.entryPoints',
+          value:     'formattedEntryPoints',
+          sort:      'spec.entryPoints',
           formatter: 'List',
         },
         AGE
@@ -70,7 +70,7 @@ export default {
     <template #cell:routes="{row}">
       <RoutesList :row="row" />
     </template>
-    
+
     <!-- Custom cell for ingress class -->
     <template #cell:ingressClass="{row}">
       <IngressClass :row="row" />
