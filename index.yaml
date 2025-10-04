@@ -25,6 +25,26 @@ entries:
     urls:
     - assets/traefik/extension-server-0.1.0.tgz
     version: 0.1.0
+  policy-report:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.12.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-10-04T19:08:49.649030491Z"
+    description: Policy Report extension for Rancher Dashboard
+    digest: 697ec8f7402197d3bec2b99ae28e4181a8e024b5e91063f4d346750893ee6dab
+    name: policy-report
+    type: application
+    urls:
+    - assets/policy-report/policy-report-0.1.0.tgz
+    version: 0.1.0
   traefik:
   - annotations:
       catalog.cattle.io/certified: rancher
@@ -129,4 +149,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2025-10-03T11:40:27.082357452Z"
+generated: "2025-10-04T19:08:49.64859842Z"
