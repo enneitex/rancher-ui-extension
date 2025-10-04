@@ -1,0 +1,288 @@
+<script setup lang="ts">
+import {
+  ref, reactive, computed, onMounted, nextTick, getCurrentInstance
+} from 'vue';
+import { useStore } from 'vuex';
+import { RouteLocationNormalizedLoaded } from 'vue-router';
+import isEmpty from 'lodash/isEmpty';
+
+import { NAMESPACE } from '@shell/config/query-params';
+
+import { BadgeState } from '@components/BadgeState';
+import { Banner } from '@components/Banner';
+import ResourceTable from '@shell/components/ResourceTable';
+
+import { PolicyReport, PolicyReportResult, ClusterPolicyReport } from '../../types';
+import { POLICY_REPORTER_HEADERS, POLICY_REPORTER_GROUP_OPTIONS } from '../../config/table-headers';
+import {
+  getFilteredReport,
+  colorForResult,
+  colorForSeverity,
+  severitySortValue
+} from '../../modules/policyReporter';
+
+const store = useStore();
+let route: RouteLocationNormalizedLoaded | null = null;
+
+const t = store.getters['i18n/t'];
+
+const report = ref<PolicyReport | ClusterPolicyReport | null>(null);
+const resource = ref<any>(null);
+const headers = POLICY_REPORTER_HEADERS;
+const groupOptions = POLICY_REPORTER_GROUP_OPTIONS;
+// Fake schema to prevent extension columns injection
+const fakeSchema = { id: 'policy-report-result', type: 'schema' };
+
+const fetchState = reactive({ pending: true });
+
+const isNamespaceResource = computed(() => resource.value?.type === NAMESPACE);
+
+// Enrich report results with sort values for proper table sorting
+const enrichedResults = computed(() => {
+  if (!report.value?.results) {
+    return [];
+  }
+
+  return report.value.results.map((row, index) => ({
+    ...row,
+    severitySort: severitySortValue(row.severity),
+    uniqueKey: `${row.policy}-${row.rule || index}`
+  }));
+});
+
+function determineResource() {
+  if (route?.params?.resource && route?.params?.id) {
+    const id = route?.params.namespace ? `${ route?.params.namespace }/${ route?.params.id }` : route?.params.id;
+
+    resource.value = store.getters['cluster/byId'](route?.params.resource, id);
+  }
+}
+
+async function fetchReports() {
+  if (resource.value) {
+    fetchState.pending = true;
+    report.value  = await getFilteredReport(store, resource.value);
+  }
+
+  fetchState.pending = false;
+}
+
+function getResourceValue(row: PolicyReportResult, val: string, needScope = false): string {
+  if (isNamespaceResource.value && needScope) {
+    if (row.scope && val in row.scope) {
+      const value = row.scope[val as keyof typeof row.scope];
+
+      return typeof value === 'string' ? value : '-';
+    }
+
+    return '-';
+  }
+
+  if (!isEmpty(row)) {
+    if (val in row) {
+      const value = row[val as keyof (PolicyReportResult)];
+
+      return typeof value === 'string' ? value : '-';
+    }
+  }
+
+  return '-';
+}
+
+function severityColor(row: PolicyReportResult) {
+  if (row.result && row.severity) {
+    return colorForSeverity(row.severity);
+  }
+
+  return 'bg-muted';
+}
+
+function statusColor(row: PolicyReportResult) {
+  if (row.result) {
+    const color = colorForResult(row.result);
+    const bgColor = color.includes('sizzle') ? `${ color }-bg` : color.replace(/text-/, 'bg-');
+
+    return bgColor;
+  }
+
+  return 'bg-muted';
+}
+
+function formattedDisplayName(displayName: string): string {
+  return displayName
+    .replace(/^clusterwide-/, '') // Remove 'clusterwide-' prefix
+    .replace(/^namespaced-[^-]+-/, ''); // Remove 'namespaced-<namespace>-' prefix
+};
+
+onMounted(async() => {
+  // Ensure Vue Router is initialized before accessing `useRoute()`
+  if (!route) {
+    const instance = getCurrentInstance();
+
+    if (instance?.proxy?.$route) {
+      route = instance.proxy.$route;
+    } else {
+      return;
+    }
+  }
+
+  determineResource();
+
+  await nextTick();
+  await fetchReports();
+});
+</script>
+
+<template>
+  <div v-if="fetchState.pending" data-testid="resource-tab-loading" class="pr-tab__loading">
+    <i class="icon icon-lg icon-spinner icon-spin  m-20" />
+  </div>
+  <div v-else-if="!fetchState.pending && enrichedResults" class="pr-tab__container">
+    <ResourceTable
+      :schema="fakeSchema"
+      :rows="enrichedResults"
+      :headers="headers"
+      :namespaced="false"
+      :table-actions="false"
+      :row-actions="false"
+      key-field="uniqueKey"
+      :groupable="true"
+      :group-options="groupOptions"
+      :sub-expandable="true"
+      :sub-expand-column="true"
+      :sub-rows="true"
+    >
+      <template #col:policy="{ row }">
+        <td v-if="row.policy">
+          <span>{{ formattedDisplayName(row.policy) }}</span>
+        </td>
+      </template>
+      <template #col:severity="{ row }">
+        <td class="text-center">
+          <BadgeState
+            :label="getResourceValue(row, 'severity')"
+            :color="severityColor(row)"
+          />
+        </td>
+      </template>
+      <template #col:status="{ row }">
+        <td class="text-center">
+          <BadgeState
+            :label="getResourceValue(row, 'result')"
+            :color="statusColor(row)"
+          />
+        </td>
+      </template>
+
+      <!-- Custom group-by header with colored badges -->
+      <template #group-by="{ group }">
+        <div
+          v-if="group && group.key"
+          class="group-tab"
+        >
+          {{ group.key === 'severity' ? t('policyReport.headers.policyReportsTab.severity.label') : t('policyReport.headers.policyReportsTab.status.label') }}: {{ group.ref || group.key }}
+        </div>
+        <div
+          v-else
+          v-clean-html="group?.ref || ''"
+          class="group-tab"
+        />
+      </template>
+
+      <!-- Sub-rows -->
+      <template #sub-row="{ row, fullColspan }">
+        <td :colspan="fullColspan" class="pr-tab__sub-row">
+          <Banner v-if="row.message" color="info" class="message">
+            <span class="text-muted">
+              {{ t('policyReport.headers.policyReportsTab.message.title') }}:
+            </span>
+            <span>{{ row.message }}</span>
+          </Banner>
+          <div class="details">
+            <section class="col">
+              <div class="title">
+                {{ t('policyReport.headers.policyReportsTab.source') }}
+              </div>
+              <span>{{ row.source || '-' }}</span>
+            </section>
+            <section class="col">
+              <div class="title">
+                {{ t('policyReport.headers.policyReportsTab.category') }}
+              </div>
+              <span>{{ row.category || '-' }}</span>
+            </section>
+            <section class="col">
+              <div class="title">
+                {{ t('policyReport.headers.policyReportsTab.rule') }}
+              </div>
+              <span>{{ row.rule || '-' }}</span>
+            </section>
+          </div>
+        </td>
+      </template>
+    </ResourceTable>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+$error: #614EA2;
+
+// Need to override the default colors for these classes
+.pr-tab {
+  &__loading {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__container {
+    .sizzle-warning-bg {
+      background-color: $error;
+      color: #fff;
+    }
+
+    .text-warning {
+      color: var(--warning) !important;
+    }
+
+    .text-darker {
+      color: var(--dark) !important;
+    }
+
+    .sizzle-warning {
+      color: $error;
+    }
+  }
+
+  &__sub-row {
+    background-color: var(--body-bg);
+    border-bottom: 1px solid var(--sortable-table-top-divider);
+    padding-left: 1rem;
+    padding-right: 1rem;
+
+    .message {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .details {
+      display: flex;
+      flex-direction: row;
+
+      .col {
+        display: flex;
+        flex-direction: column;
+
+        section {
+          margin-bottom: 1.5rem;
+        }
+
+        .title {
+          color: var(--muted);
+          margin-bottom: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+</style>
