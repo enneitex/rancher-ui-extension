@@ -1,4 +1,4 @@
-# Extension UI Traefik pour Rancher - Documentation Technique
+# Documentation Développement - Rancher UI Extensions
 
 ## Vue d'ensemble du projet rancher-ui-extension
 

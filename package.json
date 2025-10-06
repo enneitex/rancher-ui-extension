@@ -1,6 +1,6 @@
 {
   "name": "rancher-ui-extension",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": false,
   "engines": {
     "node": ">=20"
@@ -10,14 +10,8 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
-    "@types/jest": "^27.5.2",
     "@types/lodash": "^4.17.20",
     "@vue/cli-plugin-typescript": "^5.0.9",
-    "@vue/test-utils": "^2.4.0-alpha.2",
-    "babel-jest": "^27.5.1",
-    "identity-obj-proxy": "^3.0.0",
-    "jest-transform-stub": "^2.0.0",
-    "ts-jest": "27.1.5",
     "typescript": "^4.9.5",
     "vuex": "^4.1.0"
   },
@@ -32,11 +26,6 @@
     "build-pkg": "./node_modules/@rancher/shell/scripts/build-pkg.sh",
     "serve-pkgs": "./node_modules/@rancher/shell/scripts/serve-pkgs",
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
-    "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
-    "test": "./node_modules/@rancher/shell/node_modules/.bin/jest",
-    "test:watch": "./node_modules/@rancher/shell/node_modules/.bin/jest --watch",
-    "test:coverage": "./node_modules/@rancher/shell/node_modules/.bin/jest --coverage",
-    "coverage:open": "./scripts/open-coverage.sh",
-    "coverage:serve": "cd coverage/lcov-report && python3 -m http.server 8080"
+    "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name"
   }
 }
