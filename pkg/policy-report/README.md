@@ -23,7 +23,6 @@ L'extension ajoute automatiquement :
 - DaemonSets
 - Jobs
 - CronJobs
-- IngressRoute (Traefik)
 
 ### Interface intuitive
 

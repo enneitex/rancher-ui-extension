@@ -14,9 +14,6 @@ interface ExtendedHeaderOptions extends HeaderOptions {
   tooltip?: string;
 }
 
-// Traefik IngressRoute CRD
-const TRAEFIK_INGRESS_ROUTE = 'traefik.io.ingressroute';
-
 // Init the package
 export default function(plugin: IPlugin): void {
   // Auto-import model, detail, edit from the folders
@@ -38,8 +35,7 @@ export default function(plugin: IPlugin): void {
         WORKLOAD_TYPES.DAEMON_SET,
         WORKLOAD_TYPES.DEPLOYMENT,
         WORKLOAD_TYPES.JOB,
-        WORKLOAD_TYPES.STATEFUL_SET,
-        TRAEFIK_INGRESS_ROUTE
+        WORKLOAD_TYPES.STATEFUL_SET
       ]
     },
     { component: () => import('./components/PolicyReporter/ReporterPanel.vue') }
@@ -57,8 +53,7 @@ export default function(plugin: IPlugin): void {
         WORKLOAD_TYPES.DAEMON_SET,
         WORKLOAD_TYPES.DEPLOYMENT,
         WORKLOAD_TYPES.JOB,
-        WORKLOAD_TYPES.STATEFUL_SET,
-        TRAEFIK_INGRESS_ROUTE
+        WORKLOAD_TYPES.STATEFUL_SET
       ],
       mode: [
         'list' // Only show in list views, not in detail views
@@ -83,8 +78,7 @@ export default function(plugin: IPlugin): void {
         WORKLOAD_TYPES.DAEMON_SET,
         WORKLOAD_TYPES.DEPLOYMENT,
         WORKLOAD_TYPES.JOB,
-        WORKLOAD_TYPES.STATEFUL_SET,
-        TRAEFIK_INGRESS_ROUTE
+        WORKLOAD_TYPES.STATEFUL_SET
       ]
     },
     {
