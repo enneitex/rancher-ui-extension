@@ -211,8 +211,7 @@ export default {
 .match-part {
   display: flex;
   align-items: flex-start;
-  flex: 1;
-  min-width: 0;
+  max-width: 80%;
 }
 
 .services-part {
