@@ -1,0 +1,15 @@
+nameOverride: ""
+fullnameOverride: ""
+plugin:
+  enabled: true
+  versionOverride: ""
+  endpoint: >-
+    https://raw.githubusercontent.com/enneitex/rancher-ui-extension/gh-pages/extensions/traefik/0.1.8
+  compressedEndpoint: >-
+    https://raw.githubusercontent.com/enneitex/rancher-ui-extension/gh-pages/extensions/traefik/0.1.8.tgz
+  noCache: false
+  noAuth: false
+  metadata:
+    catalog.cattle.io/rancher-version: ">= 2.12.0"
+    catalog.cattle.io/display-name: Traefik Proxy
+    catalog.cattle.io/ui-extensions-version: ">= 3.0.0 < 4.0.0"
