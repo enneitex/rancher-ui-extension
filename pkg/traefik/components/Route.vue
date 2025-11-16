@@ -3,6 +3,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { Banner } from '@components/Banner';
+import ServiceRow from './ServiceRow';
 
 export default {
   emits:      ['remove', 'validation-changed'],
@@ -10,7 +11,8 @@ export default {
     LabeledInput,
     LabeledSelect,
     ArrayListGrouped,
-    Banner
+    Banner,
+    ServiceRow
   },
 
   props: {
@@ -103,7 +105,7 @@ export default {
         label: middleware.label,
         value: middleware.value
       }));
-    },
+    }
   },
 
   watch: {
@@ -122,52 +124,6 @@ export default {
 
     focus() {
       this.$refs.match.focus();
-    },
-
-    updateServiceName(service, serviceName) {
-      // Ensure serviceName is always a string (handle both string and {label: "value"} objects)
-      const serviceNameValue = typeof serviceName === 'string' ? serviceName : serviceName?.label || serviceName?.value || '';
-      service.name = serviceNameValue;
-
-      // Find the selected service in serviceTargets to auto-fill port and kind
-      const selectedService = this.serviceTargets.find(s => s.value === serviceNameValue);
-      if (selectedService) {
-        // Auto-detect and set the service kind (Service or TraefikService)
-        service.kind = selectedService.kind || 'Service';
-
-        // Auto-fill port only for K8s Services (not TraefikService)
-        if (selectedService.kind === 'Service' && selectedService.ports && selectedService.ports.length > 0) {
-          const firstPort = selectedService.ports[0];
-          // Auto-select first port (prefer name over port number)
-          service.port = firstPort.name || firstPort.port || '';
-        } else if (selectedService.kind === 'TraefikService') {
-          // TraefikServices don't have ports in the IngressRoute reference
-          service.port = '';
-        }
-      }
-    },
-
-    updateServicePort(service, portValue) {
-      // Ensure port is always a string or number (handle both string and {label: "value"} objects)
-      const portValueClean = typeof portValue === 'string' || typeof portValue === 'number' ? portValue : portValue?.label || portValue?.value || '';
-      service.port = portValueClean;
-    },
-
-    getPortOptions(service) {
-      const selectedService = this.serviceTargets.find(s => s.value === service.name);
-      if (!selectedService || !selectedService.ports) {
-        return [];
-      }
-
-      return selectedService.ports.map(port => ({
-        label: port.name ? `${port.name} (${port.port})` : port.port,
-        value: port.name || port.port
-      }));
-    },
-
-    isTraefikService(service) {
-      const selectedService = this.serviceTargets.find(s => s.value === service.name);
-      return selectedService?.kind === 'TraefikService';
     }
   }
 };
@@ -227,34 +183,12 @@ export default {
         @add="() => {}"
       >
         <template #default="{ row }">
-          <div class="row mb-10">
-            <div :class="isTraefikService(row.value) ? 'col span-12' : 'col span-6'">
-              <LabeledSelect
-                v-model:value="row.value.name"
-                :mode="mode"
-                :label="t('traefik.ingressRoute.routes.service.label')"
-                :tooltip="t('traefik.ingressRoute.routes.service.tooltip')"
-                :placeholder="t('traefik.ingressRoute.routes.service.placeholder')"
-                :options="serviceTargets"
-                :required="true"
-                :error="row.value.name ? '' : t('validation.required', { key: t('traefik.ingressRoute.routes.service.label') })"
-                @update:model-value="updateServiceName(row.value, $event)"
-              />
-            </div>
-            <div v-if="!isTraefikService(row.value)" class="col span-6">
-              <LabeledSelect
-                v-model:value="row.value.port"
-                :mode="mode"
-                :label="t('traefik.ingressRoute.routes.port.label')"
-                :placeholder="t('traefik.ingressRoute.routes.port.placeholder')"
-                :tooltip="t('traefik.ingressRoute.routes.port.tooltip')"
-                :options="getPortOptions(row.value)"
-                :required="true"
-                :error="row.value.port ? '' : t('validation.required', { key: t('traefik.ingressRoute.routes.port.label') })"
-                @update:model-value="updateServicePort(row.value, $event)"
-              />
-            </div>
-          </div>
+          <ServiceRow
+            v-model:value="row.value"
+            :service-targets="serviceTargets"
+            :mode="mode"
+            :is-tcp="isTcp"
+          />
         </template>
       </ArrayListGrouped>
     </div>

@@ -36,6 +36,7 @@ traefik:
         label: Target Service
         placeholder: Select a service
         tooltip: Kubernetes Service or TraefikService that will receive the matched traffic. TraefikService allows advanced load-balancing features.
+        doesntExist: "The selected service does not exist in this namespace"
       port:
         label: Port
         placeholder: "e.g. 80 or http"
@@ -105,6 +106,7 @@ traefik:
         label: Match Rule
       service:
         label: Service
+        doesntExist: "The selected service does not exist in this namespace"
       port:
         label: Port
     middleware:
