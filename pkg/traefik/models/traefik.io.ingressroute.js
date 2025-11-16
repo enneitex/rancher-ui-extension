@@ -174,31 +174,18 @@ export default class IngressRoute extends SteveModel {
       return null;
     }
 
-    const id = `${ this.namespace }/${ serviceName }`;
+    // Determine resource type based on service kind
+    const resource = serviceKind === 'TraefikService' ? 'traefik.io.traefikservice' : SERVICE;
 
-    if (serviceKind === 'TraefikService') {
-      // TraefikService link to Traefik product
-      return {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          resource:  'traefik.io.traefikservice',
-          product:   'traefik',
-          id:        serviceName,
-          namespace: this.namespace,
-        }
-      };
-    } else {
-      // Standard service link using Rancher route pattern (matching original Ingress model)
-      return {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          resource:  SERVICE,
-          product:   'explorer',
-          id:        serviceName,
-          namespace: this.namespace,
-        }
-      };
-    }
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource,
+        product:   'explorer',
+        id:        serviceName,
+        namespace: this.namespace,
+      }
+    };
   }
 
   createRulesForListPage(workloads) {
@@ -252,7 +239,7 @@ export default class IngressRoute extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  'traefik.io.middleware',
-        product:   'traefik',
+        product:   'explorer',
         id:        middlewareName,
         namespace: targetNamespace,
       }
@@ -266,15 +253,11 @@ export default class IngressRoute extends SteveModel {
 
     const targetNamespace = namespace || this.namespace;
 
-    // Determine the correct product based on API group
-    // Resources from traefik.io API group belong to Traefik product, others to explorer
-    const product = resourceType.startsWith('traefik.io.') ? 'traefik' : 'explorer';
-
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  resourceType,
-        product:   product,
+        product:   'explorer',
         id:        resourceName,
         namespace: targetNamespace,
       }
