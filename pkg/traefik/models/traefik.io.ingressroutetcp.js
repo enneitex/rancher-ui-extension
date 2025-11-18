@@ -214,17 +214,18 @@ export default class IngressRouteTCP extends SteveModel {
   }
 
   // Rancher-standard methods for linking (similar to IngressRoute)
-  targetTo(workloads, serviceName) {
+  targetTo(workloads, serviceName, serviceKind = 'Service') {
     if (!serviceName) {
       return null;
     }
 
-    const id = `${ this.namespace }/${ serviceName }`;
-    // Standard service link using Rancher route pattern (matching original Ingress model)
+    // Determine resource type based on service kind
+    const resource = serviceKind === 'TraefikService' ? 'traefik.io.traefikservice' : SERVICE;
+
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
-        resource:  SERVICE,
+        resource,
         product:   'explorer',
         id:        serviceName,
         namespace: this.namespace,
@@ -244,7 +245,7 @@ export default class IngressRouteTCP extends SteveModel {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  'traefik.io.middlewaretcp',
-        product:   'traefik',
+        product:   'explorer',
         id:        middlewareName,
         namespace: targetNamespace,
       }
@@ -258,15 +259,11 @@ export default class IngressRouteTCP extends SteveModel {
 
     const targetNamespace = namespace || this.namespace;
 
-    // Determine the correct product based on API group
-    // Resources from traefik.io API group belong to Traefik product, others to explorer
-    const product = resourceType.startsWith('traefik.io.') ? 'traefik' : 'explorer';
-
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
         resource:  resourceType,
-        product:   product,
+        product:   'explorer',
         id:        resourceName,
         namespace: targetNamespace,
       }

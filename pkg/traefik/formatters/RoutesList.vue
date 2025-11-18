@@ -149,29 +149,18 @@ export default {
       if (!serviceName) return null;
       if (!namespace) return null;
 
-      // Route to TraefikService or native Service based on kind
-      if (serviceKind === 'TraefikService') {
-        return {
-          name:   'c-cluster-product-resource-namespace-id',
-          params: {
-            product:   'traefik',
-            resource:  'traefik.io.traefikservice',
-            id:        serviceName,
-            namespace: namespace,
-          }
-        };
-      } else {
-        // Use Rancher standard route object for native services
-        return {
-          name:   'c-cluster-product-resource-namespace-id',
-          params: {
-            product:   'explorer',
-            resource:  'service',
-            id:        serviceName,
-            namespace: namespace,
-          }
-        };
-      }
+      // Determine resource type based on service kind
+      const resource = serviceKind === 'TraefikService' ? 'traefik.io.traefikservice' : 'service';
+
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          product:   'explorer',
+          resource,
+          id:        serviceName,
+          namespace,
+        }
+      };
     },
 
     isValidUrl(url) {
