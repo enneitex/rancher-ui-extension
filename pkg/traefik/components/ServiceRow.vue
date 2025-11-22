@@ -177,6 +177,8 @@ export default {
     >
       <LabeledSelect
         v-model:value="servicePort"
+        :taggable="true"
+        :searchable="true"
         :mode="mode"
         :label="t('traefik.ingressRoute.routes.port.label')"
         :placeholder="t('traefik.ingressRoute.routes.port.placeholder')"

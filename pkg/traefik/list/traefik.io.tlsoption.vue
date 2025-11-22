@@ -1,11 +1,10 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
-import { STATE, NAME, NAMESPACE, AGE } from '@shell/config/table-headers';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import CompactList from '../formatters/CompactList.vue';
 
 export default {
   name:       'TLSOptionList',
-  components: { ResourceTable, CompactList },
+  components: { PaginatedResourceTable, CompactList },
 
   props: {
     resource: {
@@ -20,48 +19,13 @@ export default {
       type:    Boolean,
       default: false
     }
-  },
-
-  computed: {
-    headers() {
-      return [
-        STATE,
-        NAME,
-        NAMESPACE,
-        {
-          name:     'minVersion',
-          labelKey: 'traefik.tlsOption.minVersion.label',
-          value:    'spec.minVersion',
-          sort:     'spec.minVersion',
-        },
-        {
-          name:     'maxVersion',
-          labelKey: 'traefik.tlsOption.maxVersion.label',
-          value:    'spec.maxVersion',
-          sort:     'spec.maxVersion',
-        },
-        {
-          name:      'cipherSuites',
-          labelKey:  'traefik.tlsOption.cipherSuites.label',
-          value:     'spec.cipherSuites',
-          sort:      false,
-        },
-        AGE
-      ];
-    },
-
-    rows() {
-      return this.$store.getters['cluster/all'](this.resource) || [];
-    }
   }
 };
 </script>
 
 <template>
-  <ResourceTable
+  <PaginatedResourceTable
     :schema="schema"
-    :rows="rows"
-    :headers="headers"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
   >
     <!-- Custom cell for min version with dash when empty -->
@@ -78,7 +42,7 @@ export default {
     <template #cell:cipherSuites="{row}">
       <CompactList :value="row.spec?.cipherSuites" />
     </template>
-  </ResourceTable>
+  </PaginatedResourceTable>
 </template>
 
 <style scoped>

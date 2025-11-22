@@ -2,7 +2,7 @@
   "name": "traefik",
   "description": "Rancher UI Extension for Traefik Proxy",
   "icon": "https://raw.githubusercontent.com/enneitex/rancher-ui-extension/main/pkg/traefik/assets/icon-traefik.svg",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "private": false,
   "rancher": {
     "annotations": {
