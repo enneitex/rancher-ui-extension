@@ -26,6 +26,29 @@ export default class IngressRouteTCP extends SteveModel {
     return this.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
   }
 
+  get details() {
+    const out = [];
+
+    // Entry Points
+    const entryPoints = this.spec?.entryPoints || [];
+    if (entryPoints.length > 0) {
+      out.push({
+        label:   'EntryPoints',
+        content: entryPoints.join(', '),
+      });
+    }
+
+    // Ingress Class
+    if (this.ingressClass) {
+      out.push({
+        label:   'Ingress Class',
+        content: this.ingressClass,
+      });
+    }
+
+    return out;
+  }
+
   // Reactive getter for relationships - regenerates if empty
   get relationships() {
     if (!this.metadata) {

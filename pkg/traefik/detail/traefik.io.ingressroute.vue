@@ -3,7 +3,6 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import RoutesTable from '../components/RoutesTable.vue';
 import TLSConfiguration from '../components/TLSConfiguration.vue';
-import EntryPoints from '../components/EntryPoints.vue';
 
 export default {
   name: 'IngressRouteDetail',
@@ -12,8 +11,7 @@ export default {
     ResourceTabs,
     Tab,
     RoutesTable,
-    TLSConfiguration,
-    EntryPoints
+    TLSConfiguration
   },
 
   props: {
@@ -79,9 +77,6 @@ export default {
 
 <template>
   <div>
-    <!-- EntryPoints section at the top -->
-    <EntryPoints :value="value" :mode="mode" />
-    
     <ResourceTabs
       :value="value"
       :mode="mode"
