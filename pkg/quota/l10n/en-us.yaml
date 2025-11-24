@@ -1,0 +1,25 @@
+quota:
+  panel:
+    title: Resource Quotas
+  tabs:
+    capacity: Capacity
+  labels:
+    requestsCpu: CPU Requests
+    limitsCpu: CPU Limits
+    requestsMemory: Memory Requests
+    limitsMemory: Memory Limits
+    requestsStorage: Storage Requests
+    pods: Pods
+    persistentVolumeClaims: Persistent Volume Claims
+    services: Services
+    secrets: Secrets
+    configMaps: Config Maps
+  units:
+    cores: '{count, plural, =1 {Core} other {Cores}}'
+  messages:
+    noQuotas: No resource quotas defined for this namespace
+    loading: Loading quota information...
+    used: Used
+    reserved: Reserved
+  tooltip:
+    used: 'Used: {used} / {total}'

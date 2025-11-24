@@ -52,7 +52,8 @@
       "Read(/home/dev/kind/github/rancher/**)",
       "Bash(kubectl get:*)",
       "Bash(kubectl explain:*)",
-      "Bash(kubectl apply:*)"
+      "Bash(kubectl apply:*)",
+      "Read(//home/dev/kind/github/enneitex/rancher-dashboard/**)"
     ],
     "deny": [],
     "ask": []
