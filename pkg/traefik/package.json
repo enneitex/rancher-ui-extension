@@ -6,7 +6,6 @@
   "private": false,
   "rancher": {
     "annotations": {
-      "catalog.cattle.io/rancher-version": ">= 2.13.0",
       "catalog.cattle.io/display-name": "Traefik Proxy",
       "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0",
       "catalog.cattle.io/experimental": "true"
