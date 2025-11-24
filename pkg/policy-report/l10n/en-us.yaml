@@ -8,8 +8,8 @@ policyReport:
         label: Policy
       severity:
         label: Severity
-      status:
-        label: Status
+      result:
+        label: Result
       message:
         title: Message
       rule: Rule
@@ -18,4 +18,4 @@ policyReport:
   grouping:
     none: Flat List
     severity: Group by Severity
-    status: Group by Status
+    result: Group by Result

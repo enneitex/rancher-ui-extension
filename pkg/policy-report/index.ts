@@ -85,7 +85,7 @@ export default function(plugin: IPlugin): void {
       name:       'policy-report-tab',
       labelKey:   'policyReport.headers.label',
       weight:     -5,
-      showHeader: true,
+      showHeader: false,
       component:  () => import('./components/PolicyReporter/ResourceTab.vue')
     }
   );

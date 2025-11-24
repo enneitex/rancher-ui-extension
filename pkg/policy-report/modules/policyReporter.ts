@@ -223,7 +223,7 @@ export async function getFilteredReport(store: Store<any>, resource: any): Promi
 }
 
 /**
- * Determines color for PolicyReport status
+ * Determines color for PolicyReport result
  * @param result | PolicyReport summary result || report resource.result
  * @returns string
  */
@@ -258,7 +258,7 @@ export function colorForSeverity(severity: Severity): string {
   case Severity.MEDIUM:
     return 'bg-warning';
   case Severity.HIGH:
-    return 'bg-warning';
+    return 'bg-error';
   case Severity.CRITICAL:
     return 'bg-error';
   default:

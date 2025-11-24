@@ -12,7 +12,7 @@ import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 
-import { PolicyReport, PolicyReportResult, ClusterPolicyReport } from '../../types';
+import { PolicyReport, PolicyReportResult, ClusterPolicyReport, Severity, Result } from '../../types';
 import { POLICY_REPORTER_HEADERS, POLICY_REPORTER_GROUP_OPTIONS } from '../../config/table-headers';
 import {
   getFilteredReport,
@@ -97,7 +97,7 @@ function severityColor(row: PolicyReportResult) {
   return 'bg-muted';
 }
 
-function statusColor(row: PolicyReportResult) {
+function resultColor(row: PolicyReportResult) {
   if (row.result) {
     const color = colorForResult(row.result);
     const bgColor = color.includes('sizzle') ? `${ color }-bg` : color.replace(/text-/, 'bg-');
@@ -112,15 +112,61 @@ function formattedDisplayName(displayName: string): string {
   return displayName
     .replace(/^clusterwide-/, '') // Remove 'clusterwide-' prefix
     .replace(/^namespaced-[^-]+-/, ''); // Remove 'namespaced-<namespace>-' prefix
-};
+}
+
+function getGroupLabel(groupKey: string): string {
+  if (!groupKey) {
+    return '';
+  }
+
+  const normalizedKey = groupKey.toLowerCase();
+
+  // Check if it's a severity value
+  const severityValues = Object.values(Severity);
+  if (severityValues.includes(normalizedKey as Severity)) {
+    return t('policyReport.headers.policyReportsTab.severity.label');
+  }
+
+  // Check if it's a result value
+  const resultValues = Object.values(Result);
+  if (resultValues.includes(normalizedKey as Result)) {
+    return t('policyReport.headers.policyReportsTab.result.label');
+  }
+
+  // Default fallback - return empty string
+  return '';
+}
+
+function getGroupColor(groupKey: string): string {
+  if (!groupKey) {
+    return 'bg-muted';
+  }
+
+  const normalizedKey = groupKey.toLowerCase();
+
+  // Check if it's a severity value
+  const severityValues = Object.values(Severity);
+  if (severityValues.includes(normalizedKey as Severity)) {
+    return colorForSeverity(normalizedKey as Severity);
+  }
+
+  // Check if it's a result value
+  const resultValues = Object.values(Result);
+  if (resultValues.includes(normalizedKey as Result)) {
+    const color = colorForResult(normalizedKey as Result);
+    return color.includes('sizzle') ? `${color}-bg` : color.replace(/text-/, 'bg-');
+  }
+
+  return 'bg-muted';
+}
 
 onMounted(async() => {
   // Ensure Vue Router is initialized before accessing `useRoute()`
   if (!route) {
     const instance = getCurrentInstance();
 
-    if (instance?.proxy?.$route) {
-      route = instance.proxy.$route;
+    if ((instance?.proxy as any)?.$route) {
+      route = (instance?.proxy as any).$route;
     } else {
       return;
     }
@@ -165,11 +211,11 @@ onMounted(async() => {
           />
         </td>
       </template>
-      <template #col:status="{ row }">
+      <template #col:result="{ row }">
         <td class="text-center">
           <BadgeState
             :label="getResourceValue(row, 'result')"
-            :color="statusColor(row)"
+            :color="resultColor(row)"
           />
         </td>
       </template>
@@ -180,7 +226,14 @@ onMounted(async() => {
           v-if="group && group.key"
           class="group-tab"
         >
-          {{ group.key === 'severity' ? t('policyReport.headers.policyReportsTab.severity.label') : t('policyReport.headers.policyReportsTab.status.label') }}: {{ group.ref || group.key }}
+          <span v-if="getGroupLabel(group.key)">{{ getGroupLabel(group.key) }}: </span>{{ group.ref || group.key }}
+
+          <!-- <span v-if="getGroupLabel(group.key)">{{ getGroupLabel(group.key) }}:
+          <BadgeState
+            :label="group.ref || group.key"
+            :color="getGroupColor(group.key)"
+          />
+          </span> -->
         </div>
         <div
           v-else

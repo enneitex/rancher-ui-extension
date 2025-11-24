@@ -11,4 +11,15 @@ export default function(plugin: IPlugin) {
 
   // Load Traefik product configuration
   plugin.addProduct(require('./product'));
+
+  // Ensure that traefik CRD list uses server-side pagination
+  plugin.enableServerSidePagination?.({
+    cluster: {
+      resources: {
+        enableSome: {
+          enabled: ['traefik.io.ingressroute', 'traefik.io.middleware', 'traefik.io.ingressroutetcp', 'traefik.io.tlsoption'],
+        }
+      }
+    }
+  })
 }

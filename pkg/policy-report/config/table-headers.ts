@@ -13,9 +13,9 @@ export const POLICY_REPORTER_HEADERS = [
     align:     'center'
   },
   {
-    name:      'status',
-    labelKey:  'policyReport.headers.policyReportsTab.status.label',
-    value:     'status',
+    name:      'result',
+    labelKey:  'policyReport.headers.policyReportsTab.result.label',
+    value:     'result',
     sort:      'result',
     align:     'center'
   }
@@ -39,8 +39,8 @@ export const POLICY_REPORTER_GROUP_OPTIONS = [
     value:         'result',
     icon:          'icon-checkmark',
     field:         'result',
-    hideColumn:    'status',
+    hideColumn:    'result',
     groupLabelKey: 'result',
-    tooltipKey:    'policyReport.grouping.status'
+    tooltipKey:    'policyReport.grouping.result'
   }
 ];

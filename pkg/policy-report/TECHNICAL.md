@@ -47,10 +47,10 @@
 
 **[ResourceTab.vue](components/PolicyReporter/ResourceTab.vue)** (Onglet)
 - Affiche un tableau détaillé des résultats avec `ResourceTable`
-- Groupage par severity ou status (boutons de sélection)
+- Groupage par severity ou result (boutons de sélection)
 - Titres de groupes colorés avec texte stylisé (label grisé + valeur en couleur)
 - Sub-rows expandables pour détails (message, source, catégorie, rule)
-- Badges colorés pour severity et status dans les colonnes
+- Badges colorés pour severity et result dans les colonnes
 - Formatage intelligent des noms de policy (retire les préfixes clusterwide-/namespaced-)
 
 ### Intégration Rancher ([index.ts](index.ts))
@@ -156,7 +156,7 @@ yarn build-pkg policy-report
 
 ### Améliorations futures
 - [ ] Tests unitaires et d'intégration
-- [ ] Support de filtres avancés (par policy, par severity, par status)
+- [ ] Support de filtres avancés (par policy, par severity, par result)
 - [ ] Export des résultats en CSV/JSON
 - [ ] Indicateur de tendance (progression dans le temps)
 
