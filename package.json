@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@rancher/shell": "3.0.8-rc.8"
+    "@rancher/shell": "3.0.8-rc.12"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
