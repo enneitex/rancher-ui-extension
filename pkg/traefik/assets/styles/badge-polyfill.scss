@@ -1,0 +1,51 @@
+/**
+ * CSS Polyfill for BadgeState compatibility with Rancher 2.12.x (shell 3.0.5)
+ *
+ * PROBLEM:
+ * - Rancher v2.13.0+ (shell 3.0.8) uses CSS variables (--info-badge, --warning-badge, etc.)
+ * - Rancher v2.12.3 (shell 3.0.5) uses direct background-color from theme classes
+ * - This extension must work in BOTH versions
+ *
+ * SOLUTION:
+ * - Force shell 3.0.5 native styles using direct class overrides with !important
+ * - In Rancher v2.13.0, shell 3.0.8's more specific selectors take precedence
+ * - In Rancher v2.12.3, these rules ensure visual consistency with native badges
+ *
+ * COLORS SOURCE: @rancher/shell@3.0.5/assets/styles/themes/_light.scss
+ * - $info: #3D98D3
+ * - $warning: #DAC342
+ * - $error: #F64747
+ * - $success: #5D995D
+ *
+ * Note: Dark theme uses same colors as light theme in shell 3.0.5
+ */
+
+.badge-state {
+  // INFO badge - solid blue background
+  &.bg-info {
+    background-color: #3D98D3 !important;
+    color: white !important;
+    border-color: #3D98D3 !important;
+  }
+
+  // WARNING badge - solid yellow background
+  &.bg-warning {
+    background-color: #DAC342 !important;
+    color: #141419 !important;  // Dark text for contrast on yellow
+    border-color: #DAC342 !important;
+  }
+
+  // ERROR badge - solid red background
+  &.bg-error {
+    background-color: #F64747 !important;
+    color: white !important;
+    border-color: #F64747 !important;
+  }
+
+  // SUCCESS badge - transparent background with green border (de-emphasized style)
+  &.bg-success {
+    background-color: transparent !important;
+    color: #5D995D !important;
+    border-color: #5D995D !important;
+  }
+}
