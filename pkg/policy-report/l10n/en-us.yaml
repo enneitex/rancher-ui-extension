@@ -19,3 +19,18 @@ policyReport:
     none: Flat List
     severity: Group by Severity
     result: Group by Result
+  policyReporter:
+    title: Policy Reporter
+    link: Open in new tab
+    noCrds:
+      banner: PolicyReport and ClusterPolicyReport CRDs are not installed in this cluster. Please install a policy engine like Kyverno, Kubewarden, or Falco with Policy Reporter support.
+    service:
+      unavailable: Policy Reporter UI service is not available. Make sure Policy Reporter is installed and running in your cluster.
+    deployment:
+      unavailable: Policy Reporter UI deployment is in state "{state}". The dashboard may not load correctly.
+  clusterpolicy:
+    background: Background
+    validationFailureAction: Validation Failure Action
+  policy:
+    background: Background
+    validationFailureAction: Validation Failure Action

@@ -28,6 +28,20 @@ export default function(plugin: IPlugin): void {
   // Add Vuex store
   plugin.addDashboardStore(policyReportStore.config.namespace, policyReportStore.specifics, policyReportStore.config);
 
+  // Load Compliance product configuration
+  plugin.addProduct(require('./product'));
+
+  // Ensure that Kyverno CRD lists use server-side pagination
+  plugin.enableServerSidePagination?.({
+    cluster: {
+      resources: {
+        enableSome: {
+          enabled: ['kyverno.io.clusterpolicy', 'kyverno.io.policy'],
+        }
+      }
+    }
+  });
+
   /** Panels */
   plugin.addPanel(
     PanelLocation.RESOURCE_LIST,
