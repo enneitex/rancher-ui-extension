@@ -191,9 +191,7 @@ export default {
     },
 
     entryPointsValid() {
-      // Vérifie que spec.entryPoints est un tableau contenant 'websecure'
-      return Array.isArray(this.value.spec.entryPoints) &&
-             this.value.spec.entryPoints.includes('websecure');
+      return this.value.spec.entryPoints && this.value.spec.entryPoints.length > 0;
     },
 
     // Use the FormValidation mixin for validation
@@ -281,6 +279,27 @@ export default {
       immediate: true
     },
 
+    // Normalize entryPoints immediately when they change (for taggable inputs)
+    'value.spec.entryPoints': {
+      handler(entryPoints) {
+        if (entryPoints && Array.isArray(entryPoints)) {
+          const normalized = entryPoints.map(ep => {
+            if (typeof ep === 'object' && ep !== null) {
+              return ep.label || ep.value || '';
+            }
+            return ep;
+          }).filter(ep => ep);
+
+          // Only update if there's a difference to avoid infinite loops
+          const needsUpdate = entryPoints.some((ep, idx) => typeof ep === 'object' || ep !== normalized[idx]);
+          if (needsUpdate) {
+            this.value.spec.entryPoints = normalized;
+          }
+        }
+      },
+      deep: true
+    },
+
     // Watch namespace changes to reload resources
     async 'value.metadata.namespace'(neu) {
       if (neu && !this.$fetchState.pending) {
@@ -350,6 +369,16 @@ export default {
         this.value.spec.tls.domains.forEach(domain => delete domain.vKey);
       }
 
+      // Normalize entryPoints: ensure they are strings, not objects
+      if (this.value.spec.entryPoints) {
+        this.value.spec.entryPoints = this.value.spec.entryPoints.map(ep => {
+          if (typeof ep === 'object') {
+            return ep?.label || ep?.value || '';
+          }
+          return ep;
+        }).filter(ep => ep); // Remove empty strings
+      }
+
       // Ne pas nettoyer les routes avec match vide pour permettre à l'API
       // de générer des erreurs de validation appropriées
     }
@@ -410,6 +439,7 @@ export default {
               <LabeledSelect
                 v-model:value="value.spec.entryPoints"
                 :mode="mode"
+                :searchable="true"
                 :label="t('traefik.ingressRoute.entryPoints.label')"
                 :multiple="true"
                 :taggable="true"
