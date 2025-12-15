@@ -1,5 +1,4 @@
 // Tests unitaires pour le composant RoutesList.vue
-// Monte réellement le composant Vue pour une couverture de code complète
 
 import { mount } from '@vue/test-utils';
 import RoutesList from '../RoutesList.vue';
@@ -358,23 +357,23 @@ describe('component: RoutesList formatter', () => {
     const mockRow = {
       spec: {
         routes: [
-          { 
-            match: 'Host(`api.example.com`) && PathPrefix(`/v1`)', 
-            services: [{ name: 'api-service', namespace: 'api-ns', port: 8080 }] 
+          {
+            match: 'Host(`api.example.com`) && PathPrefix(`/v1`)',
+            services: [{ name: 'api-service', namespace: 'api-ns', port: 8080 }]
           },
-          { 
-            match: 'Host(`web.example.com`)', 
-            services: [{ name: 'web-service', namespace: 'web-ns', port: 3000 }] 
+          {
+            match: 'Host(`web.example.com`)',
+            services: [{ name: 'web-service', namespace: 'web-ns', port: 3000 }]
           },
-          { 
-            match: 'PathPrefix(`/static`)', 
-            services: [{ name: 'static-service', namespace: 'web-ns', port: 80 }] 
+          {
+            match: 'PathPrefix(`/static`)',
+            services: [{ name: 'static-service', namespace: 'web-ns', port: 80 }]
           }
         ]
       },
       _type: 'traefik.io.ingressroute'
     };
-    
+
     const wrapper = mount(RoutesList, {
       props: { row: mockRow },
       global: {
@@ -398,14 +397,14 @@ describe('component: RoutesList formatter', () => {
     // Check external links (only first 2 routes should have them)
     const externalLinks = wrapper.findAll('a[target="_blank"]');
     expect(externalLinks.length).toBe(2);
-    
+
     expect(externalLinks[0].attributes('href')).toBe('https://api.example.com/v1');
     expect(externalLinks[1].attributes('href')).toBe('https://web.example.com');
 
     // Check service links
     const serviceLinks = wrapper.findAll('.service-link');
     expect(serviceLinks.length).toBe(3);
-    
+
     expect(serviceLinks[0].attributes('href')).toBe('/c/test-cluster/explorer/service/api-ns/api-service');
     expect(serviceLinks[1].attributes('href')).toBe('/c/test-cluster/explorer/service/web-ns/web-service');
     expect(serviceLinks[2].attributes('href')).toBe('/c/test-cluster/explorer/service/web-ns/static-service');

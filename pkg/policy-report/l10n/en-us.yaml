@@ -19,3 +19,9 @@ policyReport:
     none: Flat List
     severity: Group by Severity
     result: Group by Result
+  clusterpolicy:
+    background: Background
+    validationFailureAction: Validation Failure Action
+  policy:
+    background: Background
+    validationFailureAction: Validation Failure Action

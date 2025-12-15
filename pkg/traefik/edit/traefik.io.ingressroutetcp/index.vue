@@ -132,9 +132,6 @@ export default {
       routesValid:    false,
       tlsValid:       true,
 
-      // Entry points as comma-separated string for UI
-      entryPointsString: (this.value.spec.entryPoints || []).join(', '),
-
       // FormValidation configuration
       fvReportedValidationPaths: [
         'spec.routes.match',
@@ -181,6 +178,10 @@ export default {
       };
     },
 
+    entryPointOptions() {
+      // Empty array - users can type any custom entrypoint
+      return [];
+    },
 
     isView() {
       return this.mode === _VIEW;
@@ -258,14 +259,25 @@ export default {
       immediate: true
     },
 
-    // Watch entryPointsString and sync with array
-    entryPointsString(val) {
-      if (val) {
-        // Split by comma and trim whitespace
-        this.value.spec.entryPoints = val.split(',').map(ep => ep.trim()).filter(ep => ep);
-      } else {
-        this.value.spec.entryPoints = [];
-      }
+    // Normalize entryPoints immediately when they change (for taggable inputs)
+    'value.spec.entryPoints': {
+      handler(entryPoints) {
+        if (entryPoints && Array.isArray(entryPoints)) {
+          const normalized = entryPoints.map(ep => {
+            if (typeof ep === 'object' && ep !== null) {
+              return ep.label || ep.value || '';
+            }
+            return ep;
+          }).filter(ep => ep);
+
+          // Only update if there's a difference to avoid infinite loops
+          const needsUpdate = entryPoints.some((ep, idx) => typeof ep === 'object' || ep !== normalized[idx]);
+          if (needsUpdate) {
+            this.value.spec.entryPoints = normalized;
+          }
+        }
+      },
+      deep: true
     },
 
     // Watch namespace changes to reload resources
@@ -325,6 +337,16 @@ export default {
       if (this.value.spec.tls?.domains) {
         this.value.spec.tls.domains.forEach(domain => delete domain.vKey);
       }
+
+      // Normalize entryPoints: ensure they are strings, not objects
+      if (this.value.spec.entryPoints) {
+        this.value.spec.entryPoints = this.value.spec.entryPoints.map(ep => {
+          if (typeof ep === 'object') {
+            return ep?.label || ep?.value || '';
+          }
+          return ep;
+        }).filter(ep => ep); // Remove empty strings
+      }
     }
   }
 };
@@ -380,10 +402,14 @@ export default {
 
           <div class="row">
             <div class="col span-12">
-              <LabeledInput
-                v-model:value="entryPointsString"
+              <LabeledSelect
+                v-model:value="value.spec.entryPoints"
                 :mode="mode"
+                :searchable="true"
                 :label="t('traefik.ingressRouteTCP.entryPoints.label')"
+                :multiple="true"
+                :taggable="true"
+                :options="entryPointOptions"
                 :placeholder="t('traefik.ingressRouteTCP.entryPoints.placeholder')"
                 :tooltip="t('traefik.ingressRouteTCP.entryPoints.tooltip')"
                 :error="!entryPointsValid ? t('traefik.ingressRouteTCP.validation.entryPointsRequired') : null"

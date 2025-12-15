@@ -1,6 +1,9 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
+// CSS Polyfill for BadgeState compatibility with Rancher 2.12.x
+import './assets/styles/badge-polyfill.scss';
+
 // Init the package
 export default function(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders

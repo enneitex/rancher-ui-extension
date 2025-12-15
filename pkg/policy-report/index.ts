@@ -8,6 +8,9 @@ import {
 
 import policyReportStore from './store/policy-report';
 
+// CSS Polyfill for BadgeState compatibility with Rancher 2.12.x
+import './assets/styles/badge-polyfill.scss';
+
 // Extend HeaderOptions to include tooltip property
 // This property exists in Rancher's table-headers.js but is missing from the TypeScript interface
 interface ExtendedHeaderOptions extends HeaderOptions {
@@ -24,6 +27,20 @@ export default function(plugin: IPlugin): void {
 
   // Add Vuex store
   plugin.addDashboardStore(policyReportStore.config.namespace, policyReportStore.specifics, policyReportStore.config);
+
+  // Load Compliance product configuration
+  plugin.addProduct(require('./product'));
+
+  // Ensure that Kyverno CRD lists use server-side pagination
+  plugin.enableServerSidePagination?.({
+    cluster: {
+      resources: {
+        enableSome: {
+          enabled: ['kyverno.io.clusterpolicy', 'kyverno.io.policy'],
+        }
+      }
+    }
+  });
 
   /** Panels */
   plugin.addPanel(
