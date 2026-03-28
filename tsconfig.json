@@ -13,6 +13,7 @@
     "sourceMap": false,
     "strict": true,
     "noEmit": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "~/*": [
@@ -36,6 +37,11 @@
       "shell"
     ]
   },
+  "include": [
+    "./pkg/**/*.ts",
+    "./pkg/**/*.tsx",
+    "./pkg/**/*.vue"
+  ],
   "exclude": [
     "node_modules"
   ]
