@@ -6,7 +6,7 @@ import {
   POD, WORKLOAD_TYPES
 } from '@shell/config/types';
 
-import policyReportStore from './store/policy-report';
+import openReportStore from './store/open-report';
 
 // Extend HeaderOptions to include tooltip property
 // This property exists in Rancher's table-headers.js but is missing from the TypeScript interface
@@ -23,7 +23,7 @@ export default function(plugin: IPlugin): void {
   plugin.metadata = require('./package.json');
 
   // Add Vuex store
-  plugin.addDashboardStore(policyReportStore.config.namespace, policyReportStore.specifics, policyReportStore.config);
+  plugin.addDashboardStore(openReportStore.config.namespace, openReportStore.specifics, openReportStore.config);
 
   // Load Compliance product configuration
   plugin.addProduct(require('./product'));
@@ -52,7 +52,7 @@ export default function(plugin: IPlugin): void {
         WORKLOAD_TYPES.STATEFUL_SET
       ]
     },
-    { component: () => import('./components/PolicyReporter/ReporterPanel.vue') }
+    { component: () => import('./components/OpenReport/ReporterPanel.vue') }
   );
 
   /** Columns */
@@ -74,11 +74,11 @@ export default function(plugin: IPlugin): void {
       ]
     },
     {
-      name:      'policy-reports',
-      labelKey:  'policyReport.headers.label',
-      tooltip:   'policyReport.headers.tooltip',
+      name:      'open-reports',
+      labelKey:  'openReport.headers.label',
+      tooltip:   'openReport.headers.tooltip',
       getValue:  (row: any) => row,
-      formatter: 'PolicyReportSummary'
+      formatter: 'ReportSummary'
     } as ExtendedHeaderOptions
   );
 
@@ -96,11 +96,11 @@ export default function(plugin: IPlugin): void {
       ]
     },
     {
-      name:       'policy-report-tab',
-      labelKey:   'policyReport.headers.label',
+      name:       'open-report-tab',
+      labelKey:   'openReport.headers.label',
       weight:     -5,
       showHeader: false,
-      component:  () => import('./components/PolicyReporter/ResourceTab.vue')
+      component:  () => import('./components/OpenReport/ResourceTab.vue')
     }
   );
 }

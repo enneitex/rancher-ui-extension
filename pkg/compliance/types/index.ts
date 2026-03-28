@@ -1,3 +1,3 @@
 export * from './core';
-export * from './policy-reporter';
+export * from './open-reports';
 export * from './openreports.io';

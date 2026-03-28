@@ -3,11 +3,11 @@ import { onMounted, getCurrentInstance, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { RouteLocationNormalizedLoaded } from 'vue-router';
 
-import { ClusterPolicyReport, PolicyReport } from '../../types';
-import { getReports } from '../../modules/policyReporter';
+import { ClusterReport, Report } from '../../types';
+import { getReports } from '../../modules/openReports';
 
 /**
- * Invisible panel to fetch PolicyReports for ResourceList
+ * Invisible panel to fetch Reports for ResourceList
  * views. Instead of running a fetch on each resource within
  * the list we can fetch once at the top of the page and
  * store the reports.
@@ -23,16 +23,16 @@ async function fetchPolicies() {
 
   // Fetch cluster level reports if no specific resource is specified
   if (isClusterLevel) {
-    await getReports<ClusterPolicyReport>(store, true);
+    await getReports<ClusterReport>(store, true);
   }
-  // Fetch normal policy reports if a specific resource type is specified or always fetch on projectsnamespaces page
+  // Fetch reports if a specific resource type is specified or always fetch on projectsnamespaces page
   if (resourceType || route?.path?.includes('projectsnamespaces')) {
-    await getReports<PolicyReport>(store, false, resourceType);
+    await getReports<Report>(store, false, resourceType);
   }
 }
 
 onMounted(async() => {
-  store.commit('policyReport/updateLoadingReports', true);
+  store.commit('openReport/updateLoadingReports', true);
   if (!route) {
     const instance = getCurrentInstance();
 
@@ -46,7 +46,7 @@ onMounted(async() => {
   await nextTick();
   await fetchPolicies();
 
-  store.commit('policyReport/updateLoadingReports', false);
+  store.commit('openReport/updateLoadingReports', false);
 });
 </script>
 

@@ -50,7 +50,7 @@ export enum Result {
 }
 /* eslint-enable no-unused-vars */
 
-export interface PolicyReportSummary {
+export interface ReportSummary {
   pass?: number;
   fail?: number;
   warn?: number;
@@ -58,7 +58,7 @@ export interface PolicyReportSummary {
   skip?: number;
 }
 
-export interface PolicyReportResult {
+export interface ReportResult {
   category?: string;
   kind?: string;
   message?: string;
@@ -86,19 +86,19 @@ export interface PolicyReportResult {
   }
 }
 
-export interface PolicyReport {
+export interface Report {
   apiVersion: string;
   id: string;
   kind: string;
   links?: Links;
   metadata: V1ObjectMeta;
-  results?: Array<PolicyReportResult>
+  results?: Array<ReportResult>
   scope?: Scope
-  summary?: PolicyReportSummary
+  summary?: ReportSummary
   type: string;
   uid: string;
 }
 
-export interface ClusterPolicyReport extends PolicyReport {
+export interface ClusterReport extends Report {
   scope: Scope;
 }

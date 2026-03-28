@@ -1,12 +1,12 @@
 typeLabel:
   "kyverno.io.clusterpolicy": 'ClusterPolicy (Kyverno)'
   "kyverno.io.policy": 'Policy (Kyverno)'
-policyReport:
-  title: Policy Reports
+openReport:
+  title: Reports
   headers:
     label: Compliance
     tooltip: Policy compliance status based on security and validation rules
-    policyReportsTab:
+    reportsTab:
       policy:
         label: Policy
       severity:

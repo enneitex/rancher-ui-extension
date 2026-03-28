@@ -3,7 +3,7 @@ import { Store } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import { NAMESPACE } from '@shell/config/types';
 import {
-  Severity, Result, PolicyReport, ClusterPolicyReport, PolicyReportResult, PolicyReportSummary, OPEN_REPORTS
+  Severity, Result, Report, ClusterReport, ReportResult, ReportSummary, OPEN_REPORTS
 } from '../types';
 
 interface CacheEntry<T> {
@@ -20,13 +20,13 @@ export function __clearReportCache() {
 }
 
 /**
- * Fetches either PolicyReports or ClusterPolicyReports based on version compatibility and dispatches update actions.
+ * Fetches either Reports or ClusterReports and dispatches update actions.
  * @param store
  * @param isClusterLevel
  * @param resourceType
- * @returns `PolicyReport[] | ClusterPolicyReport[] | void`
+ * @returns `Report[] | ClusterReport[] | void`
  */
-export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
+export async function getReports<T extends Report | ClusterReport>(
   store: Store<any>,
   isClusterLevel: boolean = false,
   resourceType?: string
@@ -66,7 +66,7 @@ export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
       if (!isEmpty(reports)) {
         // Cache the reports right away so subsequent calls don't trigger a new fetch
         // (even though the store will eventually be updated asynchronously).
-        const updateAction = reportType === OPEN_REPORTS.CLUSTER_REPORT.TYPE ? 'policyReport/updateClusterPolicyReports' : 'policyReport/updatePolicyReports';
+        const updateAction = reportType === OPEN_REPORTS.CLUSTER_REPORT.TYPE ? 'openReport/updateClusterReports' : 'openReport/updateReports';
 
         await processReportsInBatches(store, reports, updateAction);
       }
@@ -86,7 +86,7 @@ export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
   const results = await Promise.all(fetchPromises);
 
   // Now that all chunked updates are done, regenerate the summary map *once*
-  await store.dispatch('policyReport/regenerateSummaryMap');
+  await store.dispatch('openReport/regenerateSummaryMap');
 
   return results.flat();
 }
@@ -96,7 +96,7 @@ export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
  */
 async function processReportsInBatches(
   store: Store<any>,
-  reports: Array<PolicyReport | ClusterPolicyReport>,
+  reports: Array<Report | ClusterReport>,
   action: string
 ): Promise<void> {
   const totalReports = reports.length;
@@ -135,13 +135,13 @@ async function processReportsInBatches(
 }
 
 /**
- * Generates a map of { [resourceId]: PolicyReportSummary } for all PolicyReports
- * and ClusterPolicyReports currently in the store.
+ * Generates a map of { [resourceId]: ReportSummary } for all Reports
+ * and ClusterReports currently in the store.
  */
-export function generateSummaryMap(storeState: any): Record<string, PolicyReportSummary> {
-  const summaryMap: Record<string, PolicyReportSummary> = {};
+export function generateSummaryMap(storeState: any): Record<string, ReportSummary> {
+  const summaryMap: Record<string, ReportSummary> = {};
 
-  function processReport(report: PolicyReport | ClusterPolicyReport) {
+  function processReport(report: Report | ClusterReport) {
     // Determine resource ID
     let resourceId: string | undefined;
 
@@ -164,7 +164,7 @@ export function generateSummaryMap(storeState: any): Record<string, PolicyReport
     }
 
     report.results?.forEach((r) => {
-      const key = r.result?.toLowerCase() as keyof PolicyReportSummary;
+      const key = r.result?.toLowerCase() as keyof ReportSummary;
 
       if (key && resourceId && summaryMap[resourceId] && summaryMap[resourceId][key] !== undefined) {
         summaryMap[resourceId][key]! += 1;
@@ -172,11 +172,11 @@ export function generateSummaryMap(storeState: any): Record<string, PolicyReport
     });
   }
 
-  // Process clusterPolicyReports
-  storeState.clusterPolicyReports.forEach(processReport);
+  // Process clusterReports
+  storeState.clusterReports.forEach(processReport);
 
-  // Process policyReports
-  storeState.policyReports.forEach(processReport);
+  // Process reports
+  storeState.reports.forEach(processReport);
 
   return summaryMap;
 }
@@ -191,12 +191,12 @@ export function isResourceNamespaced(resource: any): boolean {
 }
 
 /**
- * Filters PolicyReports for namespaced resources or the Namespace resource type
+ * Filters Reports for namespaced resources or the Namespace resource type
  * @param store
  * @param resource
- * @returns `PolicyReport | PolicyReportResult[] | null | void`
+ * @returns `Report | ClusterReport | null`
  */
-export async function getFilteredReport(store: Store<any>, resource: any): Promise<PolicyReport | ClusterPolicyReport | null> {
+export async function getFilteredReport(store: Store<any>, resource: any): Promise<Report | ClusterReport | null> {
   const schema = store.getters['cluster/schemaFor'](resource?.type);
 
   if (schema) {
@@ -210,12 +210,12 @@ export async function getFilteredReport(store: Store<any>, resource: any): Promi
 
       if (reports && !isEmpty(reports)) {
         // Filter and return the applicable report
-        const filteredReport = store.getters['policyReport/reportByResourceId'](resource.id) || null;
+        const filteredReport = store.getters['openReport/reportByResourceId'](resource.id) || null;
 
         return filteredReport;
       }
     } catch (e) {
-      console.warn(`Error fetching PolicyReports: ${ e }`);
+      console.warn(`Error fetching Reports: ${ e }`);
     }
   }
 
@@ -223,8 +223,8 @@ export async function getFilteredReport(store: Store<any>, resource: any): Promi
 }
 
 /**
- * Determines color for PolicyReport result
- * @param result | PolicyReport summary result || report resource.result
+ * Determines color for report result
+ * @param result | report summary result || report resource.result
  * @returns string
  */
 export function colorForResult(result: Result): string {
@@ -245,8 +245,8 @@ export function colorForResult(result: Result): string {
 }
 
 /**
- * Determines color for PolicyReport severity
- * @param severity | PolicyReport severity
+ * Determines color for report severity
+ * @param severity | report severity
  * @returns string
  */
 export function colorForSeverity(severity: Severity): string {
@@ -268,7 +268,7 @@ export function colorForSeverity(severity: Severity): string {
 
 /**
  * Returns a numeric value for sorting severities in order of importance
- * @param severity | PolicyReport severity (can be undefined)
+ * @param severity | report severity (can be undefined)
  * @returns number for sorting (lower = more severe)
  */
 export function severitySortValue(severity: Severity | undefined): number {

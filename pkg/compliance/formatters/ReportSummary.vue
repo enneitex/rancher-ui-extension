@@ -5,8 +5,8 @@ import isEmpty from 'lodash/isEmpty';
 
 import { sortBy } from '@shell/utils/sort';
 
-import { Result, PolicyReportSummary } from '../types';
-import { colorForResult } from '../modules/policyReporter';
+import { Result, ReportSummary } from '../types';
+import { colorForResult } from '../modules/openReports';
 
 const attrs = useAttrs();
 
@@ -18,12 +18,12 @@ interface ValueType {
 const props = defineProps<{ value?: ValueType }>();
 const store = useStore();
 
-const loadingReports = computed(() => store.getters['policyReport/loadingReports']);
+const loadingReports = computed(() => store.getters['openReport/loadingReports']);
 
-const summary = computed<PolicyReportSummary>(() => {
+const summary = computed<ReportSummary>(() => {
   const resourceId = props.value?.id;
 
-  return store.getters['policyReport/summaryByResourceId'](resourceId);
+  return store.getters['openReport/summaryByResourceId'](resourceId);
 });
 
 // Determine if there's anything to show by checking for non-empty summary counts

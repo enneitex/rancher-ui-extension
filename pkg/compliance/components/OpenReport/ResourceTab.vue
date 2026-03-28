@@ -12,26 +12,26 @@ import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 
-import { PolicyReport, PolicyReportResult, ClusterPolicyReport, Severity, Result } from '../../types';
+import { Report, ReportResult, ClusterReport, Severity, Result } from '../../types';
 import { POLICY_REPORTER_HEADERS, POLICY_REPORTER_GROUP_OPTIONS } from '../../config/table-headers';
 import {
   getFilteredReport,
   colorForResult,
   colorForSeverity,
   severitySortValue
-} from '../../modules/policyReporter';
+} from '../../modules/openReports';
 
 const store = useStore();
 let route: RouteLocationNormalizedLoaded | null = null;
 
 const t = store.getters['i18n/t'];
 
-const report = ref<PolicyReport | ClusterPolicyReport | null>(null);
+const report = ref<Report | ClusterReport | null>(null);
 const resource = ref<any>(null);
 const headers = POLICY_REPORTER_HEADERS;
 const groupOptions = POLICY_REPORTER_GROUP_OPTIONS;
 // Fake schema to prevent extension columns injection
-const fakeSchema = { id: 'policy-report-result', type: 'schema' };
+const fakeSchema = { id: 'open-report-result', type: 'schema' };
 
 const fetchState = reactive({ pending: true });
 
@@ -67,7 +67,7 @@ async function fetchReports() {
   fetchState.pending = false;
 }
 
-function getResourceValue(row: PolicyReportResult, val: string, needScope = false): string {
+function getResourceValue(row: ReportResult, val: string, needScope = false): string {
   if (isNamespaceResource.value && needScope) {
     if (row.scope && val in row.scope) {
       const value = row.scope[val as keyof typeof row.scope];
@@ -80,7 +80,7 @@ function getResourceValue(row: PolicyReportResult, val: string, needScope = fals
 
   if (!isEmpty(row)) {
     if (val in row) {
-      const value = row[val as keyof (PolicyReportResult)];
+      const value = row[val as keyof (ReportResult)];
 
       return typeof value === 'string' ? value : '-';
     }
@@ -89,7 +89,7 @@ function getResourceValue(row: PolicyReportResult, val: string, needScope = fals
   return '-';
 }
 
-function severityColor(row: PolicyReportResult) {
+function severityColor(row: ReportResult) {
   if (row.result && row.severity) {
     return colorForSeverity(row.severity);
   }
@@ -97,7 +97,7 @@ function severityColor(row: PolicyReportResult) {
   return 'bg-muted';
 }
 
-function resultColor(row: PolicyReportResult) {
+function resultColor(row: ReportResult) {
   if (row.result) {
     const color = colorForResult(row.result);
     const bgColor = color.includes('sizzle') ? `${ color }-bg` : color.replace(/text-/, 'bg-');
@@ -124,13 +124,13 @@ function getGroupLabel(groupKey: string): string {
   // Check if it's a severity value
   const severityValues = Object.values(Severity);
   if (severityValues.includes(normalizedKey as Severity)) {
-    return t('policyReport.headers.policyReportsTab.severity.label');
+    return t('openReport.headers.reportsTab.severity.label');
   }
 
   // Check if it's a result value
   const resultValues = Object.values(Result);
   if (resultValues.includes(normalizedKey as Result)) {
-    return t('policyReport.headers.policyReportsTab.result.label');
+    return t('openReport.headers.reportsTab.result.label');
   }
 
   // Default fallback - return empty string
@@ -247,26 +247,26 @@ onMounted(async() => {
         <td :colspan="fullColspan" class="pr-tab__sub-row">
           <Banner v-if="row.message" color="info" class="message">
             <span class="text-muted">
-              {{ t('policyReport.headers.policyReportsTab.message.title') }}:
+              {{ t('openReport.headers.reportsTab.message.title') }}:
             </span>
             <span>{{ row.message }}</span>
           </Banner>
           <div class="details">
             <section class="col">
               <div class="title">
-                {{ t('policyReport.headers.policyReportsTab.source') }}
+                {{ t('openReport.headers.reportsTab.source') }}
               </div>
               <span>{{ row.source || '-' }}</span>
             </section>
             <section class="col">
               <div class="title">
-                {{ t('policyReport.headers.policyReportsTab.category') }}
+                {{ t('openReport.headers.reportsTab.category') }}
               </div>
               <span>{{ row.category || '-' }}</span>
             </section>
             <section class="col">
               <div class="title">
-                {{ t('policyReport.headers.policyReportsTab.rule') }}
+                {{ t('openReport.headers.reportsTab.rule') }}
               </div>
               <span>{{ row.rule || '-' }}</span>
             </section>
