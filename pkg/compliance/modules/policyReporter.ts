@@ -3,7 +3,7 @@ import { Store } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import { NAMESPACE } from '@shell/config/types';
 import {
-  Severity, Result, PolicyReport, ClusterPolicyReport, PolicyReportResult, PolicyReportSummary, WG_POLICY_K8S
+  Severity, Result, PolicyReport, ClusterPolicyReport, PolicyReportResult, PolicyReportSummary, OPEN_REPORTS
 } from '../types';
 
 interface CacheEntry<T> {
@@ -35,11 +35,11 @@ export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
   const reportTypes: string[] = [];
 
   if (isClusterLevel) {
-    reportTypes.push(WG_POLICY_K8S.CLUSTER_POLICY_REPORT.TYPE);
+    reportTypes.push(OPEN_REPORTS.CLUSTER_REPORT.TYPE);
   }
 
   if (resourceType || !isClusterLevel) {
-    reportTypes.push(WG_POLICY_K8S.POLICY_REPORT.TYPE);
+    reportTypes.push(OPEN_REPORTS.REPORT.TYPE);
   }
 
   // Map over the report types to get (or create) the promise for each
@@ -66,7 +66,7 @@ export async function getReports<T extends PolicyReport | ClusterPolicyReport>(
       if (!isEmpty(reports)) {
         // Cache the reports right away so subsequent calls don't trigger a new fetch
         // (even though the store will eventually be updated asynchronously).
-        const updateAction = reportType === WG_POLICY_K8S.CLUSTER_POLICY_REPORT.TYPE ? 'policyReport/updateClusterPolicyReports' : 'policyReport/updatePolicyReports';
+        const updateAction = reportType === OPEN_REPORTS.CLUSTER_REPORT.TYPE ? 'policyReport/updateClusterPolicyReports' : 'policyReport/updatePolicyReports';
 
         await processReportsInBatches(store, reports, updateAction);
       }

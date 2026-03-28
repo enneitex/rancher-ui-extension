@@ -39,15 +39,15 @@ L'extension nécessite qu'au moins un outil de policy soit installé dans votre 
 
 - **[Kyverno](https://kyverno.io/)** avec Policy Reporter
 - **[Kubewarden](https://www.kubewarden.io/)** avec l'audit scanner activé
-- **[Falco](https://falco.org/)** ou tout autre outil supportant le standard PolicyReport
+- **[Falco](https://falco.org/)** ou tout autre outil supportant le standard OpenReports
 
-Ces outils génèrent des Custom Resource Definitions (CRDs) de type `PolicyReport` que l'extension utilise pour afficher les données.
+Ces outils génèrent des Custom Resource Definitions (CRDs) de type `Report` / `ClusterReport` que l'extension utilise pour afficher les données.
 
 ### Vérification des CRDs
 
 L'extension détecte automatiquement la présence des CRDs nécessaires :
-- `wgpolicyk8s.io.policyreport`
-- `wgpolicyk8s.io.clusterpolicyreport`
+- `openreports.io.report`
+- `openreports.io.clusterreport`
 
 Si ces CRDs ne sont pas présentes, l'extension ne s'affichera pas.
 

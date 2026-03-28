@@ -5,7 +5,7 @@
 ### Composants principaux
 
 #### Types ([types/](types/))
-- `PolicyReport`, `ClusterPolicyReport` : Structures de données des CRDs wgpolicyk8s.io
+- `PolicyReport`, `ClusterPolicyReport` : Structures de données des CRDs openreports.io
 - `PolicyReportResult` : Résultat individuel d'une policy
 - `PolicyReportSummary` : Agrégation des compteurs (pass, fail, warn, error, skip)
 - Enums `Result` et `Severity`
@@ -82,16 +82,16 @@ Ajoute l'onglet "Compliance" dans les vues détail
 - Utilise `ResourceTable` pour le grouping et les fonctionnalités avancées
 - Fake schema pour éviter l'injection de colonnes d'extension supplémentaires
 
-## CRDs wgpolicyk8s.io
+## CRDs openreports.io
 
 L'extension nécessite les CRDs suivantes :
-- `wgpolicyk8s.io.policyreport`
-- `wgpolicyk8s.io.clusterpolicyreport`
+- `openreports.io.report`
+- `openreports.io.clusterreport`
 
 Ces CRDs sont installées par :
 - **Kyverno** (Policy Reporter)
 - **Kubewarden** (avec auditScanner activé)
-- Autres outils de policy supportant le standard wgpolicyk8s.io
+- Autres outils de policy supportant le standard openreports.io
 
 ## Performance
 
@@ -113,10 +113,10 @@ L'extension est compatible avec la pagination côté serveur introduite dans Ran
 
 ### Structure des fichiers
 ```
-pkg/policy-report/
+pkg/compliance/
 ├── types/                         # Définitions TypeScript
 │   ├── core.ts                   # Types de base (Result, Severity)
-│   ├── wgpolicyk8s.io.ts         # Types des CRDs PolicyReport
+│   ├── openreports.io.ts         # Types des CRDs Report / ClusterReport
 │   └── policy-reporter.ts        # Types pour le module policyReporter
 ├── store/policy-report/           # Store Vuex
 │   ├── index.ts                  # Configuration du store

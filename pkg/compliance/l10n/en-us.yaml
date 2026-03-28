@@ -1,3 +1,6 @@
+typeLabel:
+  "kyverno.io.clusterpolicy": 'ClusterPolicy (Kyverno)'
+  "kyverno.io.policy": 'Policy (Kyverno)'
 policyReport:
   title: Policy Reports
   headers:
