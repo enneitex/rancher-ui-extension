@@ -58,7 +58,6 @@ rancher-ui-extension/
 │   │   ├── routing/               # Configuration des routes
 │   │   └── l10n/                  # Internationalisation
 │   │       └── en-us.yaml         # Traductions anglaises
-│   └── victoria-metrics/          # Module Victoria Metrics
 ├── package.json                   # Configuration principale
 └── node_modules/                  # Dépendances
 ```
@@ -114,7 +113,7 @@ rancher-ui-extension/
 ### Commandes utiles
 
 ```bash
-API=rancher.dev.local yarn dev
+API=https://rancher.127-0-0-1.sslip.io/ yarn dev
 ```
 
 

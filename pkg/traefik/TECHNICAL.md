@@ -190,7 +190,7 @@ Depuis Rancher 2.12, le support de la pagination côté serveur est disponible. 
 
 ```bash
 # Développement local
-API=rancher.dev.local yarn dev
+API=https://rancher.127-0-0-1.sslip.io/ yarn dev
 
 # Build de l'extension
 yarn build-pkg traefik

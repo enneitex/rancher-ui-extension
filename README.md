@@ -24,12 +24,6 @@ Interface graphique dédiée pour gérer les ressources Traefik Proxy.
 
 [Documentation détaillée →](pkg/traefik/README.md)
 
-### 3. Victoria Metrics Extension
-**Statut** : 🚧 En développement
-
-Intégration future de Victoria Metrics pour le monitoring.
-
-[Documentation détaillée →](pkg/victoria-metrics/README.md)
 
 ## 🚀 Installation
 
@@ -100,7 +94,6 @@ rancher-ui-extension/
 ├── pkg/                      # Extensions
 │   ├── policy-report/        # Extension Policy Report
 │   ├── traefik/             # Extension Traefik
-│   └── victoria-metrics/    # Extension Victoria Metrics
 ├── scripts/                  # Scripts de build
 ├── package.json             # Configuration principale
 └── README.md                # Cette documentation

@@ -145,7 +145,7 @@ pkg/policy-report/
 
 ```bash
 # Développement local (depuis la racine du projet)
-API=rancher.dev.local yarn dev
+API=https://rancher.127-0-0-1.sslip.io/ yarn dev
 
 # Build de l'extension
 yarn build-pkg policy-report
