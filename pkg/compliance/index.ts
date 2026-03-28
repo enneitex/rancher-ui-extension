@@ -8,9 +8,6 @@ import {
 
 import policyReportStore from './store/policy-report';
 
-// CSS Polyfill for BadgeState compatibility with Rancher 2.12.x
-import './assets/styles/badge-polyfill.scss';
-
 // Extend HeaderOptions to include tooltip property
 // This property exists in Rancher's table-headers.js but is missing from the TypeScript interface
 interface ExtendedHeaderOptions extends HeaderOptions {
