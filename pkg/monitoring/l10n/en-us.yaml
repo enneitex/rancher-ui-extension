@@ -1,0 +1,23 @@
+victoriaMetrics:
+  tab: "Victoria Metrics"
+  notInstalled: "VictoriaMetrics is not installed on this cluster"
+  notReachable: "VictoriaMetrics is installed but Grafana dashboards could not be reached."
+
+monitoring:
+  nav:
+    overview: "Monitoring"
+  overview:
+    title: "VictoriaMetrics Monitoring"
+    linkNA: "Not available"
+    grafana:
+      label: "Grafana"
+      description: "Dashboards for pods, nodes, and workloads"
+    vmagent:
+      label: "VMAgent"
+      description: "Metrics collection agent — scrape targets"
+    vmalert:
+      label: "VMAlert"
+      description: "Alerting rules evaluation"
+    alertmanager:
+      label: "Alertmanager"
+      description: "Alert routing and notifications"

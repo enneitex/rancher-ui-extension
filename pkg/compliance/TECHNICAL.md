@@ -148,7 +148,7 @@ pkg/compliance/
 API=https://rancher.127-0-0-1.sslip.io/ yarn dev
 
 # Build de l'extension
-yarn build-pkg policy-report
+yarn build-pkg compliance
 ```
 
 ### Tests
