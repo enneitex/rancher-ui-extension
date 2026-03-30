@@ -62,11 +62,16 @@ export async function loadVMConfigFromCluster(store) {
       return defaults;
     }
 
+    const dnsLabel = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
+    const namespace = dnsLabel.test(cm.data.namespace || '') ? cm.data.namespace : DEFAULT_NAMESPACE;
+    const service   = dnsLabel.test(cm.data.service   || '') ? cm.data.service   : DEFAULT_SERVICE;
+    const port      = /^\d{1,5}$/.test(cm.data.port   || '') ? cm.data.port      : DEFAULT_PORT;
+
     return {
-      namespace: cm.data.namespace || DEFAULT_NAMESPACE,
-      service:   cm.data.service   || DEFAULT_SERVICE,
-      port:      cm.data.port      || DEFAULT_PORT,
-      source:    'configmap',
+      namespace,
+      service,
+      port,
+      source: 'configmap',
     };
   } catch (e) {
     console.debug('[vm] ConfigMap not found, using defaults:', e?.message);
@@ -131,7 +136,8 @@ export async function loadVMMonitoringConfig(store) {
 
 /**
  * Thin wrapper — returns only the dashboard IDs from loadVMMonitoringConfig.
- * Used by tab components. Rancher caches cluster/find results — no duplicate network call.
+ * Used by tab components. On first mount both ConfigMaps are fetched; Rancher caches
+ * cluster/find results so subsequent calls in the same session are deduplicated.
  *
  * @param {Object} store - Vuex store
  * @returns {Promise<{pod: object, node: object, workload: object}>}
@@ -160,7 +166,7 @@ export async function hasVictoriaMetrics(store, namespace, service) {
       id:   `${namespace}/${service}`,
     });
 
-    const ready = !!(endpoint && endpoint.subsets && endpoint.subsets.length > 0);
+    const ready = !!(endpoint?.subsets?.some(s => s.addresses?.length > 0));
     console.debug(`[vm] hasVictoriaMetrics ${namespace}/${service}:`, ready);
     return ready;
   } catch (e) {
@@ -195,11 +201,15 @@ export function generateVMUrl(namespace, service, port, dashboardId) {
  * @returns {Promise<boolean>}
  */
 export async function allVmDashboardsExist(store, clusterId, barePaths, config) {
+  if (!clusterId) {
+    console.debug('[vm] allVmDashboardsExist: no clusterId');
+    return false;
+  }
   const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${clusterId}`;
   const { namespace, service, port } = config;
 
   for (const barePath of barePaths) {
-    const uidMatch = barePath.match(/\/proxy\/d\/([^/]+)\//);
+    const uidMatch = barePath.match(/\/proxy\/d\/([^/?#]+)/);
     if (!uidMatch) {
       console.debug('[vm] Could not extract dashboard UID from:', barePath);
       return false;

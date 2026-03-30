@@ -49,36 +49,44 @@ const pending = ref(true);
 const links   = ref<LinkState[]>([]);
 
 onMounted(async () => {
-  const config = await loadVMMonitoringConfig(store);
+  try {
+    const config = await loadVMMonitoringConfig(store);
 
-  const results = await Promise.all(
-    LINK_DEFS.map(async (def) => {
-      const url = config.links[def.key as keyof typeof config.links] || '';
+    const results = await Promise.all(
+      LINK_DEFS.map(async (def) => {
+        const raw = config.links[def.key as keyof typeof config.links] || '';
+        // Only accept relative paths — reject javascript:, data:, etc.
+        const url = raw.startsWith('/') ? raw : '';
 
-      if (!url) {
-        return { ...def, url: '', available: false };
-      }
+        if (!url) {
+          return { ...def, url: '', available: false };
+        }
 
-      const parsed = extractNsSvcFromProxyUrl(url);
-      if (!parsed) {
-        return { ...def, url, available: false };
-      }
+        const parsed = extractNsSvcFromProxyUrl(url);
+        if (!parsed) {
+          return { ...def, url, available: false };
+        }
 
-      try {
-        const endpoint = await store.dispatch('cluster/find', {
-          type: ENDPOINTS,
-          id:   `${parsed.namespace}/${parsed.service}`,
-        });
-        const available = !!(endpoint?.subsets?.length);
-        return { ...def, url, available };
-      } catch {
-        return { ...def, url, available: false };
-      }
-    })
-  );
+        try {
+          const endpoint = await store.dispatch('cluster/find', {
+            type: ENDPOINTS,
+            id:   `${parsed.namespace}/${parsed.service}`,
+          });
+          const available = !!(endpoint?.subsets?.some((s: any) => s.addresses?.length > 0));
+          return { ...def, url, available };
+        } catch {
+          return { ...def, url, available: false };
+        }
+      })
+    );
 
-  links.value   = results;
-  pending.value = false;
+    links.value = results;
+  } catch (e) {
+    console.error('[vm] MonitoringOverview init error:', e);
+    links.value = LINK_DEFS.map(def => ({ ...def, url: '', available: false }));
+  } finally {
+    pending.value = false;
+  }
 });
 </script>
 

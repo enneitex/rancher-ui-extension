@@ -28,49 +28,47 @@ const graphVars = computed(() => ({
 }));
 
 onMounted(async () => {
-  const { resource: resourceType, id, namespace } = route.params as Record<string, string>;
-  const fullId = namespace ? `${namespace}/${id}` : id;
-  resource.value = store.getters['cluster/byId'](resourceType, fullId);
+  try {
+    const { resource: resourceType, id, namespace } = route.params as Record<string, string>;
+    const fullId = namespace?.length > 0 ? `${namespace}/${id}` : id;
+    resource.value = store.getters['cluster/byId'](resourceType, fullId);
 
-  if (!resource.value) {
-    reason.value = 'not-installed';
-    pending.value = false;
-    return;
-  }
+    if (!resource.value) {
+      reason.value = 'not-installed';
+      return;
+    }
 
-  const clusterId = store.getters['currentCluster']?.id;
+    const clusterId = store.getters['currentCluster']?.id;
 
-  const [config, ids] = await Promise.all([
-    loadVMConfigFromCluster(store),
-    loadVMDashboardIdsFromCluster(store),
-  ]);
+    const [config, ids] = await Promise.all([
+      loadVMConfigFromCluster(store),
+      loadVMDashboardIdsFromCluster(store),
+    ]);
 
-  console.debug('[vm] resolved config:', `namespace=${config.namespace}`, `service=${config.service}`, `port=${config.port}`, `source=${config.source}`);
+    console.debug('[vm] resolved config:', `namespace=${config.namespace}`, `service=${config.service}`, `port=${config.port}`, `source=${config.source}`);
 
-  const installed = await hasVictoriaMetrics(store, config.namespace, config.service);
-  if (!installed) {
-    reason.value = 'not-installed';
-    pending.value = false;
-    return;
-  }
+    const installed = await hasVictoriaMetrics(store, config.namespace, config.service);
+    if (!installed) {
+      reason.value = 'not-installed';
+      return;
+    }
 
-  detailUrl.value  = generateVMUrl(config.namespace, config.service, config.port, ids.pod.detailDashboardId);
-  summaryUrl.value = generateVMUrl(config.namespace, config.service, config.port, ids.pod.summaryDashboardId);
+    detailUrl.value  = generateVMUrl(config.namespace, config.service, config.port, ids.pod.detailDashboardId);
+    summaryUrl.value = generateVMUrl(config.namespace, config.service, config.port, ids.pod.summaryDashboardId);
 
-  const reachable = await allVmDashboardsExist(
-    store,
-    clusterId,
-    [detailUrl.value, summaryUrl.value],
-    config
-  );
-  if (!reachable) {
+    const reachable = await allVmDashboardsExist(
+      store,
+      clusterId,
+      [detailUrl.value, summaryUrl.value],
+      config
+    );
+    reason.value = reachable ? null : 'not-reachable';
+  } catch (e) {
+    console.error('[vm] PodTab init error:', e);
     reason.value = 'not-reachable';
+  } finally {
     pending.value = false;
-    return;
   }
-
-  reason.value  = null;
-  pending.value = false;
 });
 </script>
 
