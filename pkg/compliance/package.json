@@ -1,13 +1,12 @@
 {
-  "name": "traefik",
-  "description": "Rancher UI Extension for Traefik Proxy",
-  "icon": "https://raw.githubusercontent.com/enneitex/rancher-ui-extension/main/pkg/traefik/assets/icon-traefik.svg",
-  "version": "0.2.2",
+  "name": "compliance",
+  "description": "Compliance & Security Reports extension for Rancher Dashboard",
+  "version": "0.1.4",
   "private": false,
   "rancher": {
     "annotations": {
       "catalog.cattle.io/rancher-version": ">= 2.13.0",
-      "catalog.cattle.io/display-name": "Traefik Proxy Extension"
+      "catalog.cattle.io/display-name": "Compliance & Security Reports"
     }
   },
   "scripts": {},

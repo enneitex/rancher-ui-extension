@@ -14,3 +14,4 @@ CLAUDE.md
 .claude
 pkg/traefik/examples/
 examples
+.gstack/

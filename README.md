@@ -4,15 +4,15 @@ Collection d'extensions UI pour Rancher Dashboard améliorant la gestion de dive
 
 ## 📦 Extensions disponibles
 
-### 1. Policy Report Extension
+### 1. Compliance Extension
 
 Extension pour visualiser les rapports de conformité et de sécurité dans Rancher.
 
 - Affiche les résultats des analyses de sécurité (Kyverno, Kubewarden, Falco)
 - Indicateurs visuels de conformité sur les ressources
-- Support des PolicyReports standards Kubernetes
+- Support des OpenReports standards Kubernetes
 
-[Documentation détaillée →](pkg/policy-report/README.md)
+[Documentation détaillée →](pkg/compliance/README.md)
 
 ### 2. Traefik Extension
 
@@ -24,12 +24,6 @@ Interface graphique dédiée pour gérer les ressources Traefik Proxy.
 
 [Documentation détaillée →](pkg/traefik/README.md)
 
-### 3. Victoria Metrics Extension
-**Statut** : 🚧 En développement
-
-Intégration future de Victoria Metrics pour le monitoring.
-
-[Documentation détaillée →](pkg/victoria-metrics/README.md)
 
 ## 🚀 Installation
 
@@ -60,7 +54,7 @@ yarn build-pkg
 API=https://your-rancher-url yarn dev
 
 # Build une extension spécifique
-yarn build-pkg policy-report
+yarn build-pkg compliance
 yarn build-pkg traefik
 
 # Servir les packages localement
@@ -98,9 +92,8 @@ Les extensions suivent l'architecture standard Rancher Extensions v3 :
 ```
 rancher-ui-extension/
 ├── pkg/                      # Extensions
-│   ├── policy-report/        # Extension Policy Report
+│   ├── compliance/           # Extension Compliance
 │   ├── traefik/             # Extension Traefik
-│   └── victoria-metrics/    # Extension Victoria Metrics
 ├── scripts/                  # Scripts de build
 ├── package.json             # Configuration principale
 └── README.md                # Cette documentation

@@ -53,7 +53,13 @@
       "Bash(kubectl get:*)",
       "Bash(kubectl explain:*)",
       "Bash(kubectl apply:*)",
-      "Read(//home/dev/kind/github/enneitex/rancher-dashboard/**)"
+      "Read(//home/dev/kind/github/enneitex/rancher-dashboard/**)",
+      "WebFetch(domain:patch-diff.githubusercontent.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:grafana.com)",
+      "Skill(browse)"
     ],
     "deny": [],
     "ask": []

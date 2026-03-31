@@ -1,0 +1,30 @@
+typeLabel:
+  "kyverno.io.clusterpolicy": 'ClusterPolicy (Kyverno)'
+  "kyverno.io.policy": 'Policy (Kyverno)'
+openReport:
+  title: Reports
+  headers:
+    label: Compliance
+    tooltip: Policy compliance status based on security and validation rules
+    reportsTab:
+      policy:
+        label: Policy
+      severity:
+        label: Severity
+      result:
+        label: Result
+      message:
+        title: Message
+      rule: Rule
+      category: Category
+      source: Source
+  grouping:
+    none: Flat List
+    severity: Group by Severity
+    result: Group by Result
+  clusterpolicy:
+    background: Background
+    validationFailureAction: Validation Failure Action
+  policy:
+    background: Background
+    validationFailureAction: Validation Failure Action
