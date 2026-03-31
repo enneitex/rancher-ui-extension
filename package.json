@@ -9,6 +9,7 @@
     "@rancher/shell": "^3.0.10"
   },
   "devDependencies": {
+    "@types/jest": "^27.5.2",
     "@types/lodash": "4.17.5"
   },
   "resolutions": {
@@ -22,6 +23,7 @@
     "serve-pkgs": "./node_modules/@rancher/shell/scripts/serve-pkgs",
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
     "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
-    "postinstall": "ln -sfn $(pwd)/node_modules/@vue/compiler-core/node_modules/entities node_modules/@vue/babel-plugin-resolve-type/node_modules/@vue/compiler-core/node_modules/entities"
+    "postinstall": "ln -sfn $(pwd)/node_modules/@vue/compiler-core/node_modules/entities node_modules/@vue/babel-plugin-resolve-type/node_modules/@vue/compiler-core/node_modules/entities",
+    "test:ci": "node_modules/.bin/jest --testPathPattern=pkg/"
   }
 }
