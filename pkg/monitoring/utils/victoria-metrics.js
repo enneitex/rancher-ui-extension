@@ -20,8 +20,8 @@ const DEFAULT_DASHBOARD_IDS = {
   },
 };
 
-const dnsLabel = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
-const portNum  = /^\d{1,5}$/;
+const dnsLabel = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+const portNum  = /^([1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;
 
 /**
  * Load Grafana and Alertmanager service coordinates from the vmks-monitoring ConfigMap.

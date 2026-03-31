@@ -77,7 +77,13 @@ export default {
     const idx = state.reports.findIndex((report) => report.id === reportId);
 
     if (idx !== -1) {
+      const report = state.reports[idx];
+      const key = report.scope?.namespace
+        ? `${ report.scope.namespace }/${ report.scope.name }`
+        : report.scope?.name || report.id;
+
       state.reports.splice(idx, 1);
+      delete state.reportMap[key];
     }
   },
 };
