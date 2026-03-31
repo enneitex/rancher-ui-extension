@@ -1,23 +1,32 @@
 victoriaMetrics:
   tab: "Victoria Metrics"
-  notInstalled: "VictoriaMetrics is not installed on this cluster"
-  notReachable: "VictoriaMetrics is installed but Grafana dashboards could not be reached."
+  notInstalled: "VictoriaMetrics monitoring ConfigMap not found in kube-monitoring/vmks-monitoring"
 
 monitoring:
   nav:
     overview: "Monitoring"
   overview:
     title: "VictoriaMetrics Monitoring"
-    linkNA: "Not available"
-    grafana:
-      label: "Grafana"
-      description: "Dashboards for pods, nodes, and workloads"
-    vmagent:
-      label: "VMAgent"
-      description: "Metrics collection agent — scrape targets"
-    vmalert:
-      label: "VMAlert"
-      description: "Alerting rules evaluation"
-    alertmanager:
-      label: "Alertmanager"
-      description: "Alert routing and notifications"
+    subtitle: "Monitor your cluster with VictoriaMetrics"
+    configMissing: "ConfigMap kube-monitoring/vmks-monitoring not found — Grafana and Alertmanager links unavailable"
+    linkedList:
+      grafana:
+        label: "Grafana"
+        description: "Dashboards for pods, nodes, and workloads"
+      alertManager:
+        label: "Alertmanager"
+        description: "Alert routing and notifications"
+    alertsList:
+      label: "Alerts"
+  monitors:
+    title: "Monitors"
+    noCRDs: "No monitor CRDs found on this cluster."
+    vmPodScrape:
+      label: "VM Pod Scrapes"
+      description: "A VM Pod Scrape tells the VictoriaMetrics operator how to scrape metrics from pods matching the configured label selectors."
+    vmSvcScrape:
+      label: "VM Service Scrapes"
+      description: "A VM Service Scrape tells the VictoriaMetrics operator how to scrape metrics from Kubernetes services matching the configured label selectors."
+    probe:
+      label: "Probes"
+      description: "A Probe defines blackbox-style monitoring targets (HTTP, TCP, ICMP) to be probed by a compatible exporter such as blackbox-exporter."

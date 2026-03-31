@@ -12,30 +12,11 @@ export default function(plugin: IPlugin): void {
 
   plugin.addRoutes(routes);
 
-  plugin.addTab(
-    TabLocation.RESOURCE_DETAIL,
-    { resource: [POD] },
-    {
-      name:       'victoria-metrics-pod-tab',
-      labelKey:   'victoriaMetrics.tab',
-      weight:     -4,
-      showHeader: false,
-      component:  () => import('./components/tabs/VictoriaMetricsPodTab.vue'),
-    }
-  );
+  const vmTab = () => import('./components/tabs/VictoriaMetricsTab.vue');
+  const tabConfig = { labelKey: 'victoriaMetrics.tab', weight: -4, showHeader: false, component: vmTab };
 
-  plugin.addTab(
-    TabLocation.RESOURCE_DETAIL,
-    { resource: [NODE] },
-    {
-      name:       'victoria-metrics-node-tab',
-      labelKey:   'victoriaMetrics.tab',
-      weight:     -4,
-      showHeader: false,
-      component:  () => import('./components/tabs/VictoriaMetricsNodeTab.vue'),
-    }
-  );
-
+  plugin.addTab(TabLocation.RESOURCE_DETAIL, { resource: [POD] },  { name: 'victoria-metrics-pod-tab',      ...tabConfig });
+  plugin.addTab(TabLocation.RESOURCE_DETAIL, { resource: [NODE] }, { name: 'victoria-metrics-node-tab',     ...tabConfig });
   plugin.addTab(
     TabLocation.RESOURCE_DETAIL,
     {
@@ -48,12 +29,6 @@ export default function(plugin: IPlugin): void {
         WORKLOAD_TYPES.CRON_JOB,
       ],
     },
-    {
-      name:       'victoria-metrics-workload-tab',
-      labelKey:   'victoriaMetrics.tab',
-      weight:     -4,
-      showHeader: false,
-      component:  () => import('./components/tabs/VictoriaMetricsWorkloadTab.vue'),
-    }
+    { name: 'victoria-metrics-workload-tab', ...tabConfig }
   );
 }

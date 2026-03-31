@@ -2,43 +2,27 @@
 
 Rancher UI extension that adds a **Monitoring** section in the left nav for clusters running
 [victoria-metrics-k8s-stack](https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-k8s-stack)
-(vmks). Provides quick links to Grafana, VMAgent, VMAlert, and Alertmanager, plus list views
-for ServiceMonitor and PodMonitor CRDs. Also adds VictoriaMetrics Grafana metric tabs on Pod,
-Node, and Workload detail views.
+(vmks). Mirrors the native Rancher monitoring UX: Overview with Grafana/Alertmanager link cards
+and AlertTable, a Monitors page (tabbed PodMonitor/ServiceMonitor), and an Alerting group
+(AlertmanagerConfig, Routes & Receivers, PrometheusRules, Prometheuses).
+Also adds VictoriaMetrics Grafana metric tabs on Pod, Node, and Workload detail views.
 
-**Requires:** `victoria-metrics-k8s-stack` installed on the cluster (CRD group `monitoring.coreos.com`).
+**Requires:** `victoria-metrics-k8s-stack` installed on the cluster (CRD group `operator.victoriametrics.com`).
 
-> **Note:** The left-nav section appears on any cluster with `monitoring.coreos.com` CRDs — including
-> plain kube-prometheus-stack installations. On those clusters all 4 link cards will be greyed
-> (no VictoriaMetrics endpoints found). This extension specifically targets vmks users.
+> **Note:** The left-nav section appears on any cluster with `operator.victoriametrics.com` CRDs.
+> Without the `vmks-monitoring` ConfigMap the Overview and metric tabs show an info banner
+> instead of link cards.
 
 ---
 
-## ConfigMaps
+## ConfigMap
 
-The extension reads two optional ConfigMaps from the cluster. When absent, hardcoded defaults apply.
+The extension reads a single ConfigMap from the cluster:
 
-### `kube-monitoring/vmks-grafana` — Grafana service coordinates
+### `kube-monitoring/vmks-monitoring`
 
-Used by the Pod/Node/Workload metric tabs to locate the Grafana service.
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: vmks-grafana
-  namespace: kube-monitoring
-data:
-  namespace: kube-monitoring     # namespace where Grafana is deployed
-  service: vmks-grafana          # Grafana service name
-  port: "8080"                   # Grafana service port
-```
-
-**Defaults (if ConfigMap absent):** `kube-monitoring / vmks-grafana / 8080`
-
-### `kube-monitoring/vmks-monitoring` — Tool links and dashboard IDs
-
-Used by the Monitoring overview page (links) and all metric tabs (dashboard IDs).
+Used by the Overview page (Grafana and Alertmanager link cards) and all metric tabs (dashboard IDs).
+**If absent, the extension nav still appears but the Overview and tabs show a "ConfigMap not found" banner.**
 
 ```yaml
 apiVersion: v1
@@ -47,13 +31,17 @@ metadata:
   name: vmks-monitoring
   namespace: kube-monitoring
 data:
-  # Tool links — Kubernetes proxy paths
-  grafana.url: "/api/v1/namespaces/kube-monitoring/services/http:vmks-grafana:8080/proxy/"
-  vmagent.url: "/api/v1/namespaces/kube-monitoring/services/http:vmks-vmagent:8429/proxy/targets"
-  vmalert.url: "/api/v1/namespaces/kube-monitoring/services/http:vmks-vmalert:8080/proxy/"
-  alertmanager.url: "/api/v1/namespaces/kube-monitoring/services/http:vmks-alertmanager:9093/proxy/"
+  # Grafana service coordinates
+  grafana.namespace: kube-monitoring
+  grafana.service: vmks-grafana
+  grafana.port: "8080"
 
-  # Dashboard IDs (format: "{uid}/{slug}")
+  # Alertmanager service coordinates
+  alertmanager.namespace: kube-monitoring
+  alertmanager.service: vmalertmanager-vmks-victoria-metrics-k8s-stack
+  alertmanager.port: "9093"
+
+  # Dashboard IDs (format: "{uid}/{slug}") — optional, defaults shown
   pod.detailDashboardId: "rancher-pod-containers-1/rancher-pod-containers"
   pod.summaryDashboardId: "rancher-pod-1/rancher-pod"
   node.detailDashboardId: "rancher-node-detail-1/rancher-node-detail"
@@ -62,17 +50,28 @@ data:
   workload.summaryDashboardId: "rancher-workload-1/rancher-workload"
 ```
 
-**Defaults (if ConfigMap absent):** all link URLs empty (cards greyed), dashboard IDs fall back to
-the values shown above.
+The `grafana.*` and `alertmanager.*` keys are required for the Overview link cards to render.
+Dashboard ID keys are optional — the defaults shown above are used when absent.
 
-#### Link availability
+---
 
-Each link card performs a live endpoint check on page load:
-- The URL is parsed to extract namespace and service name.
-- The Kubernetes `Endpoints` object for that service is fetched via `cluster/find`.
-- Card is **available** (clickable) if the endpoint has at least one ready subset.
-- Card is **greyed** in all other cases: empty URL, unparseable URL, endpoint not found,
-  no ready subsets, or RBAC error on the find call.
+## RBAC
+
+The extension reads the ConfigMap via the Rancher API. On RBAC-restricted clusters, the
+Rancher service account must have `get` on `configmaps` in `kube-monitoring`:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-extension
+  namespace: kube-monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["vmks-monitoring"]
+    verbs: ["get", "watch"]
+```
 
 ---
 
