@@ -1,0 +1,7 @@
+cnpg:
+  description: CloudNativePG manages PostgreSQL clusters on Kubernetes.
+
+  cluster:
+    label: Cluster
+    labelPlural: Clusters
+
