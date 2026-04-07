@@ -10,11 +10,12 @@ entries:
       catalog.cattle.io/rancher-version: '>= 2.13.0'
       catalog.cattle.io/scope: management
       catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-04-07T20:06:00.212488225Z"
+    created: "2026-04-07T20:23:43.751913595Z"
     description: Rancher UI Extension for CloudNativePG
-    digest: ecd4d2abfb5b8a88808ce6fe5db63dad1023cced11490deb871c6351d0273aa6
+    digest: 8235847133340df524ea4e2d8de7d8347694dd4813653080cf56bae6a866bece
     name: cnpg
     type: application
     urls:
@@ -274,4 +275,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:21:18.546836512Z"
+generated: "2026-04-07T20:23:43.751504591Z"
