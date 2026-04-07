@@ -52,26 +52,6 @@ entries:
       catalog.cattle.io/ui-component: plugins
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
-    appVersion: 0.1.5
-    created: "2026-04-07T20:41:18.074305965Z"
-    description: Compliance & Security Reports extension for Rancher Dashboard
-    digest: 71b83859e1dde8309dac1e314e6a302c1c172c7ff6fd6a6d25ad7d1513ffb39f
-    name: compliance
-    type: application
-    urls:
-    - assets/compliance/compliance-0.1.5.tgz
-    version: 0.1.5
-  - annotations:
-      catalog.cattle.io/certified: rancher
-      catalog.cattle.io/display-name: Compliance & Security Reports
-      catalog.cattle.io/namespace: cattle-ui-plugin-system
-      catalog.cattle.io/os: linux
-      catalog.cattle.io/permits-os: linux, windows
-      catalog.cattle.io/rancher-version: '>= 2.13.0'
-      catalog.cattle.io/scope: management
-      catalog.cattle.io/ui-component: plugins
-      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
-    apiVersion: v2
     appVersion: 0.1.4
     created: "2026-04-07T20:25:06.578323033Z"
     description: Compliance & Security Reports extension for Rancher Dashboard
@@ -107,6 +87,27 @@ entries:
     - assets/traefik/extension-server-0.1.0.tgz
     version: 0.1.0
   monitoring:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: VictoriaMetrics Monitoring
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.13.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
+    appVersion: 0.1.1
+    created: "2026-04-07T20:42:50.588774244Z"
+    description: Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs,
+      and Grafana/VMAgent/VMAlert/Alertmanager links
+    digest: 3896a75608167fd4750e6ea99b65d1d9bbebb41d2ad7b135b548fb023f9f27b1
+    name: monitoring
+    type: application
+    urls:
+    - assets/monitoring/monitoring-0.1.1.tgz
+    version: 0.1.1
   - annotations:
       catalog.cattle.io/certified: rancher
       catalog.cattle.io/display-name: VictoriaMetrics Monitoring
@@ -378,4 +379,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:41:18.073760296Z"
+generated: "2026-04-07T20:42:50.588300789Z"

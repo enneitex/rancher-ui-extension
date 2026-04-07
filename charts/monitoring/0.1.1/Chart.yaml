@@ -1,0 +1,18 @@
+annotations:
+  catalog.cattle.io/certified: rancher
+  catalog.cattle.io/namespace: cattle-ui-plugin-system
+  catalog.cattle.io/os: linux
+  catalog.cattle.io/permits-os: linux, windows
+  catalog.cattle.io/scope: management
+  catalog.cattle.io/ui-component: plugins
+  catalog.cattle.io/display-name: VictoriaMetrics Monitoring
+  catalog.cattle.io/rancher-version: '>= 2.13.0'
+  catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+apiVersion: v2
+appVersion: 0.1.1
+description: >-
+  Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and
+  Grafana/VMAgent/VMAlert/Alertmanager links
+name: monitoring
+type: application
+version: 0.1.1
