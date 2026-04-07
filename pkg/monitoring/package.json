@@ -1,6 +1,6 @@
 {
   "name": "monitoring",
-  "description": "VictoriaMetrics monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links",
+  "description": "Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links",
   "version": "0.1.0",
   "private": false,
   "rancher": {
