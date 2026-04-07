@@ -1,5 +1,25 @@
 apiVersion: v1
 entries:
+  cnpg:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: CloudNativePG Extension
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.13.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-04-07T20:06:00.212488225Z"
+    description: Rancher UI Extension for CloudNativePG
+    digest: ecd4d2abfb5b8a88808ce6fe5db63dad1023cced11490deb871c6351d0273aa6
+    name: cnpg
+    type: application
+    urls:
+    - assets/cnpg/cnpg-0.1.0.tgz
+    version: 0.1.0
   extension-server:
   - annotations:
       catalog.cattle.io/certified: rancher
@@ -24,28 +44,6 @@ entries:
     type: application
     urls:
     - assets/traefik/extension-server-0.1.0.tgz
-    version: 0.1.0
-  monitoring:
-  - annotations:
-      catalog.cattle.io/certified: rancher
-      catalog.cattle.io/display-name: VictoriaMetrics Monitoring
-      catalog.cattle.io/namespace: cattle-ui-plugin-system
-      catalog.cattle.io/os: linux
-      catalog.cattle.io/permits-os: linux, windows
-      catalog.cattle.io/rancher-version: '>= 2.13.0'
-      catalog.cattle.io/scope: management
-      catalog.cattle.io/ui-component: plugins
-      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
-    apiVersion: v2
-    appVersion: 0.1.0
-    created: "2026-04-07T20:07:02.683776614Z"
-    description: VictoriaMetrics monitoring extension — left nav, ServiceMonitor/PodMonitor
-      CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links
-    digest: 09d6d045e0d6667701c986c62bbbae19d2c3f8e44ba29f064fb6a5b5e52cfc7a
-    name: monitoring
-    type: application
-    urls:
-    - assets/monitoring/monitoring-0.1.0.tgz
     version: 0.1.0
   policy-report:
   - annotations:
@@ -255,4 +253,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:07:02.68334009Z"
+generated: "2026-04-07T20:06:00.211486421Z"

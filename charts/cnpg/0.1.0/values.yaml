@@ -1,0 +1,14 @@
+nameOverride: ""
+fullnameOverride: ""
+plugin:
+  enabled: true
+  versionOverride: ""
+  endpoint: >-
+    https://raw.githubusercontent.com/enneitex/rancher-ui-extension/gh-pages/extensions/cnpg/0.1.0
+  compressedEndpoint: >-
+    https://raw.githubusercontent.com/enneitex/rancher-ui-extension/gh-pages/extensions/cnpg/0.1.0.tgz
+  noCache: false
+  noAuth: false
+  metadata:
+    catalog.cattle.io/rancher-version: ">= 2.13.0"
+    catalog.cattle.io/display-name: CloudNativePG Extension
