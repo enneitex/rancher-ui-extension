@@ -1,0 +1,10 @@
+plugin/cnpg-0.1.1.umd.min.37.js
+plugin/cnpg-0.1.1.umd.min.37.js.map
+plugin/cnpg-0.1.1.umd.min.418.js
+plugin/cnpg-0.1.1.umd.min.418.js.map
+plugin/cnpg-0.1.1.umd.min.60.js
+plugin/cnpg-0.1.1.umd.min.60.js.map
+plugin/cnpg-0.1.1.umd.min.js
+plugin/cnpg-0.1.1.umd.min.js.map
+plugin/img/harvester.20240f8a.png
+plugin/package.json

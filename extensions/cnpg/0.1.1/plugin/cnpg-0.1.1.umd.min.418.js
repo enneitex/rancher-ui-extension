@@ -1,0 +1,2 @@
+(("undefined"!==typeof self?self:this)["webpackChunkcnpg_0_1_1"]=("undefined"!==typeof self?self:this)["webpackChunkcnpg_0_1_1"]||[]).push([[418],{49037:function(e){const s=[{cnpg:{description:"CloudNativePG manages PostgreSQL clusters on Kubernetes.",cluster:{label:"Cluster",labelPlural:"Clusters"}}}];e.exports=s.length<=1?s[0]:s}}]);
+//# sourceMappingURL=cnpg-0.1.1.umd.min.418.js.map
