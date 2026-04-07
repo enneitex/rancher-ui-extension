@@ -88,6 +88,26 @@ entries:
   traefik:
   - annotations:
       catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: Traefik Proxy Extension
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.13.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+    apiVersion: v2
+    appVersion: 0.2.2
+    created: "2026-04-07T20:13:38.037658147Z"
+    description: Rancher UI Extension for Traefik Proxy
+    digest: 27a61afdf2004e6f9521b1a0adde281620979d411b45cfb6ee265f835d90856c
+    icon: https://raw.githubusercontent.com/enneitex/rancher-ui-extension/main/pkg/traefik/assets/icon-traefik.svg
+    name: traefik
+    type: application
+    urls:
+    - assets/traefik/traefik-0.2.2.tgz
+    version: 0.2.2
+  - annotations:
+      catalog.cattle.io/certified: rancher
       catalog.cattle.io/display-name: Traefik Proxy
       catalog.cattle.io/experimental: "true"
       catalog.cattle.io/namespace: cattle-ui-plugin-system
@@ -253,4 +273,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:06:00.211486421Z"
+generated: "2026-04-07T20:13:38.037230083Z"
