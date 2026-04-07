@@ -1,5 +1,25 @@
 apiVersion: v1
 entries:
+  compliance:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: Compliance & Security Reports
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.13.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+    apiVersion: v2
+    appVersion: 0.1.4
+    created: "2026-04-07T20:06:39.795756751Z"
+    description: Compliance & Security Reports extension for Rancher Dashboard
+    digest: 448cf553a25c7fc34a42acebccb14d40043fd5793a991d28e2afdd8c58352c61
+    name: compliance
+    type: application
+    urls:
+    - assets/compliance/compliance-0.1.4.tgz
+    version: 0.1.4
   extension-server:
   - annotations:
       catalog.cattle.io/certified: rancher
@@ -253,4 +273,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:05:36.718133515Z"
+generated: "2026-04-07T20:06:39.795246139Z"
