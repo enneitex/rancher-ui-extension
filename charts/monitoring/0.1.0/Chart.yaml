@@ -11,8 +11,8 @@ annotations:
 apiVersion: v2
 appVersion: 0.1.0
 description: >-
-  VictoriaMetrics monitoring extension — left nav, ServiceMonitor/PodMonitor
-  CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links
+  Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and
+  Grafana/VMAgent/VMAlert/Alertmanager links
 name: monitoring
 type: application
 version: 0.1.0

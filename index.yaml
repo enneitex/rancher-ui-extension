@@ -66,6 +66,28 @@ entries:
     urls:
     - assets/traefik/extension-server-0.1.0.tgz
     version: 0.1.0
+  monitoring:
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: VictoriaMetrics Monitoring
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/rancher-version: '>= 2.13.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-04-07T20:25:51.678010056Z"
+    description: Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs,
+      and Grafana/VMAgent/VMAlert/Alertmanager links
+    digest: 52778a121e9069a708155dfe69c97be6bddf15ad9ea23a8ef4451a18b66c3fda
+    name: monitoring
+    type: application
+    urls:
+    - assets/monitoring/monitoring-0.1.0.tgz
+    version: 0.1.0
   policy-report:
   - annotations:
       catalog.cattle.io/certified: rancher
@@ -295,4 +317,4 @@ entries:
     urls:
     - assets/traefik/traefik-0.1.1.tgz
     version: 0.1.1
-generated: "2026-04-07T20:25:06.577906028Z"
+generated: "2026-04-07T20:25:51.677544365Z"

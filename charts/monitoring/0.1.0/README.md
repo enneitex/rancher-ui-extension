@@ -1,4 +1,4 @@
-# VictoriaMetrics Monitoring Extension
+# Monitoring Extension
 
 Rancher UI extension that adds a **Monitoring** section in the left nav for clusters running
 [victoria-metrics-k8s-stack](https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-k8s-stack)
