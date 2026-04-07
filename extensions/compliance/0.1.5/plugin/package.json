@@ -1,0 +1,19 @@
+{
+  "name": "compliance",
+  "description": "Compliance & Security Reports extension for Rancher Dashboard",
+  "version": "0.1.5",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "compliance-0.1.5.umd.min.js"
+}
