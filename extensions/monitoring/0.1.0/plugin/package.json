@@ -1,0 +1,19 @@
+{
+  "name": "monitoring",
+  "description": "VictoriaMetrics monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "monitoring-0.1.0.umd.min.js"
+}
