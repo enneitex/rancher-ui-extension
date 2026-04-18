@@ -31,6 +31,12 @@ export default class IngressRouteFormPo extends PagePo {
     return PagePo.goTo(`${ CLUSTER(clusterId) }/${ namespace }/${ name }?mode=edit`);
   }
 
+  /** Wait until the edit form is ready (save button visible, correct URL). */
+  waitForEditPage() {
+    cy.url().should('include', 'mode=edit');
+    this.saveButton().should('be.visible');
+  }
+
   // ── Name ────────────────────────────────────────────────────────────────────
 
   nameInput() {
@@ -132,6 +138,72 @@ export default class IngressRouteFormPo extends PagePo {
 
   removeRouteButton() {
     return cy.get('.routes-section .container-group:visible .route-header button').contains('Remove');
+  }
+
+  // ── Services inside the active route ─────────────────────────────────────────
+  // Add-label = `${t('generic.add')} ${t('traefik.ingressRoute.routes.service.label')}`
+  //           = "Add Target Service"
+
+  addServiceButton() {
+    return cy.get('.routes-section .container-group:visible .services-section')
+      .contains('button', 'Add Target Service');
+  }
+
+  // ── TLS tab ───────────────────────────────────────────────────────────────────
+  // TLSConfiguration component wraps everything in .tls-configuration.
+  // RadioGroup name="tls-mode", labels ["Disabled", "Enabled"].
+
+  enableTls() {
+    cy.contains('.tls-configuration .radio-container', 'Enabled').click();
+  }
+
+  disableTls() {
+    cy.contains('.tls-configuration .radio-container', 'Disabled').click();
+  }
+
+  tlsNotConfiguredBanner() {
+    return cy.contains('.tls-configuration .banner', 'TLS is not configured');
+  }
+
+  tlsSecretSelect() {
+    return cy.contains('.tls-configuration .labeled-select label', 'TLS Secret Name')
+      .closest('.labeled-select');
+  }
+
+  setCertResolver(value: string) {
+    cy.contains('.tls-configuration .labeled-input label', 'Certificate Resolver')
+      .closest('.labeled-input')
+      .find('input')
+      .clear()
+      .type(value);
+  }
+
+  addTlsDomain() {
+    cy.contains('.domains-section button', 'Add Domain').click();
+  }
+
+  tlsDomainMainInput() {
+    return cy.contains('.labeled-input label', 'Main Domain')
+      .closest('.labeled-input')
+      .find('input');
+  }
+
+  // ── IngressClass tab ──────────────────────────────────────────────────────────
+  // Tab name="ingress-class" → [data-testid="btn-ingress-class"]
+
+  ingressClassTab() {
+    return cy.get('[data-testid="btn-ingress-class"]');
+  }
+
+  ingressClassSelect() {
+    return cy.contains('.ingress-class-tab .labeled-select label', 'Ingress Class')
+      .closest('.labeled-select');
+  }
+
+  // ── Validation banners ────────────────────────────────────────────────────────
+
+  entryPointsRequiredBanner() {
+    return cy.contains('.banner', 'At least one entry point must be specified');
   }
 
   // ── Save / Create ─────────────────────────────────────────────────────────────

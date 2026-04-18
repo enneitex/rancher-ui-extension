@@ -22,4 +22,9 @@ export default class IngressRouteListPo extends BaseListPagePo {
     this.list().actionMenu(name).getMenuItem('Delete').click();
     new PromptRemove().remove();
   }
+
+  /** Click the resource name `<a>` link in the row to navigate to the detail view. */
+  clickResourceName(name: string) {
+    this.findRowByName(name).contains('a', name).click();
+  }
 }
