@@ -123,9 +123,8 @@ export default {
         :title="t('monitoring.overview.alertsList.label')"
       >
         <AlertTable
-          v-if="!configMissing"
-          :monitoring-namespace="alertmanagerNamespace"
-          :alert-service-endpoint="alertmanagerService"
+          :monitoring-namespace="alertmanagerNamespace || undefined"
+          :alert-service-endpoint="alertmanagerService || undefined"
         />
       </SimpleBox>
     </div>

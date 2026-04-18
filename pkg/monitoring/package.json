@@ -1,7 +1,7 @@
 {
   "name": "monitoring",
   "description": "Monitoring extension — left nav, ServiceMonitor/PodMonitor CRDs, and Grafana/VMAgent/VMAlert/Alertmanager links",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "rancher": {
     "annotations": {

@@ -22,10 +22,11 @@ export function init($plugin, store) {
   } = $plugin.DSL(store, 'monitoring');
 
   product({
-    ifHaveGroup: 'operator.victoriametrics.com',
-    icon:        'monitoring',
-    weight:      89,
-    label:       'Monitoring',
+    ifHaveGroup:         'operator.victoriametrics.com',
+    icon:                'monitoring',
+    weight:              89,
+    label:               'Monitoring',
+    showNamespaceFilter: true,
   });
 
   // ── Overview ────────────────────────────────────────────────────────────────

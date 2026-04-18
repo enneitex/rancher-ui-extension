@@ -110,9 +110,3 @@ Chaque extension contient :
 - **Guide de développement** : [DEVELOPMENT.md](DEVELOPMENT.md)
 - **Documentation Rancher Extensions** : [extensions.rancher.io](https://extensions.rancher.io/)
 - **Storybook Rancher** : [rancher.github.io/storybook](https://rancher.github.io/storybook/)
-
-## TODO
-
-### Server-Side Pagination (Rancher 2.12+)
-
-Adapter les extensions pour supporter la pagination

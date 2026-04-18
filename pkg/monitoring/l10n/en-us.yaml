@@ -30,3 +30,6 @@ monitoring:
     probe:
       label: "Probes"
       description: "A Probe defines blackbox-style monitoring targets (HTTP, TCP, ICMP) to be probed by a compatible exporter such as blackbox-exporter."
+  managedByOwner:
+    label: "Managed"
+    tooltip: "This resource is managed by {kind}/{name} and will be overwritten by the VictoriaMetrics operator on the next reconciliation. Edit the parent resource instead."

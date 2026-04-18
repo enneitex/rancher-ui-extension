@@ -15,7 +15,7 @@ Les extensions Rancher fournissent un mécanisme pour ajouter de nouvelles fonct
 **Note importante**: Avec la version v2.10 de Rancher, une nouvelle version (v3) de la documentation et des extensions a été introduite, migrant de Vue2 vers Vue3. Notre extension utilise déjà Vue3 et suit les bonnes pratiques actuelles.
 
 #### Prérequis de développement
-- **Node.js**: v20 pour Rancher v2.10+ (v16 pour les versions legacy v2.7-v2.9)
+- **Node.js**: >= v24 (v20 minimum pour Rancher v2.10+, v16 pour les versions legacy v2.7-v2.9)
 - **Yarn**: Gestionnaire de paquets requis
 - **Rancher**: Instance installée et accessible
 
@@ -71,9 +71,10 @@ rancher-ui-extension/
 
 
 #### 2. Configuration Rancher
-- **Version compatible**: Rancher >= 2.10.0
+- **Version compatible**: Rancher >= 2.13.0
 - **UI Extensions**: Version 3.0.0 < 4.0.0
-- **Dépendance principale**: `@rancher/shell`
+- **Dépendance principale**: `@rancher/shell@^3.0.10`
+- **Node.js requis**: >= 24 (résolution `@achrinza/node-ipc: 9.2.10` nécessaire — voir `SHELL_UPGRADE_NOTES.md`)
 
 ---
 

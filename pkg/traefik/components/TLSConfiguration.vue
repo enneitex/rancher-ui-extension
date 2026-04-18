@@ -138,7 +138,6 @@ import { get } from '@shell/utils/object';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import { BadgeState } from '@components/BadgeState';
-import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 
 export default {
   name: 'TLSConfiguration',
@@ -147,10 +146,6 @@ export default {
     Banner,
     Card,
     BadgeState
-  },
-
-  directives: {
-    cleanTooltip: cleanTooltipDirective
   },
 
   props: {

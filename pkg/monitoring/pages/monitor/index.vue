@@ -7,6 +7,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
 import { MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
+import ManagedByOwner from '../../formatters/ManagedByOwner';
 
 const PROBE         = 'monitoring.coreos.com.probe';
 const VM_POD_SCRAPE = 'operator.victoriametrics.com.vmpodscrape';
@@ -14,7 +15,7 @@ const VM_SVC_SCRAPE = 'operator.victoriametrics.com.vmservicescrape';
 
 export default {
   components: {
-    Loading, Tabbed, Tab, ResourceTable, TypeDescription, Banner
+    Loading, Tabbed, Tab, ResourceTable, TypeDescription, Banner, ManagedByOwner
   },
 
   async fetch() {
@@ -55,6 +56,27 @@ export default {
   },
 
   computed: {
+    managedByCol() {
+      return {
+        name:     'managed-by',
+        labelKey: 'monitoring.managedByOwner.label',
+        sort:     false,
+        width:    60,
+      };
+    },
+
+    vmPodScrapeHeaders() {
+      const defaults = this.$store.getters['type-map/headersFor'](this.vmPodScrapeSchema) || [];
+
+      return [...defaults, this.managedByCol];
+    },
+
+    vmSvcScrapeHeaders() {
+      const defaults = this.$store.getters['type-map/headersFor'](this.vmSvcScrapeSchema) || [];
+
+      return [...defaults, this.managedByCol];
+    },
+
     noSchemas() {
       return !this.podMonitorSchema && !this.serviceMonitorSchema &&
              !this.probeSchema && !this.vmPodScrapeSchema && !this.vmSvcScrapeSchema;
@@ -108,7 +130,12 @@ export default {
         <ResourceTable
           :schema="vmPodScrapeSchema"
           :rows="vmPodScrapes"
-        />
+          :headers="vmPodScrapeHeaders"
+        >
+          <template #cell:managed-by="{ row }">
+            <ManagedByOwner :value="row" />
+          </template>
+        </ResourceTable>
       </Tab>
       <Tab
         v-if="vmSvcScrapeSchema"
@@ -122,7 +149,12 @@ export default {
         <ResourceTable
           :schema="vmSvcScrapeSchema"
           :rows="vmSvcScrapes"
-        />
+          :headers="vmSvcScrapeHeaders"
+        >
+          <template #cell:managed-by="{ row }">
+            <ManagedByOwner :value="row" />
+          </template>
+        </ResourceTable>
       </Tab>
       <Tab
         v-if="probeSchema"
