@@ -1,0 +1,23 @@
+{
+  "apiVersion": "traefik.io/v1alpha1",
+  "kind": "IngressRoute",
+  "metadata": {
+    "name": "fixture-ingressroute",
+    "namespace": "default"
+  },
+  "spec": {
+    "entryPoints": ["web"],
+    "routes": [
+      {
+        "kind": "Rule",
+        "match": "Host(`fixture.example.com`)",
+        "services": [
+          {
+            "name": "kubernetes",
+            "port": 443
+          }
+        ]
+      }
+    ]
+  }
+}

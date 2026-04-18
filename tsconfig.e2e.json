@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "types": ["cypress", "@types/node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "./cypress/**/*.ts",
+    "./cypress.config.ts",
+    "node_modules/@rancher/cypress/globals.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
