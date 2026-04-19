@@ -114,6 +114,7 @@ export default {
           v-for="[type, config] in middlewareTypesArray"
           :key="type"
           class="middleware-card"
+          :data-testid="`middleware-card-${ type }`"
           :show-actions="false"
         >
           <template #title>
@@ -128,7 +129,7 @@ export default {
             </div>
 
             <!-- Configuration YAML -->
-            <div class="yaml-configuration">
+            <div class="yaml-configuration" :data-testid="`middleware-card-yaml-${ type }`">
               <h5 class="yaml-title">{{ t('traefik.middleware.spec.label') }}</h5>
               <YamlEditor
                 ref="yaml"

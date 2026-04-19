@@ -165,7 +165,7 @@ export default {
 
       <div class="tlsoption-cards-grid">
         <!-- TLS Versions Card -->
-        <Card v-if="hasTlsVersions" class="tls-card" :show-actions="false">
+        <Card v-if="hasTlsVersions" class="tls-card" data-testid="tls-card-versions" :show-actions="false">
           <template #title>
             <h4 class="card-title">
               <i class="icon icon-lock" />
@@ -185,7 +185,7 @@ export default {
         </Card>
 
         <!-- Cipher Suites Card -->
-        <Card v-if="hasCipherSuites" class="tls-card" :show-actions="false">
+        <Card v-if="hasCipherSuites" class="tls-card" data-testid="tls-card-cipher-suites" :show-actions="false">
           <template #title>
             <h4 class="card-title">
               <i class="icon icon-shield" />
@@ -217,7 +217,7 @@ export default {
         </Card>
 
         <!-- Client Authentication Card -->
-        <Card v-if="hasClientAuth" class="tls-card" :show-actions="false">
+        <Card v-if="hasClientAuth" class="tls-card" data-testid="tls-card-client-auth" :show-actions="false">
           <template #title>
             <h4 class="card-title">
               <i class="icon icon-user" />
@@ -253,7 +253,7 @@ export default {
         </Card>
 
         <!-- Advanced Options Card -->
-        <Card v-if="hasAdvancedOptions" class="tls-card" :show-actions="false">
+        <Card v-if="hasAdvancedOptions" class="tls-card" data-testid="tls-card-advanced" :show-actions="false">
           <template #title>
             <h4 class="card-title">
               <i class="icon icon-settings" />

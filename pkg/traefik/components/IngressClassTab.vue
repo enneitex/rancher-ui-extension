@@ -79,7 +79,7 @@ export default {
 </script>
 
 <template>
-  <div class="ingress-class-tab">
+  <div class="ingress-class-tab" data-testid="ingress-class-tab">
     <div class="row mb-20">
       <div class="col span-12">
         <Banner
@@ -93,6 +93,7 @@ export default {
       <div class="col span-12">
         <Banner
           color="warning"
+          data-testid="ingress-class-warning"
           :label="t('traefik.ingressRoute.ingressClass.noIngressClasses')"
         />
       </div>

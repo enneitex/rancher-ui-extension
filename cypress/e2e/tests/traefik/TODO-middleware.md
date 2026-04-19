@@ -10,9 +10,9 @@ All tests tagged `@traefik @adminUser`.
 
 | PO | File | Status |
 |----|------|--------|
-| `MiddlewareListPo` | `po/traefik/middleware-list.po.ts` | ⬜ |
-| `MiddlewareFormPo` | `po/traefik/middleware-form.po.ts` | ⬜ |
-| `MiddlewareDetailPo` | `po/traefik/middleware-detail.po.ts` | ⬜ |
+| `MiddlewareListPo` | `po/traefik/middleware-list.po.ts` | ✅ done |
+| `MiddlewareFormPo` | `po/traefik/middleware-form.po.ts` | ✅ done |
+| `MiddlewareDetailPo` | `po/traefik/middleware-detail.po.ts` | ✅ done |
 
 ---
 
@@ -20,11 +20,11 @@ All tests tagged `@traefik @adminUser`.
 
 **Spec**: `middleware-navigation.spec.ts`
 
-- [ ] List page reachable at `/c/local/explorer/traefik.io.middleware`
-- [ ] Masthead Create button present
-- [ ] Middleware item visible in Traefik side-nav
-- [ ] Resource created via API appears in list
-- [ ] Types column shows the middleware type name (e.g. "stripPrefix")
+- [x] List page reachable at `/c/local/explorer/traefik.io.middleware`
+- [x] Masthead Create button present
+- [x] Middleware item visible in Traefik side-nav
+- [x] Resource created via API appears in list
+- [x] Types column shows the middleware type name (e.g. "stripPrefix")
 
 ---
 
@@ -32,12 +32,12 @@ All tests tagged `@traefik @adminUser`.
 
 **Spec**: `middleware-create.spec.ts`
 
-- [ ] Create form opens and shows a middleware type selector
+- [x] Create form opens and shows a middleware type selector
 - [ ] Can select the "stripPrefix" middleware type
 - [ ] stripPrefix form shows prefix list input
 - [ ] Can add a prefix value
 - [ ] Can remove a prefix value
-- [ ] Can save and resource appears in list with "stripPrefix" in Types column
+- [x] Can save and resource appears in list with "stripPrefix" in Types column
 
 ---
 
@@ -46,7 +46,7 @@ All tests tagged `@traefik @adminUser`.
 - [ ] Can select "basicAuth" middleware type
 - [ ] basicAuth form shows secret selector
 - [ ] Can type a secret reference
-- [ ] Can save
+- [x] Can save
 
 ---
 
@@ -54,10 +54,10 @@ All tests tagged `@traefik @adminUser`.
 
 **Spec**: `middleware-detail.spec.ts`
 
-- [ ] Configuration tab shows a card per middleware type
+- [x] Configuration tab shows a card per middleware type
 - [ ] Card title matches the middleware type label (i18n key)
-- [ ] YAML editor in card shows the type's configuration
-- [ ] Navigating to a middleware with multiple types shows multiple cards
+- [x] YAML editor in card shows the type's configuration
+- [x] Navigating to a middleware with multiple types shows multiple cards
 
 ---
 
@@ -66,12 +66,12 @@ All tests tagged `@traefik @adminUser`.
 **Spec**: `middleware-edit.spec.ts`
 
 - [ ] Edit form pre-fills existing middleware type configuration
-- [ ] Can modify values and save
+- [x] Can modify values and save
 - [ ] Changes reflected in detail view
 
 ---
 
 ## 6. Delete
 
-- [ ] Delete from list removes the resource
+- [x] Delete from list removes the resource
 - [ ] Middleware references in IngressRoute routes become stale (no blocking — just display)

@@ -1,20 +1,9 @@
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
 import IngressRouteDetailPo from '../../po/traefik/ingressroute-detail.po';
+import { makeIngressRoute } from './blueprints/ingressroutes';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
-
-function makeIngressRoute(name: string) {
-  return {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind:       'IngressRoute',
-    metadata:   { name, namespace: NAMESPACE },
-    spec:       {
-      entryPoints: ['web'],
-      routes:      [{ kind: 'Rule', match: 'Host(`nav.example.com`)', services: [{ name: 'kubernetes', port: 443 }] }],
-    },
-  };
-}
 
 describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
@@ -24,7 +13,7 @@ describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik
     cy.login();
     cy.createE2EResourceName('ir-nav').then((name) => {
       resourceName = name;
-      cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+      cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`nav.example.com`)' }));
       removeResource = true;
     });
   });
@@ -62,8 +51,7 @@ describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik
     list.waitForPage();
     list.clickResourceName(resourceName);
 
-    cy.url().should('include', `${ NAMESPACE }/${ resourceName }`);
-    cy.url().should('not.include', 'create').and('not.include', 'mode=edit');
+    list.shouldBeOnDetailPage(NAMESPACE, resourceName);
   });
 
   it('detail view shows the resource name and loads correctly', () => {

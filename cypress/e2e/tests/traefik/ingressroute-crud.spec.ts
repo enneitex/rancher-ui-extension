@@ -1,25 +1,11 @@
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
 import IngressRouteFormPo from '../../po/traefik/ingressroute-form.po';
 import IngressRouteDetailPo from '../../po/traefik/ingressroute-detail.po';
+import { makeIngressRoute } from './blueprints/ingressroutes';
+import YamlEditorPo from '../../po/traefik/yaml-editor.po';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
-
-function makeIngressRoute(name: string, match = 'Host(`e2e-test.example.com`)') {
-  return {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind:       'IngressRoute',
-    metadata:   { name, namespace: NAMESPACE },
-    spec:       {
-      entryPoints: ['web'],
-      routes:      [{
-        kind:     'Rule',
-        match,
-        services: [{ name: 'kubernetes', port: 443 }],
-      }],
-    },
-  };
-}
 
 describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
@@ -167,7 +153,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
       cy.login();
       cy.createE2EResourceName('ir-edit').then((name) => {
         resourceName = name;
-        cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, 'Host(`original.example.com`)'));
+        cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`original.example.com`)' }));
         removeResource = true;
       });
     });
@@ -181,11 +167,11 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
     it('edit form pre-fills the existing match rule', () => {
       IngressRouteFormPo.goToEdit(CLUSTER_ID, NAMESPACE, resourceName);
 
-      new IngressRouteFormPo(CLUSTER_ID).waitForEditPage();
-      cy.get('[data-testid="btn-routes"]').click();
-      new IngressRouteFormPo(CLUSTER_ID)
-        .matchInput()
-        .should('have.value', 'Host(`original.example.com`)');
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.waitForEditPage();
+      form.routesTab().click();
+      form.matchInput().should('have.value', 'Host(`original.example.com`)');
     });
 
     it('can modify the match rule and the change persists', () => {
@@ -193,14 +179,14 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       const form = new IngressRouteFormPo(CLUSTER_ID);
       form.waitForEditPage();
-      cy.get('[data-testid="btn-routes"]').click();
+      form.routesTab().click();
 
       form.matchInput().clear().type('Host(`updated.example.com`)');
       form.save();
 
       IngressRouteFormPo.goToEdit(CLUSTER_ID, NAMESPACE, resourceName);
       form.waitForEditPage();
-      cy.get('[data-testid="btn-routes"]').click();
+      form.routesTab().click();
       form.matchInput().should('have.value', 'Host(`updated.example.com`)');
     });
 
@@ -209,7 +195,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       const form = new IngressRouteFormPo(CLUSTER_ID);
       form.waitForEditPage();
-      cy.get('[data-testid="btn-routes"]').click();
+      form.routesTab().click();
 
       form.addRoute();
       form.routeTab(1).should('exist').click();
@@ -289,9 +275,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
       list.rowShouldExist(resourceName);
 
       list.list().actionMenu(resourceName).getMenuItem('Delete').click();
-
-      // Cancel the prompt
-      cy.contains('button', 'Cancel').click();
+      new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName).cancelDelete();
 
       list.rowShouldExist(resourceName);
     });
@@ -362,10 +346,8 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
       list.waitForPage();
       list.rowShouldExist(resourceName);
 
-      list.list().actionMenu(resourceName).getMenuItem('Edit YAML').click();
-
-      // Rancher renders a YAML editor (CodeMirror or the shell editor)
-      cy.get('[data-testid="yaml-editor-input"], .CodeMirror, .cm-editor').should('be.visible');
+      list.openEditYaml(resourceName);
+      list.yamlEditor().should('be.visible');
     });
 
     it('YAML editor contains the resource kind and name', () => {
@@ -373,10 +355,9 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       list.goTo();
       list.waitForPage();
-      list.list().actionMenu(resourceName).getMenuItem('Edit YAML').click();
+      list.openEditYaml(resourceName);
 
-      // The editor content should contain the resource name
-      cy.get('[data-testid="yaml-editor-input"], .CodeMirror, .cm-editor')
+      YamlEditorPo.editor()
         .should('contain.text', resourceName)
         .and('contain.text', 'IngressRoute');
     });

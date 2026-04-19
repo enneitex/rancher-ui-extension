@@ -1,24 +1,8 @@
 import IngressRouteDetailPo from '../../po/traefik/ingressroute-detail.po';
-import IngressRouteFormPo from '../../po/traefik/ingressroute-form.po';
+import { makeIngressRoute } from './blueprints/ingressroutes';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
-
-function makeIngressRoute(name: string) {
-  return {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind:       'IngressRoute',
-    metadata:   { name, namespace: NAMESPACE },
-    spec:       {
-      entryPoints: ['web'],
-      routes:      [{
-        kind:     'Rule',
-        match:    'Host(`detail-test.example.com`)',
-        services: [{ name: 'kubernetes', port: 443 }],
-      }],
-    },
-  };
-}
 
 describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
@@ -28,7 +12,7 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
     cy.login();
     cy.createE2EResourceName('ir-detail').then((name) => {
       resourceName = name;
-      cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+      cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`detail-test.example.com`)' }));
       removeResource = true;
     });
   });
@@ -86,7 +70,7 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
     detail.waitForPage();
     detail.editFromMasthead();
 
-    cy.url().should('include', 'mode=edit');
+    detail.shouldBeOnEditPage();
   });
 
   it('Delete action in the masthead menu opens the confirmation dialog', () => {
@@ -96,10 +80,6 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
     detail.waitForPage();
     detail.deleteFromMasthead();
 
-    // Confirmation dialog should appear
-    cy.get('.prompt-remove').should('be.visible');
-
-    // Cancel to keep the resource
     detail.cancelDelete();
     detail.waitForPage();
   });

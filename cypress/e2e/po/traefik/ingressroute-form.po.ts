@@ -40,7 +40,7 @@ export default class IngressRouteFormPo extends PagePo {
   // ── Name ────────────────────────────────────────────────────────────────────
 
   nameInput() {
-    return cy.get('[data-testid="NameNsDescriptionNameInput"]');
+    return cy.getId('NameNsDescriptionNameInput');
   }
 
   setName(name: string) {
@@ -50,21 +50,25 @@ export default class IngressRouteFormPo extends PagePo {
   // ── Main form tabs ───────────────────────────────────────────────────────────
 
   entryPointsTab() {
-    return cy.get('[data-testid="btn-entrypoints"]');
+    return cy.getId('btn-entrypoints');
   }
 
   routesTab() {
-    return cy.get('[data-testid="btn-routes"]');
+    return cy.getId('btn-routes');
   }
 
   tlsTab() {
-    return cy.get('[data-testid="btn-tls"]');
+    return cy.getId('btn-tls');
+  }
+
+  labelsAndAnnotationsTab() {
+    return cy.getId('btn-labels-and-annotations');
   }
 
   // ── Entry Points ─────────────────────────────────────────────────────────────
   // Label text: "EntryPoints" (traefik.ingressRoute.entryPoints.label)
 
-  private entryPointsSelect() {
+  entryPointsSelect() {
     return cy.contains('.labeled-select label', 'EntryPoints').closest('.labeled-select');
   }
 
@@ -129,6 +133,15 @@ export default class IngressRouteFormPo extends PagePo {
     this.serviceNameSelect().find('.vs__search').type(name).type('{enter}');
   }
 
+  /** Clear the current service selection and type a new one. */
+  replaceServiceName(name: string) {
+    this.serviceNameSelect()
+      .find('.vs__search')
+      .type('{backspace}')
+      .type(name)
+      .type('{enter}');
+  }
+
   setServicePort(port: string) {
     this.servicePortSelect().find('.vs__search').type(port).type('{enter}');
   }
@@ -137,7 +150,7 @@ export default class IngressRouteFormPo extends PagePo {
   // Route.vue renders a "Remove" button in .route-header when canRemove=true.
 
   removeRouteButton() {
-    return cy.get('.routes-section .container-group:visible .route-header button').contains('Remove');
+    return cy.get('.routes-section .container-group:visible [data-testid^="route-remove-"]');
   }
 
   // ── Services inside the active route ─────────────────────────────────────────
@@ -147,6 +160,73 @@ export default class IngressRouteFormPo extends PagePo {
   addServiceButton() {
     return cy.get('.routes-section .container-group:visible .services-section')
       .contains('button', 'Add Target Service');
+  }
+
+  serviceRows() {
+    return cy.get('.routes-section .container-group:visible [data-testid="service-row"]');
+  }
+
+  activeRouteHeader() {
+    return cy.get('.routes-section .container-group:visible [data-testid^="route-header-"]');
+  }
+
+  middlewareEmptyBanner() {
+    return cy.contains('.routes-section .container-group:visible .banner', 'No middleware available in this namespace');
+  }
+
+  /** Click "Add Middleware" button inside the active route (only visible when middlewares exist). */
+  addMiddlewareButton() {
+    return cy.get('.routes-section .container-group:visible .middleware-section')
+      .contains('button', 'Add Middleware');
+  }
+
+  /**
+   * Select a middleware by name in the given middleware row (zero-based index).
+   * Requires that at least one middleware exists in the namespace so the select is rendered.
+   */
+  middlewareSelect(rowIndex = 0) {
+    return cy.get('.routes-section .container-group:visible .middleware-section')
+      .find('.labeled-select')
+      .eq(rowIndex);
+  }
+
+  selectMiddleware(name: string, rowIndex = 0) {
+    this.middlewareSelect(rowIndex)
+      .find('.vs__search')
+      .type(name)
+      .type('{enter}');
+  }
+
+  /** Assert that a middleware option with the given name is present in the dropdown. */
+  middlewareOptionShouldExist(name: string, rowIndex = 0) {
+    this.middlewareSelect(rowIndex).find('.vs__search').type(name);
+    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
+    // Close dropdown without selecting
+    cy.get('.vs__search').type('{esc}');
+  }
+
+  /** Assert that a TLS option with the given name is present in the dropdown. */
+  tlsOptionShouldExist(name: string) {
+    this.tlsOptionsSelect().find('.vs__search').type(name);
+    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
+    cy.get('.vs__search').type('{esc}');
+  }
+
+  /** Assert that a TLS secret with the given name is present in the dropdown. */
+  tlsSecretShouldExist(name: string) {
+    this.tlsSecretSelect().find('.vs__search').type(name);
+    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
+    cy.get('.vs__search').type('{esc}');
+  }
+
+  /** Select a TLS option by name. */
+  selectTlsOption(name: string) {
+    this.tlsOptionsSelect().find('.vs__search').type(name).type('{enter}');
+  }
+
+  /** Select a TLS secret by name. */
+  selectTlsSecret(name: string) {
+    this.tlsSecretSelect().find('.vs__search').type(name).type('{enter}');
   }
 
   // ── TLS tab ───────────────────────────────────────────────────────────────────
@@ -166,24 +246,47 @@ export default class IngressRouteFormPo extends PagePo {
   }
 
   tlsSecretSelect() {
-    return cy.contains('.tls-configuration .labeled-select label', 'TLS Secret Name')
+    return cy.getId('tls-secret-field')
+      .contains('.labeled-select label', 'TLS Secret Name')
+      .closest('.labeled-select');
+  }
+
+  tlsOptionsSelect() {
+    return cy.getId('tls-options-field')
+      .contains('.labeled-select label', 'TLS Options')
       .closest('.labeled-select');
   }
 
   setCertResolver(value: string) {
-    cy.contains('.tls-configuration .labeled-input label', 'Certificate Resolver')
+    cy.getId('tls-cert-resolver-field')
+      .contains('.labeled-input label', 'Certificate Resolver')
       .closest('.labeled-input')
       .find('input')
       .clear()
       .type(value);
   }
 
+  certResolverInput() {
+    return cy.getId('tls-cert-resolver-field')
+      .contains('.labeled-input label', 'Certificate Resolver')
+      .closest('.labeled-input')
+      .find('input');
+  }
+
   addTlsDomain() {
-    cy.contains('.domains-section button', 'Add Domain').click();
+    cy.getId('tls-domains-section').contains('button', 'Add Domain').click();
   }
 
   tlsDomainMainInput() {
-    return cy.contains('.labeled-input label', 'Main Domain')
+    return cy.getId('tls-domains-list')
+      .contains('.labeled-input label', 'Main Domain')
+      .closest('.labeled-input')
+      .find('input');
+  }
+
+  tlsDomainSansInput() {
+    return cy.getId('tls-domains-list')
+      .contains('.labeled-input label', 'Subject Alternative Names')
       .closest('.labeled-input')
       .find('input');
   }
@@ -192,12 +295,16 @@ export default class IngressRouteFormPo extends PagePo {
   // Tab name="ingress-class" → [data-testid="btn-ingress-class"]
 
   ingressClassTab() {
-    return cy.get('[data-testid="btn-ingress-class"]');
+    return cy.getId('btn-ingress-class');
   }
 
   ingressClassSelect() {
     return cy.contains('.ingress-class-tab .labeled-select label', 'Ingress Class')
       .closest('.labeled-select');
+  }
+
+  ingressClassWarningBanner() {
+    return cy.getId('ingress-class-warning');
   }
 
   // ── Validation banners ────────────────────────────────────────────────────────
@@ -209,7 +316,7 @@ export default class IngressRouteFormPo extends PagePo {
   // ── Save / Create ─────────────────────────────────────────────────────────────
 
   saveButton() {
-    return cy.get('[data-testid="form-save"]');
+    return cy.getId('form-save');
   }
 
   save() {

@@ -23,7 +23,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.routesTab().should('be.visible');
       form.tlsTab().should('be.visible');
       form.ingressClassTab().should('be.visible');
-      cy.get('[data-testid="btn-labels-and-annotations"]').should('be.visible');
+      form.labelsAndAnnotationsTab().should('be.visible');
     });
   });
 
@@ -37,7 +37,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.waitForPage();
       form.entryPointsTab().click();
 
-      cy.contains('.labeled-select .vs__selected', 'websecure').should('be.visible');
+      form.entryPointsSelect().contains('.vs__selected', 'websecure').should('be.visible');
     });
 
     it('can select additional entry point "web"', () => {
@@ -48,8 +48,8 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.entryPointsTab().click();
       form.addEntryPoint('web');
 
-      cy.contains('.labeled-select .vs__selected', 'web').should('be.visible');
-      cy.contains('.labeled-select .vs__selected', 'websecure').should('be.visible');
+      form.entryPointsSelect().contains('.vs__selected', 'web').should('be.visible');
+      form.entryPointsSelect().contains('.vs__selected', 'websecure').should('be.visible');
     });
 
     it('can remove an entry point', () => {
@@ -111,7 +111,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.setServiceName('kubernetes');
       form.setServicePort('443');
 
-      cy.contains('.routes-section .container-group:visible .vs__selected', 'kubernetes').should('be.visible');
+      form.serviceRows().first().contains('.vs__selected', 'kubernetes').should('be.visible');
     });
   });
 
@@ -168,8 +168,8 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
       // Wait for the route-header to be present, then assert no Remove button inside it.
       // Cannot use removeRouteButton().should('not.exist') because cy.get() itself would timeout.
-      cy.get('.routes-section .route-header').should('be.visible');
-      cy.get('.routes-section .route-header .btn').should('not.exist');
+      form.activeRouteHeader().should('be.visible');
+      form.activeRouteHeader().find('[data-testid^="route-remove-"]').should('not.exist');
     });
   });
 
@@ -185,10 +185,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.addServiceButton().click();
 
       // Two "Target Service" selects should now be visible
-      cy.get('.routes-section .container-group:visible')
-        .find('.labeled-select label')
-        .filter(':contains("Target Service")')
-        .should('have.length.gte', 2);
+      form.serviceRows().should('have.length.gte', 2);
     });
 
     it('Port field is visible for a k8s service row', () => {
@@ -198,9 +195,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.waitForPage();
       form.routesTab().click();
 
-      cy.get('.routes-section .container-group:visible')
-        .contains('.labeled-select label', 'Port')
-        .should('be.visible');
+      form.serviceRows().first().contains('.labeled-select label', 'Port').should('be.visible');
     });
   });
 
@@ -214,7 +209,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.waitForPage();
       form.routesTab().click();
 
-      cy.contains('.banner', 'No middleware available in this namespace').should('be.visible');
+      form.middlewareEmptyBanner().should('be.visible');
     });
   });
 
@@ -239,9 +234,9 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.tlsTab().click();
       form.enableTls();
 
-      cy.contains('.tls-configuration .labeled-select label', 'TLS Secret Name').should('be.visible');
-      cy.contains('.tls-configuration .labeled-input label', 'Certificate Resolver').should('be.visible');
-      cy.contains('.tls-configuration .labeled-select label', 'TLS Options').should('be.visible');
+      form.tlsSecretSelect().should('be.visible');
+      form.certResolverInput().should('be.visible');
+      form.tlsOptionsSelect().should('be.visible');
     });
 
     it('can type a certificate resolver name', () => {
@@ -253,10 +248,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.enableTls();
       form.setCertResolver('letsencrypt');
 
-      cy.contains('.tls-configuration .labeled-input label', 'Certificate Resolver')
-        .closest('.labeled-input')
-        .find('input')
-        .should('have.value', 'letsencrypt');
+      form.certResolverInput().should('have.value', 'letsencrypt');
     });
 
     it('can add a TLS domain with a main domain value', () => {
@@ -282,7 +274,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.enableTls();
       form.addTlsDomain();
 
-      cy.contains('.labeled-input label', 'Subject Alternative Names').should('be.visible');
+      form.tlsDomainSansInput().should('be.visible');
     });
 
     it('disabling TLS hides the configuration fields', () => {
@@ -293,7 +285,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.tlsTab().click();
       form.enableTls();
 
-      cy.contains('.tls-configuration .labeled-select label', 'TLS Secret Name').should('be.visible');
+      form.tlsSecretSelect().should('be.visible');
 
       form.disableTls();
 
@@ -315,9 +307,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.ingressClassSelect().should('be.visible');
     });
 
-    it('IngressClass dropdown is disabled and shows a warning when no IngressClass resources exist', () => {
-      // This test is conditional: it only asserts when the cluster has no IngressClass resources.
-      // (Clusters with Traefik or other ingress controllers typically have IngressClass resources.)
+    it('IngressClass dropdown reflects the cluster state (enabled with classes, disabled without)', () => {
       cy.getRancherResource('v1', 'networking.k8s.io.ingressclasses').then((resp) => {
         const hasClasses = (resp.body?.data?.length ?? 0) > 0;
 
@@ -333,7 +323,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
           form.ingressClassSelect().find('input').should('not.be.disabled');
         } else {
           // No classes → warning banner and disabled dropdown
-          cy.contains('.banner', 'No IngressClass resources found').should('be.visible');
+          form.ingressClassWarningBanner().should('be.visible');
           form.ingressClassSelect().find('input').should('be.disabled');
         }
       });
@@ -422,7 +412,9 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       form.goTo();
       form.waitForPage();
 
-      form.setName('validation-test-resource');
+      cy.createE2EResourceName('ir-validation').then((name) => {
+        form.setName(name);
+      });
 
       form.entryPointsTab().click();
       form.clearEntryPoints();

@@ -1,24 +1,9 @@
 import IngressRouteFormPo from '../../po/traefik/ingressroute-form.po';
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
+import { makeIngressRoute } from './blueprints/ingressroutes';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
-
-function makeIngressRoute(name: string, opts: { match?: string; entryPoints?: string[]; serviceName?: string } = {}) {
-  return {
-    apiVersion: 'traefik.io/v1alpha1',
-    kind:       'IngressRoute',
-    metadata:   { name, namespace: NAMESPACE },
-    spec:       {
-      entryPoints: opts.entryPoints ?? ['web', 'websecure'],
-      routes:      [{
-        kind:     'Rule',
-        match:    opts.match ?? 'Host(`edit-test.example.com`)',
-        services: [{ name: opts.serviceName ?? 'kubernetes', port: 443 }],
-      }],
-    },
-  };
-}
 
 describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
@@ -55,8 +40,8 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
 
       form.waitForEditPage();
       form.entryPointsTab().click();
-      cy.contains('.labeled-select .vs__selected', 'web').should('be.visible');
-      cy.contains('.labeled-select .vs__selected', 'websecure').should('be.visible');
+      form.entryPointsSelect().contains('.vs__selected', 'web').should('be.visible');
+      form.entryPointsSelect().contains('.vs__selected', 'websecure').should('be.visible');
     });
 
     it('edit form pre-fills the match rule and service name', () => {
@@ -67,7 +52,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
       form.waitForEditPage();
       form.routesTab().click();
       form.matchInput().should('have.value', 'Host(`prefill.example.com`)');
-      cy.contains('.routes-section .container-group:visible .vs__selected', 'kubernetes').should('be.visible');
+      form.serviceRows().first().contains('.vs__selected', 'kubernetes').should('be.visible');
     });
   });
 
@@ -101,13 +86,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
       form.waitForEditPage();
       form.routesTab().click();
 
-      // Open the service select, clear with backspace, type a new value.
-      // Vue Select taggable single-mode: backspace removes the selected tag, then Enter adds the new one.
-      cy.get('.routes-section .container-group:visible')
-        .contains('.labeled-select label', 'Target Service')
-        .closest('.labeled-select')
-        .find('.vs__search')
-        .type('{backspace}kubernetes-updated{enter}', { force: true });
+      form.replaceServiceName('kubernetes-updated');
 
       form.save();
 
