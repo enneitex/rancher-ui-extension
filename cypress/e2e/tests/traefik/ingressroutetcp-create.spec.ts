@@ -4,6 +4,8 @@ import IngressRouteTCPListPo from '../../po/traefik/ingressroutetcp-list.po';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -116,6 +118,7 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
       form.goTo();
       form.waitForPage();
       form.tlsTab().click();
+      form.enableTls();
 
       form.tlsPassthroughToggle().should('be.visible');
     });
@@ -126,6 +129,7 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
       form.goTo();
       form.waitForPage();
       form.tlsTab().click();
+      form.enableTls();
       form.enableTlsPassthrough();
 
       form.tlsPassthroughToggle().should('be.visible');
@@ -148,7 +152,6 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
 
   describe('2.5 Full create flow', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
@@ -158,9 +161,7 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('can create a minimal IngressRouteTCP and it appears in the list', () => {
@@ -184,7 +185,6 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
       const list = new IngressRouteTCPListPo(CLUSTER_ID);
       list.waitForPage();
       list.rowShouldExist(resourceName);
-      removeResource = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.entryPoints).to.include('tcpep');
@@ -201,9 +201,10 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
 
       form.goTo();
       form.waitForPage();
-      // No entry points → invalid
+      // TCP starts with no entry points by default → add one then remove it
       form.entryPointsTab().click();
-      form.clearEntryPoints();
+      form.addEntryPoint('tcpep');
+      form.removeEntryPoint('tcpep');
 
       form.entryPointsRequiredBanner().should('be.visible');
       form.saveButton().should('be.disabled');

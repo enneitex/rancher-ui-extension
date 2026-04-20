@@ -4,6 +4,8 @@ import TLSOptionListPo from '../../po/traefik/tlsoption-list.po';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -30,7 +32,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.goTo();
       form.waitForPage();
       form.tlsVersionsTab().click();
-      form.selectMinVersion('VersionTLS12');
+      form.selectMinVersion('TLS 1.2');
 
       form.minVersionSelect().should('contain', 'TLS 1.2');
     });
@@ -41,7 +43,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.goTo();
       form.waitForPage();
       form.tlsVersionsTab().click();
-      form.selectMaxVersion('VersionTLS13');
+      form.selectMaxVersion('TLS 1.3');
 
       form.maxVersionSelect().should('contain', 'TLS 1.3');
     });
@@ -92,7 +94,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.cipherSuitesTab().click();
 
       form.preferServerCipherSuitesCheckbox().should('be.visible');
-      form.preferServerCipherSuitesCheckbox().find('input[type="checkbox"]').click();
+      form.preferServerCipherSuitesCheckbox().find('.checkbox-custom').click();
       form.preferServerCipherSuitesCheckbox().find('input[type="checkbox"]').should('be.checked');
     });
   });
@@ -116,7 +118,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.goTo();
       form.waitForPage();
       form.clientAuthTab().click();
-      form.selectClientAuthType('RequireAndVerifyClientCert');
+      form.selectClientAuthType('Require and Verify Client Certificate');
 
       form.clientAuthTypeSelect().should('contain', 'Require and Verify Client Certificate');
     });
@@ -133,7 +135,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.advancedTab().click();
 
       form.sniStrictCheckbox().should('be.visible');
-      form.sniStrictCheckbox().find('input[type="checkbox"]').click();
+      form.sniStrictCheckbox().find('.checkbox-custom').click();
       form.sniStrictCheckbox().find('input[type="checkbox"]').should('be.checked');
     });
 
@@ -145,7 +147,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.advancedTab().click();
 
       form.disableSessionTicketsCheckbox().should('be.visible');
-      form.disableSessionTicketsCheckbox().find('input[type="checkbox"]').click();
+      form.disableSessionTicketsCheckbox().find('.checkbox-custom').click();
       form.disableSessionTicketsCheckbox().find('input[type="checkbox"]').should('be.checked');
     });
 
@@ -179,7 +181,6 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
 
   describe('2.5 Full create flow', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
@@ -189,9 +190,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('can create a TLSOption with minVersion + maxVersion and it appears in the list', () => {
@@ -203,15 +202,14 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.setName(resourceName);
 
       form.tlsVersionsTab().click();
-      form.selectMinVersion('VersionTLS12');
-      form.selectMaxVersion('VersionTLS13');
+      form.selectMinVersion('TLS 1.2');
+      form.selectMaxVersion('TLS 1.3');
 
       form.save();
 
       const list = new TLSOptionListPo(CLUSTER_ID);
       list.waitForPage();
       list.rowShouldExist(resourceName);
-      removeResource = true;
 
       cy.getRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.minVersion).to.eq('VersionTLS12');

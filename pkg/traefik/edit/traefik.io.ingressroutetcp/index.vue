@@ -59,7 +59,7 @@ export default {
         },
         'traefik.io.middlewaretcp': {
           applyTo: [
-            { var: 'middlewares', classify: true }
+            { var: 'middlewaretcps', classify: true }
           ]
         },
         'traefik.io.tlsoption': {

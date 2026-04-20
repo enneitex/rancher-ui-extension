@@ -5,6 +5,8 @@ import { makeIngressRouteTCP } from './blueprints/ingressroutes';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -15,21 +17,17 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Pre-fills existing values', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-prefill').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`original.example.com`)' }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('edit form pre-fills existing match rule', () => {
@@ -57,21 +55,17 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Modify match rule', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-match').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`before.example.com`)' }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('can modify the match rule and change persists', () => {
@@ -94,21 +88,17 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Toggle TLS passthrough', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-tls').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('can enable TLS passthrough and change persists', () => {
@@ -117,6 +107,7 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
       const form = new IngressRouteTCPFormPo(CLUSTER_ID);
       form.waitForEditPage();
       form.tlsTab().click();
+      form.enableTls();
       form.enableTlsPassthrough();
       form.save();
 

@@ -191,42 +191,41 @@ export default class IngressRouteFormPo extends PagePo {
   }
 
   selectMiddleware(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex)
-      .find('.vs__search')
-      .type(name)
-      .type('{enter}');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
   /** Assert that a middleware option with the given name is present in the dropdown. */
   middlewareOptionShouldExist(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex).find('.vs__search').type(name);
-    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
-    // Close dropdown without selecting
-    cy.get('.vs__search').type('{esc}');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
   }
 
   /** Assert that a TLS option with the given name is present in the dropdown. */
   tlsOptionShouldExist(name: string) {
-    this.tlsOptionsSelect().find('.vs__search').type(name);
-    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
-    cy.get('.vs__search').type('{esc}');
+    this.tlsOptionsSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    this.tlsOptionsSelect().find('.vs__dropdown-toggle').click();
   }
 
   /** Assert that a TLS secret with the given name is present in the dropdown. */
   tlsSecretShouldExist(name: string) {
-    this.tlsSecretSelect().find('.vs__search').type(name);
-    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
-    cy.get('.vs__search').type('{esc}');
+    this.tlsSecretSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    this.tlsSecretSelect().find('.vs__dropdown-toggle').click();
   }
 
   /** Select a TLS option by name. */
   selectTlsOption(name: string) {
-    this.tlsOptionsSelect().find('.vs__search').type(name).type('{enter}');
+    this.tlsOptionsSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
   /** Select a TLS secret by name. */
   selectTlsSecret(name: string) {
-    this.tlsSecretSelect().find('.vs__search').type(name).type('{enter}');
+    this.tlsSecretSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
   // ── TLS tab ───────────────────────────────────────────────────────────────────

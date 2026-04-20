@@ -4,6 +4,8 @@ import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -202,6 +204,18 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
   // ── 2.6 Routes tab — middlewares ─────────────────────────────────────────────
 
   describe('2.6 Routes tab — middlewares', () => {
+    before(() => {
+      cy.login();
+      // Guard: the banner only appears when there are no middlewares in the namespace.
+      // Assert precondition via the API to avoid false positives from leftover resources.
+      cy.request({ url: `/v1/traefik.io.middlewares?namespace=${ NAMESPACE }` }).then((resp) => {
+        expect(
+          resp.body.data ?? [],
+          `Namespace "${ NAMESPACE }" must have no Middlewares for this test to be valid`
+        ).to.have.length(0);
+      });
+    });
+
     it('shows info banner when no middlewares exist in the namespace', () => {
       const form = new IngressRouteFormPo(CLUSTER_ID);
 
@@ -334,7 +348,6 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
   describe('2.9 Full create flow', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
@@ -344,9 +357,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('fills name, entry point, match rule, service, port and saves — resource appears in list', () => {
@@ -372,7 +383,6 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
       list.waitForPage();
       list.rowShouldExist(resourceName);
-      removeResource = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.entryPoints).to.include('websecure');

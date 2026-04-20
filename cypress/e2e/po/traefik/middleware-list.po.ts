@@ -7,7 +7,7 @@ export default class MiddlewareListPo extends TraefikBaseListPo {
   }
 
   openEditConfig(name: string) {
-    this.list().actionMenu(name).getMenuItem('Edit Config').click();
+    this.list().actionMenu(name).getMenuItem('Edit YAML').click();
   }
 
   yamlEditor() {

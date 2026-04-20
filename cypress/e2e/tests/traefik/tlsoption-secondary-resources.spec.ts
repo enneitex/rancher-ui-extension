@@ -23,27 +23,25 @@ import { makeK8sTLSSecret } from './blueprints/middlewares';
 const CLUSTER_ID = 'local';
 const NAMESPACE   = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
   testIsolation: 'off',
   tags:          ['@traefik', '@adminUser']
 }, () => {
 
   let secretName: string;
-  let removeSecret = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('tlsopt-casec').then((name) => {
       secretName = name;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
-      removeSecret = true;
     });
   });
 
   after('clean up', () => {
-    if (removeSecret) {
-      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
   });
 
   beforeEach(() => {
@@ -89,9 +87,10 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 
   describe('create with CA secret and verify API', () => {
     let tlsOptName: string;
-    let removeOpt = false;
 
     before(() => {
+      // Guard: outer describe must have created the TLS secret before this runs
+      cy.wrap(secretName).should('be.a', 'string');
       cy.login();
       cy.createE2EResourceName('tlsopt-with-casec').then((name) => {
         tlsOptName = name;
@@ -99,9 +98,7 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      if (removeOpt) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`, false);
     });
 
     it('creates a TLSOption with a CA secret and verifies it in the API', () => {
@@ -114,7 +111,7 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 
       // Select an auth type that requires CA secrets
       form.clientAuthTab().click();
-      form.selectClientAuthType('RequireAndVerifyClientCert');
+      form.selectClientAuthType('Require and Verify Client Certificate');
 
       // Add the CA secret
       form.addClientAuthSecretButton().click();
@@ -126,7 +123,6 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 
       list.waitForPage();
       list.rowShouldExist(tlsOptName);
-      removeOpt = true;
 
       cy.getRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`).then((resp) => {
         expect(resp.body?.spec?.clientAuth?.clientAuthType).to.eq('RequireAndVerifyClientCert');

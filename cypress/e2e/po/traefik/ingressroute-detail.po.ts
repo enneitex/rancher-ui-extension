@@ -39,8 +39,9 @@ export default class IngressRouteDetailPo extends TraefikBaseDetailPo {
 
   /** Navigate to the Related Resources tab and wait for it to be active. */
   goToRelatedTab() {
-    this.relatedTab().click();
-    // The tab panel becomes active; wait for at least one h3 heading to render
+    // Wait for the masthead to confirm the detail page is fully mounted
+    this.mastheadTitle().should('be.visible');
+    this.relatedTab().should('be.visible').click();
     cy.contains('h3', 'Refers To').should('be.visible');
   }
 

@@ -93,7 +93,7 @@ export default class IngressRouteTCPFormPo extends PagePo {
   // ── Entry Points validation banner ───────────────────────────────────────────
 
   entryPointsRequiredBanner() {
-    return cy.contains('.banner', 'At least one entry point must be specified');
+    return cy.contains('.banner', 'At least one entryPoint must be specified');
   }
 
   // ── Routes — route tabs ───────────────────────────────────────────────────────
@@ -128,11 +128,11 @@ export default class IngressRouteTCPFormPo extends PagePo {
 
   setServicePort(port: string) {
     cy.get('.routes-section .container-group:visible')
-      .contains('.labeled-input label', 'Port')
-      .closest('.labeled-input')
-      .find('input')
-      .clear()
-      .type(port);
+      .contains('.labeled-select label', 'Port')
+      .closest('.labeled-select')
+      .find('.vs__search')
+      .type(port)
+      .type('{enter}');
   }
 
   // ── Remove route ─────────────────────────────────────────────────────────────
@@ -175,26 +175,25 @@ export default class IngressRouteTCPFormPo extends PagePo {
       .eq(rowIndex);
   }
 
-  /** Type a middleware name and confirm with Enter to select it. */
+  /** Click toggle to open dropdown and click the middleware by name. */
   selectMiddleware(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex)
-      .find('.vs__search')
-      .type(name)
-      .type('{enter}');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
   /** Assert that a MiddlewareTCP option with the given name is present in the dropdown. */
   middlewareTcpOptionShouldExist(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex).find('.vs__search').type(name);
-    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
-    cy.get('.vs__search').type('{esc}');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
   }
 
   /** Assert that a MiddlewareTCP option with the given name is NOT in the dropdown. */
   middlewareTcpOptionShouldNotExist(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex).find('.vs__search').type(name);
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible');
     cy.get('.vs__dropdown-menu').contains('li', name).should('not.exist');
-    cy.get('.vs__search').type('{esc}');
+    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
   }
 
   // ── TLS tab — passthrough (TCP-specific) ─────────────────────────────────────

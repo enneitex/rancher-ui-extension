@@ -42,4 +42,10 @@ export default class TraefikBaseListPo extends BaseListPagePo {
   sideNavLink(label: string) {
     return cy.get('.side-nav').contains(label);
   }
+
+  masthead() {
+    return {
+      createButton: () => cy.get('[data-testid="masthead-create"], [data-testid="masthead-create-yaml"]').first()
+    };
+  }
 }

@@ -26,6 +26,8 @@ const NAMESPACE   = 'default';
 
 // ── MiddlewareTCP dropdown ────────────────────────────────────────────────────
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
   testIsolation: 'off',
   tags:          ['@traefik', '@adminUser']
@@ -33,8 +35,6 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
 
   let middlewareTcpName: string;
   let httpMiddlewareName: string;
-  let removeTcpMw = false;
-  let removeHttpMw = false;
 
   before(() => {
     cy.login();
@@ -43,24 +43,18 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
     cy.createE2EResourceName('irtcp-mwtcp').then((name) => {
       middlewareTcpName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewaretcps', makeMiddlewareTCP(middlewareTcpName));
-      removeTcpMw = true;
     });
 
     // Create a plain HTTP Middleware — it should NOT appear in the IngressRouteTCP dropdown
     cy.createE2EResourceName('irtcp-mwhttp').then((name) => {
       httpMiddlewareName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(httpMiddlewareName));
-      removeHttpMw = true;
     });
   });
 
   after('clean up', () => {
-    if (removeTcpMw) {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewaretcps', `${ NAMESPACE }/${ middlewareTcpName }`, false);
-    }
-    if (removeHttpMw) {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ httpMiddlewareName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'traefik.io.middlewaretcps', `${ NAMESPACE }/${ middlewareTcpName }`, false);
+    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ httpMiddlewareName }`, false);
   });
 
   beforeEach(() => {
@@ -85,6 +79,7 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
     form.waitForPage();
     form.routesTab().click();
 
+    form.addMiddlewareButton().click();
     form.middlewareTcpOptionShouldExist(middlewareTcpName);
   });
 
@@ -95,6 +90,7 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
     form.waitForPage();
     form.routesTab().click();
 
+    form.addMiddlewareButton().click();
     form.middlewareTcpOptionShouldNotExist(httpMiddlewareName);
   });
 
@@ -115,9 +111,10 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
 
   describe('create with MiddlewareTCP and verify API', () => {
     let irName: string;
-    let removeIR = false;
 
     before(() => {
+      // Guard: outer describe must have created the MiddlewareTCP before this runs
+      cy.wrap(middlewareTcpName).should('be.a', 'string');
       cy.login();
       cy.createE2EResourceName('irtcp-with-mwtcp').then((name) => {
         irName = name;
@@ -125,9 +122,7 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      if (removeIR) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ irName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ irName }`, false);
     });
 
     it('creates an IngressRouteTCP with a MiddlewareTCP and verifies it in the API', () => {
@@ -156,7 +151,6 @@ describe('IngressRouteTCP — MiddlewareTCP dropdown (secondary resource)', {
 
       list.waitForPage();
       list.rowShouldExist(irName);
-      removeIR = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ irName }`).then((resp) => {
         const middlewares = resp.body?.spec?.routes?.[0]?.middlewares ?? [];

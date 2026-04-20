@@ -18,6 +18,12 @@ export default class TraefikBaseDetailPo extends PagePo {
     return cy.get('.masthead-resource-title');
   }
 
+  /** Override: wait for URL match AND masthead to confirm the detail page is mounted. */
+  waitForPage(params?: string, fragment?: string, options?: any) {
+    super.waitForPage(params, fragment, options);
+    this.mastheadTitle().should('be.visible');
+  }
+
   /** Open the kebab menu in the masthead. */
   openActionsMenu() {
     cy.getId('masthead-action-menu').click();

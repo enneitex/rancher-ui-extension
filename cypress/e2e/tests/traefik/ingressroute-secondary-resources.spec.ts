@@ -26,27 +26,25 @@ const NAMESPACE   = 'default';
 
 // ── 2.6 Routes — middlewares ──────────────────────────────────────────────────
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — middleware dropdown (secondary resource)', {
   testIsolation: 'off',
   tags:          ['@traefik', '@adminUser']
 }, () => {
 
   let middlewareName: string;
-  let removeMiddleware = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-mw').then((name) => {
       middlewareName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
-      removeMiddleware = true;
     });
   });
 
   after('clean up', () => {
-    if (removeMiddleware) {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
   });
 
   beforeEach(() => {
@@ -71,6 +69,7 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
     form.waitForPage();
     form.routesTab().click();
 
+    form.addMiddlewareButton().click();
     form.middlewareOptionShouldExist(middlewareName);
   });
 
@@ -91,9 +90,10 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
 
   describe('create with middleware and verify API', () => {
     let irName: string;
-    let removeIR = false;
 
     before(() => {
+      // Guard: outer describe must have created the middleware before this runs
+      cy.wrap(middlewareName).should('be.a', 'string');
       cy.login();
       cy.createE2EResourceName('ir-with-mw').then((name) => {
         irName = name;
@@ -101,9 +101,7 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      if (removeIR) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
     });
 
     it('creates an IngressRoute with the middleware and verifies it in the API', () => {
@@ -133,7 +131,6 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
 
       list.waitForPage();
       list.rowShouldExist(irName);
-      removeIR = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         const middlewares = resp.body?.spec?.routes?.[0]?.middlewares ?? [];
@@ -148,27 +145,25 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
 
 // ── 2.7 TLS tab — TLS Options ─────────────────────────────────────────────────
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — TLS Options dropdown (secondary resource)', {
   testIsolation: 'off',
   tags:          ['@traefik', '@adminUser']
 }, () => {
 
   let tlsOptionName: string;
-  let removeTLSOption = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-tlsopt').then((name) => {
       tlsOptionName = name;
       cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(tlsOptionName, { minVersion: 'VersionTLS12' }));
-      removeTLSOption = true;
     });
   });
 
   after('clean up', () => {
-    if (removeTLSOption) {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
   });
 
   beforeEach(() => {
@@ -203,9 +198,10 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
 
   describe('create with TLS option and verify API', () => {
     let irName: string;
-    let removeIR = false;
 
     before(() => {
+      // Guard: outer describe must have created the TLS option before this runs
+      cy.wrap(tlsOptionName).should('be.a', 'string');
       cy.login();
       cy.createE2EResourceName('ir-with-tlsopt').then((name) => {
         irName = name;
@@ -213,9 +209,7 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      if (removeIR) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
     });
 
     it('creates an IngressRoute with a TLS option and verifies it in the API', () => {
@@ -245,7 +239,6 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
 
       list.waitForPage();
       list.rowShouldExist(irName);
-      removeIR = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         expect(resp.body?.spec?.tls?.options?.name).to.eq(tlsOptionName);
@@ -257,27 +250,25 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
 
 // ── 2.7 TLS tab — TLS Secret ──────────────────────────────────────────────────
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
   testIsolation: 'off',
   tags:          ['@traefik', '@adminUser']
 }, () => {
 
   let secretName: string;
-  let removeSecret = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-tlssec').then((name) => {
       secretName = name;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
-      removeSecret = true;
     });
   });
 
   after('clean up', () => {
-    if (removeSecret) {
-      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
   });
 
   beforeEach(() => {
@@ -312,9 +303,10 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
 
   describe('create with TLS secret and verify API', () => {
     let irName: string;
-    let removeIR = false;
 
     before(() => {
+      // Guard: outer describe must have created the TLS secret before this runs
+      cy.wrap(secretName).should('be.a', 'string');
       cy.login();
       cy.createE2EResourceName('ir-with-tlssec').then((name) => {
         irName = name;
@@ -322,9 +314,7 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      if (removeIR) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
     });
 
     it('creates an IngressRoute with a TLS secret and verifies it in the API', () => {
@@ -354,7 +344,6 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
 
       list.waitForPage();
       list.rowShouldExist(irName);
-      removeIR = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         expect(resp.body?.spec?.tls?.secretName).to.eq(secretName);

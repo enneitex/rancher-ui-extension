@@ -67,19 +67,21 @@ export default class TLSOptionFormPo extends PagePo {
   // ── TLS Versions tab ─────────────────────────────────────────────────────────
 
   minVersionSelect() {
-    return cy.contains('.labeled-select label', 'Min Version').closest('.labeled-select');
+    return cy.contains('.labeled-select label', 'Minimum TLS Version').closest('.labeled-select');
   }
 
   maxVersionSelect() {
-    return cy.contains('.labeled-select label', 'Max Version').closest('.labeled-select');
+    return cy.contains('.labeled-select label', 'Maximum TLS Version').closest('.labeled-select');
   }
 
-  selectMinVersion(version: string) {
-    this.minVersionSelect().find('.vs__search').type(version).type('{enter}');
+  selectMinVersion(label: string) {
+    this.minVersionSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', label).click();
   }
 
-  selectMaxVersion(version: string) {
-    this.maxVersionSelect().find('.vs__search').type(version).type('{enter}');
+  selectMaxVersion(label: string) {
+    this.maxVersionSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', label).click();
   }
 
   // ── Cipher Suites tab ─────────────────────────────────────────────────────────
@@ -105,12 +107,13 @@ export default class TLSOptionFormPo extends PagePo {
   // ── Client Auth tab ───────────────────────────────────────────────────────────
 
   clientAuthTypeSelect() {
-    return cy.contains('.client-auth-card .labeled-select label', 'Client Auth Type')
+    return cy.contains('.client-auth-card .labeled-select label', 'Authentication Type')
       .closest('.labeled-select');
   }
 
-  selectClientAuthType(type: string) {
-    this.clientAuthTypeSelect().find('.vs__search').type(type).type('{enter}');
+  selectClientAuthType(label: string) {
+    this.clientAuthTypeSelect().find('.vs__dropdown-toggle').click();
+    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', label).click();
   }
 
   /**
@@ -121,9 +124,9 @@ export default class TLSOptionFormPo extends PagePo {
     return cy.get('.client-auth-card');
   }
 
-  /** Click the "Add CA Secret" button to add a new secret row. */
+  /** Click the "Add Secret" button to add a new secret row. */
   addClientAuthSecretButton() {
-    return cy.get('.client-auth-card').contains('button', 'Add CA Secret');
+    return cy.get('.client-auth-card').contains('button', 'Add Secret');
   }
 
   /**
@@ -131,7 +134,8 @@ export default class TLSOptionFormPo extends PagePo {
    * Each row is a LabeledSelect rendered by ArrayListSelect.
    */
   clientAuthSecretSelect(rowIndex = 0) {
-    return cy.get('.client-auth-card .labeled-select').eq(rowIndex);
+    // ArrayListSelect container is .array-list-select; each row is .unlabeled-select
+    return cy.get('.client-auth-card .array-list-select .unlabeled-select').eq(rowIndex);
   }
 
   /** Select a CA secret by name in the given row. */
@@ -146,7 +150,7 @@ export default class TLSOptionFormPo extends PagePo {
   clientAuthSecretOptionShouldExist(name: string, rowIndex = 0) {
     this.clientAuthSecretSelect(rowIndex).find('.vs__search').type(name);
     cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
-    cy.get('.vs__search').type('{esc}');
+    this.clientAuthSecretSelect(rowIndex).find('.vs__search').type('{esc}');
   }
 
   // ── Advanced tab ──────────────────────────────────────────────────────────────
@@ -160,7 +164,7 @@ export default class TLSOptionFormPo extends PagePo {
   }
 
   addAlpnProtocolButton() {
-    return cy.contains('.advanced-options-card button', 'Add ALPN Protocol');
+    return cy.contains('.advanced-options-card button', 'Add Protocol');
   }
 
   alpnProtocolInput(index = 0) {
@@ -168,7 +172,7 @@ export default class TLSOptionFormPo extends PagePo {
   }
 
   addCurvePreferenceButton() {
-    return cy.contains('.advanced-options-card button', 'Add Curve Preference');
+    return cy.contains('.advanced-options-card button', 'Add Curve');
   }
 
   curvePreferenceInput(index = 0) {

@@ -5,16 +5,16 @@ import { makeMiddlewareStripPrefix } from './blueprints/middlewares';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
-  let removeResource = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('mw-nav').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
-      removeResource = true;
     });
   });
 
@@ -23,9 +23,7 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
   });
 
   after('clean up', () => {
-    if (removeResource) {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
   });
 
   it('list page is reachable at /c/local/explorer/traefik.io.middleware', () => {
@@ -76,7 +74,7 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
     list.rowShouldExist(resourceName);
 
     list.list().actionMenu(resourceName).menuItemNames().then((names) => {
-      expect(names).to.include('Edit Config');
+      expect(names).to.include('Edit YAML');
       expect(names).to.include('Clone');
       expect(names).to.include('Download YAML');
       expect(names).to.include('Delete');
