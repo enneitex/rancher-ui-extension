@@ -4,16 +4,16 @@ import { makeIngressRoute } from './blueprints/ingressroutes';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
-  let removeResource = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-detail').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`detail-test.example.com`)' }));
-      removeResource = true;
     });
   });
 
@@ -22,9 +22,7 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
   });
 
   after('clean up', () => {
-    if (removeResource) {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
-    }
+    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
   });
 
   it('detail view shows the resource name in the masthead', () => {

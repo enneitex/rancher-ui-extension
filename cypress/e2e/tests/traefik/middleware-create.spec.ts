@@ -20,6 +20,8 @@ const NAMESPACE  = 'default';
  * are tracked separately if a custom form is added in the future.
  */
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('Middleware — create', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -30,21 +32,17 @@ describe('Middleware — create', { testIsolation: 'off', tags: ['@traefik', '@a
 
   describe('stripPrefix middleware via API', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-strip').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name, ['/api', '/v1']));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('stripPrefix middleware appears in list with "stripPrefix" in the Types column', () => {
@@ -68,21 +66,17 @@ describe('Middleware — create', { testIsolation: 'off', tags: ['@traefik', '@a
 
   describe('basicAuth middleware via API', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-auth').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareBasicAuth(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('basicAuth middleware appears in list with "basicAuth" in the Types column', () => {

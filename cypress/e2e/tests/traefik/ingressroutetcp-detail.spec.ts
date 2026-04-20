@@ -5,6 +5,8 @@ import { makeIngressRouteTCP } from './blueprints/ingressroutes';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -15,21 +17,17 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Basic detail view', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-detail').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`detail-tcp.example.com`)' }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('detail view shows the resource name in the masthead', () => {
@@ -74,21 +72,17 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('TLS passthrough detail view', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-passthrough').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { tls: { passthrough: true } }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('TLS tab shows passthrough banner when passthrough is enabled', () => {
@@ -105,21 +99,17 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Delete from list', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('deletes the resource via the list action menu', () => {
@@ -130,7 +120,6 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
       list.rowShouldExist(resourceName);
 
       list.deleteResourceByName(resourceName);
-      removeResource = false;
 
       list.rowShouldNotExist(resourceName);
     });
@@ -140,21 +129,17 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Delete from detail masthead', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-del-detail').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('deletes via the detail view masthead and redirects to the list', () => {
@@ -164,7 +149,6 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
       detail.waitForPage();
       detail.deleteFromMasthead();
       detail.confirmDelete();
-      removeResource = false;
 
       const list = new IngressRouteTCPListPo(CLUSTER_ID);
       list.waitForPage();

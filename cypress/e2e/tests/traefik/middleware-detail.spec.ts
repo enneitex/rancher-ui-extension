@@ -4,6 +4,8 @@ import { makeMiddlewareMultiType, makeMiddlewareStripPrefix } from './blueprints
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -14,21 +16,17 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
 
   describe('Single middleware type', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-detail-single').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('Configuration tab is visible', () => {
@@ -88,21 +86,17 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
 
   describe('Multiple middleware types', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-detail-multi').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareMultiType(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('navigating to a middleware with multiple types shows multiple cards', () => {

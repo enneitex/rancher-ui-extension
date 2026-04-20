@@ -5,6 +5,8 @@ import { makeTLSOption } from './blueprints/tlsoptions';
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -15,21 +17,17 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('TLS Versions card', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-detail-ver').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('TLS Versions card shows minVersion and maxVersion', () => {
@@ -49,7 +47,6 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Full configuration — all cards present', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
@@ -67,14 +64,11 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
           disableSessionTickets: true,
           alpnProtocols: ['http/1.1', 'h2'],
         }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('Cipher Suites card lists all configured suites', () => {
@@ -116,21 +110,17 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Minimal spec — no optional cards', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-detail-min').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('no TLS Versions card when minVersion and maxVersion are absent', () => {
@@ -158,21 +148,17 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Delete from list', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('deletes the TLSOption via the list action menu', () => {
@@ -183,7 +169,6 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
       list.rowShouldExist(resourceName);
 
       list.deleteResourceByName(resourceName);
-      removeResource = false;
 
       list.rowShouldNotExist(resourceName);
     });

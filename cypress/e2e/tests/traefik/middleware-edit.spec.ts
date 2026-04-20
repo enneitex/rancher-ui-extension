@@ -11,6 +11,9 @@ const NAMESPACE  = 'default';
  * or via direct API updates. These tests verify that the resource state is correctly
  * reflected in the UI after an API-level modification.
  */
+
+// testIsolation: 'off' — tests share the login session and navigation state to avoid
+// re-authenticating between each test, which would significantly slow down the suite.
 describe('Middleware — edit', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
@@ -21,21 +24,17 @@ describe('Middleware — edit', { testIsolation: 'off', tags: ['@traefik', '@adm
 
   describe('YAML editor is accessible', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-edit-yaml').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('Edit Config opens the YAML editor with the resource kind and name', () => {
@@ -58,21 +57,17 @@ describe('Middleware — edit', { testIsolation: 'off', tags: ['@traefik', '@adm
 
   describe('API update reflected in detail view', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-edit-api').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name, ['/before']));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('API update to prefix is reflected in the stored resource', () => {
@@ -97,21 +92,17 @@ describe('Middleware — edit', { testIsolation: 'off', tags: ['@traefik', '@adm
 
   describe('Delete from list', () => {
     let resourceName: string;
-    let removeResource = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
-        removeResource = true;
       });
     });
 
     after('clean up', () => {
-      if (removeResource) {
-        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
-      }
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
     });
 
     it('deletes the middleware via the list action menu', () => {
@@ -122,7 +113,6 @@ describe('Middleware — edit', { testIsolation: 'off', tags: ['@traefik', '@adm
       list.rowShouldExist(resourceName);
 
       list.deleteResourceByName(resourceName);
-      removeResource = false;
 
       list.rowShouldNotExist(resourceName);
     });
