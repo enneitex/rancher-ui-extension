@@ -382,9 +382,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
 
       list.goTo();
       list.waitForPage();
-      list.routesColumnForRow(resourceName).should('contain', MATCH);
-      list.routesColumnForRow(resourceName).should('contain', 'kubernetes');
-      list.routesColumnForRow(resourceName).should('contain', 'nonexistent-svc');
+      list.findRowByName(resourceName).should('contain', MATCH);
+      list.findRowByName(resourceName).should('contain', 'kubernetes');
+      list.findRowByName(resourceName).should('contain', 'nonexistent-svc');
     });
   });
 

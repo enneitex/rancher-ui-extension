@@ -60,16 +60,4 @@ export default class TraefikBaseListPo extends BaseListPagePo {
       .rowElementWithName(name)
       .find('[data-label="Ingress Class"]');
   }
-
-  /**
-   * Returns the cell content of the "Routes" column for the row whose name matches `name`.
-   * Used to assert the rendered routes / services in the list view.
-   */
-  routesColumnForRow(name: string) {
-    return this.list()
-      .resourceTable()
-      .sortableTable()
-      .rowElementWithName(name)
-      .find('[data-label="Routes"]');
-  }
 }

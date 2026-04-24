@@ -669,9 +669,9 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
       list.goTo();
       list.waitForPage();
-      list.routesColumnForRow(resourceName).should('contain', `Host(\`${ HOST }\`)`);
-      list.routesColumnForRow(resourceName).should('contain', 'kubernetes');
-      list.routesColumnForRow(resourceName).should('contain', 'nonexistent-svc');
+      list.findRowByName(resourceName).should('contain', `Host(\`${ HOST }\`)`);
+      list.findRowByName(resourceName).should('contain', 'kubernetes');
+      list.findRowByName(resourceName).should('contain', 'nonexistent-svc');
     });
   });
 
