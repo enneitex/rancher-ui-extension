@@ -139,6 +139,103 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
     });
   });
 
+  // ── 3.5 Add second route to existing IngressRoute ────────────────────────────
+
+  describe('add second route to existing IngressRoute', () => {
+    let resourceName: string;
+    let removeIngressRoute = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('ir-add-rt').then((name) => {
+        resourceName = name;
+        cy.createRancherResource('v1', 'traefik.io.ingressroutes',
+          makeIngressRoute(name, { match: 'Host(`original.example.com`)' }));
+        removeIngressRoute = true;
+      });
+    });
+
+    after('clean up', () => {
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('can add a second route to an existing IngressRoute and it persists in the API', () => {
+      IngressRouteFormPo.goToEdit(CLUSTER_ID, NAMESPACE, resourceName);
+
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.waitForEditPage();
+      form.routesTab().click();
+
+      form.addRoute();
+      form.routeTab(1).should('exist').click();
+      form.matchInput().type('Host(`second-route.example.com`)');
+      form.setServiceName('kubernetes');
+      form.setServicePort('443');
+
+      form.save();
+
+      cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
+        expect(resp.body.spec.routes).to.have.length(2);
+      });
+    });
+  });
+
+  // ── 3.6 Remove second route from existing IngressRoute ────────────────────────
+
+  describe('remove second route from existing IngressRoute', () => {
+    let resourceName: string;
+    let removeIngressRoute = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('ir-rm-rt').then((name) => {
+        resourceName = name;
+        cy.createRancherResource('v1', 'traefik.io.ingressroutes', {
+          apiVersion: 'traefik.io/v1alpha1',
+          kind:       'IngressRoute',
+          metadata:   { name, namespace: NAMESPACE },
+          spec:       {
+            entryPoints: ['web'],
+            routes:      [
+              { kind: 'Rule', match: 'Host(`route0.example.com`)', services: [{ name: 'kubernetes', port: 443 }] },
+              { kind: 'Rule', match: 'Host(`route1.example.com`)', services: [{ name: 'kubernetes', port: 443 }] },
+            ],
+          },
+        });
+        removeIngressRoute = true;
+      });
+    });
+
+    after('clean up', () => {
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('can remove the second route and the change persists in the API', () => {
+      IngressRouteFormPo.goToEdit(CLUSTER_ID, NAMESPACE, resourceName);
+
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.waitForEditPage();
+      form.routesTab().click();
+
+      form.routeTab(1).should('exist').click();
+      form.removeRouteButton().click();
+      form.routeTab(1).should('not.exist');
+
+      form.save();
+
+      cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
+        expect(resp.body.spec.routes).to.have.length(1);
+        expect(resp.body.spec.routes[0].match).to.eq('Host(`route0.example.com`)');
+      });
+    });
+  });
+
   // ── 3.4 Changes persist after navigation ─────────────────────────────────────
 
   describe('changes persist after navigation away and back', () => {

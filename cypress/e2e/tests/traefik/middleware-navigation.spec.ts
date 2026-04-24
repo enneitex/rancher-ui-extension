@@ -35,7 +35,6 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
 
     list.goTo();
     list.waitForPage();
-    list.waitForPage();
   });
 
   it('masthead Create button is present', () => {

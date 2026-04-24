@@ -35,7 +35,6 @@ describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@trae
 
     list.goTo();
     list.waitForPage();
-    list.waitForPage();
   });
 
   it('masthead Create button is present', () => {

@@ -14,7 +14,7 @@ const SILENCED_URL_PATTERNS = [
   '/v1/management.cattle.io.clusters',
 ];
 
-Cypress.on('log:added', (_attrs, log) => {
+Cypress.on('log:added', (_attrs, log: any) => {
   const name: string = log.get('displayName') || '';
   const url: string  = log.get('url') || '';
 

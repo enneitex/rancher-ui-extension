@@ -422,6 +422,65 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
         expect(resp.body.spec.routes[0].match).to.eq('Host(`full-create.example.com`)');
       });
     });
+
+    it('entry-point "websecure" appears in the list row', () => {
+      const list = new IngressRouteListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+      list.findRowByName(resourceName).should('contain', 'websecure');
+    });
+  });
+
+  // ── 2.11 Multi-route create ───────────────────────────────────────────────────
+
+  describe('2.11 Multi-route create', () => {
+    let resourceName: string;
+    let removeIngressRoute = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('ir-multi-rt').then((name) => {
+        resourceName = name;
+      });
+    });
+
+    after('clean up', () => {
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('can create an IngressRoute with two routes and both persist in the API', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.setName(resourceName);
+
+      form.routesTab().click();
+      form.matchInput().type('Host(`route0.example.com`)');
+      form.setServiceName('kubernetes');
+      form.setServicePort('443');
+
+      form.addRoute();
+      form.routeTab(1).should('exist').click();
+      form.matchInput().type('Host(`route1.example.com`)');
+      form.setServiceName('kubernetes');
+      form.setServicePort('443');
+
+      form.save();
+
+      const list = new IngressRouteListPo(CLUSTER_ID);
+
+      list.waitForPage();
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRoute = true;
+
+      cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
+        expect(resp.body.spec.routes).to.have.length(2);
+      });
+    });
   });
 
   // ── 2.10 Validation ───────────────────────────────────────────────────────────

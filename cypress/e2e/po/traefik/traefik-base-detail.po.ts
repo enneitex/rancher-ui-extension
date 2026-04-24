@@ -14,12 +14,12 @@ import PromptRemove from '@rancher/cypress/e2e/po/prompts/promptRemove.po';
 export default class TraefikBaseDetailPo extends PagePo {
   // ── Masthead ──────────────────────────────────────────────────────────────────
 
-  mastheadTitle() {
+  mastheadTitle(): Cypress.Chainable<any> {
     return cy.get('.masthead-resource-title');
   }
 
   /** Override: wait for URL match AND masthead to confirm the detail page is mounted. */
-  waitForPage(params?: string, fragment?: string, options?: any) {
+  waitForPage(params?: string, fragment?: string, options?: any): any {
     super.waitForPage(params, fragment, options);
     this.mastheadTitle().should('be.visible');
   }

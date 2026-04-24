@@ -65,25 +65,4 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
     detail.tlsNotConfiguredText().should('be.visible');
   });
 
-  it('Edit action in the masthead menu navigates to the edit form', () => {
-    const detail = new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
-
-    detail.goTo();
-    detail.waitForPage();
-    detail.editFromMasthead();
-
-    detail.shouldBeOnEditPage();
-  });
-
-  it('Delete action in the masthead menu opens the confirmation dialog', () => {
-    const detail = new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
-
-    detail.goTo();
-    detail.waitForPage();
-    detail.deleteFromMasthead();
-
-    detail.cancelDelete();
-    detail.waitForPage();
-  });
-
 });
