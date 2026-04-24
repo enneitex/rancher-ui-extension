@@ -181,18 +181,17 @@ export default class IngressRouteTCPFormPo extends PagePo {
     cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
-  /** Assert that a MiddlewareTCP option with the given name is present in the dropdown. */
-  middlewareTcpOptionShouldExist(name: string, rowIndex = 0) {
-    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
-    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
-    this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
+  middlewareOptions() {
+    return cy.get('.vs__dropdown-menu');
   }
 
-  /** Assert that a MiddlewareTCP option with the given name is NOT in the dropdown. */
-  middlewareTcpOptionShouldNotExist(name: string, rowIndex = 0) {
+  openMiddlewareOptions(rowIndex = 0) {
     this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
-    cy.get('.vs__dropdown-menu').should('be.visible');
-    cy.get('.vs__dropdown-menu').contains('li', name).should('not.exist');
+    return this.middlewareOptions().should('be.visible');
+  }
+
+  /** Close the middleware dropdown after reading its contents. */
+  closeMiddlewareOptions(rowIndex = 0) {
     this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
   }
 

@@ -5,7 +5,7 @@ import PromptRemove from '@rancher/cypress/e2e/po/prompts/promptRemove.po';
  * Shared base class for all Traefik resource list page objects.
  *
  * Factors out common list interactions:
- *   - findRowByName / rowShouldExist / rowShouldNotExist
+ *   - findRowByName / rowWithName / rowElementWithName
  *   - deleteResourceByName
  *   - clickResourceName
  *   - shouldBeOnDetailPage
@@ -16,12 +16,12 @@ export default class TraefikBaseListPo extends BaseListPagePo {
     return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
 
-  rowShouldExist(name: string) {
-    this.list().rowWithName(name).checkVisible();
+  rowWithName(name: string) {
+    return this.list().rowWithName(name);
   }
 
-  rowShouldNotExist(name: string) {
-    this.list().resourceTable().sortableTable().rowElementWithName(name).should('not.exist');
+  rowElementWithName(name: string) {
+    return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
 
   deleteResourceByName(name: string) {

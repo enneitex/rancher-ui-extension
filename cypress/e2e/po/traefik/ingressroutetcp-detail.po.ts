@@ -43,20 +43,11 @@ export default class IngressRouteTCPDetailPo extends TraefikBaseDetailPo {
     return cy.contains('h3', 'Refers To').parent();
   }
 
-  /** Assert that a row with the given resource name appears in the "Refers To" table. */
-  refersToRowShouldContain(name: string) {
-    this.refersToSection()
+  /** Get the row cell in the "Refers To" table for the provided related resource name. */
+  refersToRow(name: string) {
+    return this.refersToSection()
       .find('table')
-      .contains('td', name)
-      .should('be.visible');
-  }
-
-  /** Assert that NO row with the given name appears in the "Refers To" table. */
-  refersToRowShouldNotContain(name: string) {
-    this.refersToSection()
-      .find('table')
-      .contains('td', name)
-      .should('not.exist');
+      .contains('td', name);
   }
 
   // ── Content ───────────────────────────────────────────────────────────────────

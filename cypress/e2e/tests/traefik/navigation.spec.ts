@@ -9,12 +9,14 @@ const NAMESPACE  = 'default';
 // re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-nav').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`nav.example.com`)' }));
+      removeIngressRoute = true;
     });
   });
 
@@ -23,7 +25,9 @@ describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+    }
   });
 
   it('row action menu contains Edit, Clone, Download YAML and Delete', () => {
@@ -31,7 +35,7 @@ describe('IngressRoute — navigation', { testIsolation: 'off', tags: ['@traefik
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
 
     // Open the menu once and read all item names — avoids toggling the menu on each getMenuItem() call.
     list.list().actionMenu(resourceName).menuItemNames().then((names) => {

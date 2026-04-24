@@ -9,12 +9,14 @@ const NAMESPACE  = 'default';
 // re-authenticating between each test, which would significantly slow down the suite.
 describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
+  let removeIngressRouteTcp = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('irtcp-nav').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
+      removeIngressRouteTcp = true;
     });
   });
 
@@ -23,7 +25,9 @@ describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@trae
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+    if (removeIngressRouteTcp) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+    }
   });
 
   it('list page is reachable at /c/local/explorer/traefik.io.ingressroutetcp', () => {
@@ -31,7 +35,7 @@ describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@trae
 
     list.goTo();
     list.waitForPage();
-    cy.url().should('include', 'traefik.io.ingressroutetcp');
+    list.waitForPage();
   });
 
   it('masthead Create button is present', () => {
@@ -55,7 +59,7 @@ describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@trae
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
   });
 
   it('entry-point column shows the correct value', () => {
@@ -71,7 +75,7 @@ describe('IngressRouteTCP — navigation', { testIsolation: 'off', tags: ['@trae
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
 
     list.list().actionMenu(resourceName).menuItemNames().then((names) => {
       expect(names).to.include('Edit Config');

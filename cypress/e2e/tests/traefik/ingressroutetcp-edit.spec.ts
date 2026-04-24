@@ -17,17 +17,21 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Pre-fills existing values', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-prefill').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`original.example.com`)' }));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('edit form pre-fills existing match rule', () => {
@@ -55,17 +59,21 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Modify match rule', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-match').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`before.example.com`)' }));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can modify the match rule and change persists', () => {
@@ -88,17 +96,21 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
 
   describe('Toggle TLS passthrough', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-edit-tls').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can enable TLS passthrough and change persists', () => {
@@ -112,6 +124,7 @@ describe('IngressRouteTCP — edit form', { testIsolation: 'off', tags: ['@traef
       form.save();
 
       const list = new IngressRouteTCPListPo(CLUSTER_ID);
+      list.goTo();
       list.waitForPage();
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`).then((resp) => {

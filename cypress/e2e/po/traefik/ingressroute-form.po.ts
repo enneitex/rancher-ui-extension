@@ -195,24 +195,39 @@ export default class IngressRouteFormPo extends PagePo {
     cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).click();
   }
 
-  /** Assert that a middleware option with the given name is present in the dropdown. */
-  middlewareOptionShouldExist(name: string, rowIndex = 0) {
+  middlewareOptions() {
+    return cy.get('.vs__dropdown-menu');
+  }
+
+  openMiddlewareOptions(rowIndex = 0) {
     this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
-    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    return this.middlewareOptions().should('be.visible');
+  }
+
+  /** Close the currently open middleware dropdown for the provided row. */
+  closeMiddlewareOptions(rowIndex = 0) {
     this.middlewareSelect(rowIndex).find('.vs__dropdown-toggle').click();
   }
 
-  /** Assert that a TLS option with the given name is present in the dropdown. */
-  tlsOptionShouldExist(name: string) {
+  /** Open the TLS Options dropdown so the spec can assert on the available entries. */
+  openTlsOptions() {
     this.tlsOptionsSelect().find('.vs__dropdown-toggle').click();
-    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    return cy.get('.vs__dropdown-menu').should('be.visible');
+  }
+
+  /** Close the TLS Options dropdown after reading its contents. */
+  closeTlsOptions() {
     this.tlsOptionsSelect().find('.vs__dropdown-toggle').click();
   }
 
-  /** Assert that a TLS secret with the given name is present in the dropdown. */
-  tlsSecretShouldExist(name: string) {
+  /** Open the TLS Secret dropdown so the spec can assert on the available entries. */
+  openTlsSecrets() {
     this.tlsSecretSelect().find('.vs__dropdown-toggle').click();
-    cy.get('.vs__dropdown-menu').should('be.visible').contains('li', name).should('be.visible');
+    return cy.get('.vs__dropdown-menu').should('be.visible');
+  }
+
+  /** Close the TLS Secret dropdown after reading its contents. */
+  closeTlsSecrets() {
     this.tlsSecretSelect().find('.vs__dropdown-toggle').click();
   }
 

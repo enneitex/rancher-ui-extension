@@ -37,11 +37,13 @@ export default class TLSOptionDetailPo extends TraefikBaseDetailPo {
     return cy.getId('tls-card-advanced');
   }
 
-  tlsVersionsCardShouldNotExist() {
-    cy.getId('tls-card-versions').should('not.exist');
+  /** Raw selector variant used when the spec needs to assert a card is absent. */
+  tlsVersionsCardElement() {
+    return cy.get('[data-testid="tls-card-versions"]');
   }
 
-  cipherSuitesCardShouldNotExist() {
-    cy.getId('tls-card-cipher-suites').should('not.exist');
+  /** Raw selector variant used when the spec needs to assert a card is absent. */
+  cipherSuitesCardElement() {
+    return cy.get('[data-testid="tls-card-cipher-suites"]');
   }
 }

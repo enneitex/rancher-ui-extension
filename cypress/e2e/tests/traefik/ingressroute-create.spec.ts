@@ -1,5 +1,6 @@
 import IngressRouteFormPo from '../../po/traefik/ingressroute-form.po';
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
+import { makeMiddlewareStripPrefix } from './blueprints/middlewares';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
@@ -204,26 +205,54 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
   // ── 2.6 Routes tab — middlewares ─────────────────────────────────────────────
 
   describe('2.6 Routes tab — middlewares', () => {
-    before(() => {
-      cy.login();
-      // Guard: the banner only appears when there are no middlewares in the namespace.
-      // Assert precondition via the API to avoid false positives from leftover resources.
-      cy.request({ url: `/v1/traefik.io.middlewares?namespace=${ NAMESPACE }` }).then((resp) => {
-        expect(
-          resp.body.data ?? [],
-          `Namespace "${ NAMESPACE }" must have no Middlewares for this test to be valid`
-        ).to.have.length(0);
-      });
-    });
-
-    it('shows info banner when no middlewares exist in the namespace', () => {
+    it('shows either the empty-state banner or an add button based on namespace resources', () => {
       const form = new IngressRouteFormPo(CLUSTER_ID);
 
       form.goTo();
       form.waitForPage();
       form.routesTab().click();
 
-      form.middlewareEmptyBanner().should('be.visible');
+      cy.getRancherResource('v1', 'traefik.io.middlewares').then((resp) => {
+        const inNamespace = (resp.body.data ?? []).filter((m: any) => m.metadata?.namespace === NAMESPACE);
+
+        if (inNamespace.length > 0) {
+          form.addMiddlewareButton().should('be.visible');
+          form.middlewareEmptyBanner().should('not.exist');
+        } else {
+          form.middlewareEmptyBanner().should('be.visible');
+        }
+      });
+    });
+
+    describe('with an existing middleware', () => {
+      let middlewareName: string;
+      let removeMiddleware = false;
+
+      before(() => {
+        cy.login();
+        cy.createE2EResourceName('ir-create-mw').then((name) => {
+          middlewareName = name;
+          cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
+          removeMiddleware = true;
+        });
+      });
+
+      after('clean up', () => {
+        if (removeMiddleware) {
+          cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+        }
+      });
+
+      it('lists the middleware as an available selector option', () => {
+        const form = new IngressRouteFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+        form.routesTab().click();
+        form.addMiddlewareButton().click();
+        form.openMiddlewareOptions().contains('li', middlewareName).should('be.visible');
+        form.closeMiddlewareOptions();
+      });
     });
   });
 
@@ -348,6 +377,7 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
   describe('2.9 Full create flow', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -357,7 +387,9 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('fills name, entry point, match rule, service, port and saves — resource appears in list', () => {
@@ -382,7 +414,8 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRoute = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.entryPoints).to.include('websecure');

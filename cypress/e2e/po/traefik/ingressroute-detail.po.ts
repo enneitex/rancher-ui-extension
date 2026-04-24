@@ -54,24 +54,13 @@ export default class IngressRouteDetailPo extends TraefikBaseDetailPo {
   }
 
   /**
-   * Assert that a row with the given resource name appears in the "Refers To"
-   * table.  The name column maps to `metadata.name` extracted from `toId`.
+   * Get the row cell in the "Refers To" table for the provided related resource name.
+   * The name column maps to `metadata.name` extracted from `toId`.
    */
-  refersToRowShouldContain(name: string) {
-    this.refersToSection()
+  refersToRow(name: string) {
+    return this.refersToSection()
       .find('table')
-      .contains('td', name)
-      .should('be.visible');
-  }
-
-  /**
-   * Assert that NO row with the given name appears in the "Refers To" table.
-   */
-  refersToRowShouldNotContain(name: string) {
-    this.refersToSection()
-      .find('table')
-      .contains('td', name)
-      .should('not.exist');
+      .contains('td', name);
   }
 
   // ── Content ───────────────────────────────────────────────────────────────────

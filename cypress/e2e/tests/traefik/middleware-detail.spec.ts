@@ -16,17 +16,21 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
 
   describe('Single middleware type', () => {
     let resourceName: string;
+    let removeMiddleware = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-detail-single').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
+        removeMiddleware = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeMiddleware) {
+        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('Configuration tab is visible', () => {
@@ -67,7 +71,7 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
       detail.waitForPage();
       detail.editFromMasthead();
 
-      cy.url().should('include', 'mode=edit');
+      detail.shouldBeOnEditPage();
     });
 
     it('Delete action in the masthead opens the confirmation dialog', () => {
@@ -86,17 +90,21 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
 
   describe('Multiple middleware types', () => {
     let resourceName: string;
+    let removeMiddleware = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-detail-multi').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareMultiType(name));
+        removeMiddleware = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeMiddleware) {
+        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('navigating to a middleware with multiple types shows multiple cards', () => {

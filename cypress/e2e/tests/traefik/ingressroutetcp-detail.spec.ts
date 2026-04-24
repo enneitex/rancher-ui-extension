@@ -17,17 +17,21 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Basic detail view', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-detail').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { match: 'HostSNI(`detail-tcp.example.com`)' }));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('detail view shows the resource name in the masthead', () => {
@@ -72,17 +76,21 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('TLS passthrough detail view', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-passthrough').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name, { tls: { passthrough: true } }));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('TLS tab shows passthrough banner when passthrough is enabled', () => {
@@ -99,17 +107,21 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Delete from list', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('deletes the resource via the list action menu', () => {
@@ -117,11 +129,12 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
       list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
 
       list.deleteResourceByName(resourceName);
 
-      list.rowShouldNotExist(resourceName);
+      list.rowElementWithName(resourceName).should('not.exist');
+      removeIngressRouteTcp = false;
     });
   });
 
@@ -129,17 +142,21 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
   describe('Delete from detail masthead', () => {
     let resourceName: string;
+    let removeIngressRouteTcp = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('irtcp-del-detail').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutetcps', makeIngressRouteTCP(name));
+        removeIngressRouteTcp = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTcp) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('deletes via the detail view masthead and redirects to the list', () => {
@@ -152,7 +169,8 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
 
       const list = new IngressRouteTCPListPo(CLUSTER_ID);
       list.waitForPage();
-      list.rowShouldNotExist(resourceName);
+      list.rowElementWithName(resourceName).should('not.exist');
+      removeIngressRouteTcp = false;
     });
   });
 });

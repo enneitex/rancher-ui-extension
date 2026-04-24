@@ -17,6 +17,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
 
   describe('pre-fills existing values', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -24,11 +25,14 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes',
           makeIngressRoute(name, { entryPoints: ['web', 'websecure'], match: 'Host(`prefill.example.com`)' }));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('edit form pre-fills entry points', () => {
@@ -58,6 +62,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
 
   describe('change service name', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -65,11 +70,14 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes',
           makeIngressRoute(name, { serviceName: 'kubernetes' }));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can change the service name in an existing route and the change persists', () => {
@@ -95,6 +103,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
 
   describe('enable TLS on an existing IngressRoute', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -102,11 +111,14 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
         resourceName = name;
         // Create without TLS
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can enable TLS with a certificate resolver and save', () => {
@@ -131,6 +143,7 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
 
   describe('changes persist after navigation away and back', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -138,11 +151,14 @@ describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik'
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes',
           makeIngressRoute(name, { match: 'Host(`original.example.com`)' }));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('updated match rule is still present when returning to the edit form', () => {

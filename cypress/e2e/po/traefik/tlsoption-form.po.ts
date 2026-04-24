@@ -146,10 +146,21 @@ export default class TLSOptionFormPo extends PagePo {
       .type('{enter}');
   }
 
-  /** Assert that a secret option appears in the dropdown before selecting. */
-  clientAuthSecretOptionShouldExist(name: string, rowIndex = 0) {
-    this.clientAuthSecretSelect(rowIndex).find('.vs__search').type(name);
-    cy.get('.vs__dropdown-menu').contains('li', name).should('be.visible');
+  clientAuthSecretOptions() {
+    return cy.get('.vs__dropdown-menu');
+  }
+
+  openClientAuthSecretOptions(rowIndex = 0, filter = '') {
+    if (filter) {
+      this.clientAuthSecretSelect(rowIndex).find('.vs__search').type(filter);
+    } else {
+      this.clientAuthSecretSelect(rowIndex).find('.vs__dropdown-toggle').click();
+    }
+
+    return this.clientAuthSecretOptions().should('be.visible');
+  }
+
+  closeClientAuthSecretOptions(rowIndex = 0) {
     this.clientAuthSecretSelect(rowIndex).find('.vs__search').type('{esc}');
   }
 

@@ -9,12 +9,14 @@ const NAMESPACE  = 'default';
 // re-authenticating between each test, which would significantly slow down the suite.
 describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
+  let removeMiddleware = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('mw-nav').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name));
+      removeMiddleware = true;
     });
   });
 
@@ -23,7 +25,9 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+    if (removeMiddleware) {
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+    }
   });
 
   it('list page is reachable at /c/local/explorer/traefik.io.middleware', () => {
@@ -31,7 +35,7 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
 
     list.goTo();
     list.waitForPage();
-    cy.url().should('include', 'traefik.io.middleware');
+    list.waitForPage();
   });
 
   it('masthead Create button is present', () => {
@@ -55,7 +59,7 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
   });
 
   it('Types column shows the middleware type name (stripPrefix)', () => {
@@ -71,7 +75,7 @@ describe('Middleware — navigation', { testIsolation: 'off', tags: ['@traefik',
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
 
     list.list().actionMenu(resourceName).menuItemNames().then((names) => {
       expect(names).to.include('Edit YAML');

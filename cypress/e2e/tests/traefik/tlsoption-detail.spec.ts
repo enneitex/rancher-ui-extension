@@ -17,17 +17,21 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('TLS Versions card', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-detail-ver').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('TLS Versions card shows minVersion and maxVersion', () => {
@@ -47,6 +51,7 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Full configuration — all cards present', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
@@ -64,11 +69,14 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
           disableSessionTickets: true,
           alpnProtocols: ['http/1.1', 'h2'],
         }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('Cipher Suites card lists all configured suites', () => {
@@ -110,17 +118,21 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Minimal spec — no optional cards', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-detail-min').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('no TLS Versions card when minVersion and maxVersion are absent', () => {
@@ -130,7 +142,7 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
       detail.waitForPage();
       detail.configurationTab().click();
 
-      detail.tlsVersionsCardShouldNotExist();
+      detail.tlsVersionsCardElement().should('not.exist');
     });
 
     it('no Cipher Suites card when cipherSuites array is absent', () => {
@@ -140,7 +152,7 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
       detail.waitForPage();
       detail.configurationTab().click();
 
-      detail.cipherSuitesCardShouldNotExist();
+      detail.cipherSuitesCardElement().should('not.exist');
     });
   });
 
@@ -148,17 +160,21 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
   describe('Delete from list', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('deletes the TLSOption via the list action menu', () => {
@@ -166,11 +182,12 @@ describe('TLSOption — detail view', { testIsolation: 'off', tags: ['@traefik',
 
       list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
 
       list.deleteResourceByName(resourceName);
 
-      list.rowShouldNotExist(resourceName);
+      list.rowElementWithName(resourceName).should('not.exist');
+      removeTlsOption = false;
     });
   });
 });

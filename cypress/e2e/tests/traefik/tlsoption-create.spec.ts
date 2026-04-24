@@ -181,6 +181,7 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
 
   describe('2.5 Full create flow', () => {
     let resourceName: string;
+    let removeTLSOption = false;
 
     before(() => {
       cy.login();
@@ -190,7 +191,9 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTLSOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can create a TLSOption with minVersion + maxVersion and it appears in the list', () => {
@@ -209,7 +212,8 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
 
       const list = new TLSOptionListPo(CLUSTER_ID);
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
+      removeTLSOption = true;
 
       cy.getRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.minVersion).to.eq('VersionTLS12');

@@ -1,24 +1,35 @@
 import MiddlewareListPo from '../../po/traefik/middleware-list.po';
 import MiddlewareFormPo from '../../po/traefik/middleware-form.po';
-import { makeMiddlewareBasicAuth, makeMiddlewareStripPrefix } from './blueprints/middlewares';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
 
-/**
- * Middleware create form note
- * ──────────────────────────
- * Middleware does not have a custom Vue edit form. The extension uses Rancher's generic
- * YAML-based create/edit flow (isCreatable: true, canYaml: true in product.js).
- *
- * These tests cover:
- *  - Creating a stripPrefix middleware via the YAML editor
- *  - Creating a basicAuth middleware via the YAML editor
- *  - Verifying the resource appears in the list with the correct type badge
- *
- * Tests that would exercise a custom field-based form are not applicable here and
- * are tracked separately if a custom form is added in the future.
- */
+function makeStripPrefixYaml(name: string, prefixes: string[]) {
+  const renderedPrefixes = prefixes.map((prefix) => `    - ${ prefix }`).join('\n');
+
+  return `apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ${ name }
+  namespace: ${ NAMESPACE }
+spec:
+  stripPrefix:
+    prefixes:
+${ renderedPrefixes }
+`;
+}
+
+function makeBasicAuthYaml(name: string, secret: string) {
+  return `apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ${ name }
+  namespace: ${ NAMESPACE }
+spec:
+  basicAuth:
+    secret: ${ secret }
+`;
+}
 
 // testIsolation: 'off' — tests share the login session and navigation state to avoid
 // re-authenticating between each test, which would significantly slow down the suite.
@@ -28,86 +39,81 @@ describe('Middleware — create', { testIsolation: 'off', tags: ['@traefik', '@a
     cy.login();
   });
 
-  // ── stripPrefix ───────────────────────────────────────────────────────────────
-
-  describe('stripPrefix middleware via API', () => {
+  describe('stripPrefix middleware via YAML editor', () => {
     let resourceName: string;
+    let removeMiddleware = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-strip').then((name) => {
         resourceName = name;
-        cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(name, ['/api', '/v1']));
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeMiddleware) {
+        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
-    it('stripPrefix middleware appears in list with "stripPrefix" in the Types column', () => {
+    it('creates a stripPrefix middleware from YAML and shows it in the list', () => {
+      const form = new MiddlewareFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.yamlEditor().should('be.visible');
+      form.setYaml(makeStripPrefixYaml(resourceName, ['/api', '/v1']));
+      form.save();
+
       const list = new MiddlewareListPo(CLUSTER_ID);
 
-      list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
       list.findRowByName(resourceName).should('contain.text', 'stripPrefix');
-    });
+      removeMiddleware = true;
 
-    it('API resource has the correct spec', () => {
       cy.getRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
-        expect(resp.body.spec.stripPrefix.prefixes).to.include('/api');
-        expect(resp.body.spec.stripPrefix.prefixes).to.include('/v1');
+        expect(resp.body.spec.stripPrefix.prefixes).to.deep.eq(['/api', '/v1']);
       });
     });
   });
 
-  // ── basicAuth ─────────────────────────────────────────────────────────────────
-
-  describe('basicAuth middleware via API', () => {
+  describe('basicAuth middleware via YAML editor', () => {
     let resourceName: string;
+    let removeMiddleware = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('mw-auth').then((name) => {
         resourceName = name;
-        cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareBasicAuth(name));
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeMiddleware) {
+        cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
-    it('basicAuth middleware appears in list with "basicAuth" in the Types column', () => {
+    it('creates a basicAuth middleware from YAML and persists the secret reference', () => {
+      const form = new MiddlewareFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.yamlEditor().should('be.visible');
+      form.setYaml(makeBasicAuthYaml(resourceName, 'my-auth-secret'));
+      form.save();
+
       const list = new MiddlewareListPo(CLUSTER_ID);
 
-      list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
       list.findRowByName(resourceName).should('contain.text', 'basicAuth');
-    });
+      removeMiddleware = true;
 
-    it('API resource has the correct spec', () => {
       cy.getRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.basicAuth.secret).to.eq('my-auth-secret');
       });
-    });
-  });
-
-  // ── Clicking Create opens the YAML editor ────────────────────────────────────
-
-  describe('Create button opens YAML editor', () => {
-    it('Clicking Create opens the YAML-based create form', () => {
-      const list = new MiddlewareListPo(CLUSTER_ID);
-      const form = new MiddlewareFormPo(CLUSTER_ID);
-
-      list.goTo();
-      list.waitForPage();
-      list.masthead().createButton().click();
-
-      // Rancher's YAML editor should be visible
-      form.yamlEditor().should('be.visible');
     });
   });
 });

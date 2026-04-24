@@ -17,17 +17,21 @@ describe('TLSOption — edit form', { testIsolation: 'off', tags: ['@traefik', '
 
   describe('Pre-fills existing TLS version values', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-edit-prefill').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('edit form pre-fills existing minVersion', () => {
@@ -55,17 +59,21 @@ describe('TLSOption — edit form', { testIsolation: 'off', tags: ['@traefik', '
 
   describe('Change minVersion', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-edit-min').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can change minVersion and the change persists', () => {
@@ -100,17 +108,21 @@ describe('TLSOption — edit form', { testIsolation: 'off', tags: ['@traefik', '
 
   describe('Add cipher suite', () => {
     let resourceName: string;
+    let removeTlsOption = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('tls-edit-cipher').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+        removeTlsOption = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeTlsOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can add a cipher suite and the change persists', () => {

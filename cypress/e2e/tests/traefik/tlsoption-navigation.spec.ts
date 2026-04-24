@@ -9,12 +9,14 @@ const NAMESPACE  = 'default';
 // re-authenticating between each test, which would significantly slow down the suite.
 describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
   let resourceName: string;
+  let removeTlsOption = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('tls-nav').then((name) => {
       resourceName = name;
       cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, { minVersion: 'VersionTLS12', maxVersion: 'VersionTLS13' }));
+      removeTlsOption = true;
     });
   });
 
@@ -23,7 +25,9 @@ describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', 
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+    if (removeTlsOption) {
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ resourceName }`, false);
+    }
   });
 
   it('list page is reachable at /c/local/explorer/traefik.io.tlsoption', () => {
@@ -31,7 +35,7 @@ describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', 
 
     list.goTo();
     list.waitForPage();
-    cy.url().should('include', 'traefik.io.tlsoption');
+    list.waitForPage();
   });
 
   it('masthead Create button is present', () => {
@@ -55,7 +59,7 @@ describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', 
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
   });
 
   it('MinVersion column shows the correct value', () => {
@@ -79,7 +83,7 @@ describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', 
 
     list.goTo();
     list.waitForPage();
-    list.rowShouldExist(resourceName);
+    list.rowWithName(resourceName).checkVisible();
 
     list.list().actionMenu(resourceName).menuItemNames().then((names) => {
       expect(names).to.include('Edit Config');

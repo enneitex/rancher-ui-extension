@@ -152,6 +152,7 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
 
   describe('2.5 Full create flow', () => {
     let resourceName: string;
+    let removeIngressRouteTCP = false;
 
     before(() => {
       cy.login();
@@ -161,7 +162,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRouteTCP) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can create a minimal IngressRouteTCP and it appears in the list', () => {
@@ -184,7 +187,8 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
 
       const list = new IngressRouteTCPListPo(CLUSTER_ID);
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRouteTCP = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.entryPoints).to.include('tcpep');

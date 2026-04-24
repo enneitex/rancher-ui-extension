@@ -31,17 +31,21 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 }, () => {
 
   let secretName: string;
+  let removeSecret = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('tlsopt-casec').then((name) => {
       secretName = name;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
+      removeSecret = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    if (removeSecret) {
+      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    }
   });
 
   beforeEach(() => {
@@ -67,7 +71,8 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 
     // Add a secret row and check the dropdown
     form.addClientAuthSecretButton().click();
-    form.clientAuthSecretOptionShouldExist(secretName);
+    form.openClientAuthSecretOptions(0, secretName).contains('li', secretName).should('be.visible');
+    form.closeClientAuthSecretOptions();
   });
 
   it('can select the CA secret and it appears as a selected tag', () => {
@@ -87,6 +92,7 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
 
   describe('create with CA secret and verify API', () => {
     let tlsOptName: string;
+    let removeTLSOption = false;
 
     before(() => {
       // Guard: outer describe must have created the TLS secret before this runs
@@ -98,7 +104,9 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`, false);
+      if (removeTLSOption) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`, false);
+      }
     });
 
     it('creates a TLSOption with a CA secret and verifies it in the API', () => {
@@ -122,7 +130,8 @@ describe('TLSOption — Client Auth secret dropdown (secondary resource)', {
       const list = new TLSOptionListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldExist(tlsOptName);
+      list.rowWithName(tlsOptName).checkVisible();
+      removeTLSOption = true;
 
       cy.getRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptName }`).then((resp) => {
         expect(resp.body?.spec?.clientAuth?.clientAuthType).to.eq('RequireAndVerifyClientCert');

@@ -47,17 +47,21 @@ describe('IngressRoute — Related Resources: service reference', {
   // "kubernetes" is the built-in service that always exists — no creation needed.
   const serviceName = 'kubernetes';
   let irName: string;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-rel-svc').then((name) => {
       irName = name;
       cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(irName, { entryPoints: ['websecure'], match: `Host(\`${ irName }.example.com\`)`, serviceName }));
+      removeIngressRoute = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    }
   });
 
   beforeEach(() => cy.login());
@@ -78,7 +82,7 @@ describe('IngressRoute — Related Resources: service reference', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(serviceName);
+    detail.refersToRow(serviceName).should('be.visible');
   });
 
 });
@@ -94,23 +98,32 @@ describe('IngressRoute — Related Resources: middleware reference', {
 
   let middlewareName: string;
   let irName: string;
+  let removeMiddleware = false;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-rel-mw').then((mwName) => {
       middlewareName = mwName;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
+      removeMiddleware = true;
 
       cy.createE2EResourceName('ir-rel-mw-ir').then((name) => {
         irName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(irName, { entryPoints: ['websecure'], match: `Host(\`${ irName }.example.com\`)`, middlewares: [{ name: middlewareName }] }));
+        removeIngressRoute = true;
       });
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    }
+
+    if (removeMiddleware) {
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    }
   });
 
   beforeEach(() => cy.login());
@@ -122,7 +135,7 @@ describe('IngressRoute — Related Resources: middleware reference', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(middlewareName);
+    detail.refersToRow(middlewareName).should('be.visible');
   });
 
 });
@@ -138,23 +151,32 @@ describe('IngressRoute — Related Resources: TLS secret reference', {
 
   let secretName: string;
   let irName: string;
+  let removeSecret = false;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-rel-sec').then((secName) => {
       secretName = secName;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
+      removeSecret = true;
 
       cy.createE2EResourceName('ir-rel-sec-ir').then((name) => {
         irName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(irName, { entryPoints: ['websecure'], match: `Host(\`${ irName }.example.com\`)`, tls: { secretName } }));
+        removeIngressRoute = true;
       });
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    }
+
+    if (removeSecret) {
+      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    }
   });
 
   beforeEach(() => cy.login());
@@ -166,7 +188,7 @@ describe('IngressRoute — Related Resources: TLS secret reference', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(secretName);
+    detail.refersToRow(secretName).should('be.visible');
   });
 
 });
@@ -182,23 +204,32 @@ describe('IngressRoute — Related Resources: TLS option reference', {
 
   let tlsOptionName: string;
   let irName: string;
+  let removeTlsOption = false;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-rel-tlsopt').then((optName) => {
       tlsOptionName = optName;
       cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(tlsOptionName, { minVersion: 'VersionTLS12' }));
+      removeTlsOption = true;
 
       cy.createE2EResourceName('ir-rel-tlsopt-ir').then((name) => {
         irName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(irName, { entryPoints: ['websecure'], match: `Host(\`${ irName }.example.com\`)`, tls: { options: { name: tlsOptionName, namespace: 'default' } } }));
+        removeIngressRoute = true;
       });
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-    cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    }
+
+    if (removeTlsOption) {
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    }
   });
 
   beforeEach(() => cy.login());
@@ -210,7 +241,7 @@ describe('IngressRoute — Related Resources: TLS option reference', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(tlsOptionName);
+    detail.refersToRow(tlsOptionName).should('be.visible');
   });
 
 });
@@ -229,6 +260,10 @@ describe('IngressRoute — Related Resources: all references combined', {
   let secretName: string;
   let tlsOptionName: string;
   let irName: string;
+  let removeMiddleware = false;
+  let removeSecret = false;
+  let removeTlsOption = false;
+  let removeIngressRoute = false;
 
   before(() => {
     cy.login();
@@ -236,16 +271,19 @@ describe('IngressRoute — Related Resources: all references combined', {
     cy.createE2EResourceName('ir-rel-all-mw').then((mwName) => {
       middlewareName = mwName;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
+      removeMiddleware = true;
     });
 
     cy.createE2EResourceName('ir-rel-all-sec').then((secName) => {
       secretName = secName;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
+      removeSecret = true;
     });
 
     cy.createE2EResourceName('ir-rel-all-opt').then((optName) => {
       tlsOptionName = optName;
       cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(tlsOptionName, { minVersion: 'VersionTLS12' }));
+      removeTlsOption = true;
     });
 
     // Cypress's command queue ensures the three create calls above have
@@ -257,14 +295,26 @@ describe('IngressRoute — Related Resources: all references combined', {
         'traefik.io.ingressroutes',
         makeIngressRoute(irName, { entryPoints: ['websecure'], match: `Host(\`${ irName }.example.com\`)`, middlewares: [{ name: middlewareName }], tls: { secretName, options: { name: tlsOptionName, namespace: 'default' } } })
       );
+      removeIngressRoute = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
-    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
-    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
-    cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+    }
+
+    if (removeMiddleware) {
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    }
+
+    if (removeSecret) {
+      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    }
+
+    if (removeTlsOption) {
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    }
   });
 
   beforeEach(() => cy.login());
@@ -276,7 +326,7 @@ describe('IngressRoute — Related Resources: all references combined', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(serviceName);
+    detail.refersToRow(serviceName).should('be.visible');
   });
 
   it('"Refers To" lists the middleware', () => {
@@ -286,7 +336,7 @@ describe('IngressRoute — Related Resources: all references combined', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(middlewareName);
+    detail.refersToRow(middlewareName).should('be.visible');
   });
 
   it('"Refers To" lists the TLS secret', () => {
@@ -296,7 +346,7 @@ describe('IngressRoute — Related Resources: all references combined', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(secretName);
+    detail.refersToRow(secretName).should('be.visible');
   });
 
   it('"Refers To" lists the TLS option', () => {
@@ -306,7 +356,7 @@ describe('IngressRoute — Related Resources: all references combined', {
     detail.waitForPage();
     detail.goToRelatedTab();
 
-    detail.refersToRowShouldContain(tlsOptionName);
+    detail.refersToRow(tlsOptionName).should('be.visible');
   });
 
 });

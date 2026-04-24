@@ -34,17 +34,21 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
 }, () => {
 
   let middlewareName: string;
+  let removeMiddleware = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-mw').then((name) => {
       middlewareName = name;
       cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
+      removeMiddleware = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    if (removeMiddleware) {
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    }
   });
 
   beforeEach(() => {
@@ -70,7 +74,8 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
     form.routesTab().click();
 
     form.addMiddlewareButton().click();
-    form.middlewareOptionShouldExist(middlewareName);
+    form.openMiddlewareOptions().contains('li', middlewareName).should('be.visible');
+    form.closeMiddlewareOptions();
   });
 
   it('can select the middleware and it appears as a selected tag', () => {
@@ -90,6 +95,7 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
 
   describe('create with middleware and verify API', () => {
     let irName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       // Guard: outer describe must have created the middleware before this runs
@@ -101,7 +107,9 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      }
     });
 
     it('creates an IngressRoute with the middleware and verifies it in the API', () => {
@@ -130,7 +138,8 @@ describe('IngressRoute — middleware dropdown (secondary resource)', {
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldExist(irName);
+      list.rowWithName(irName).checkVisible();
+      removeIngressRoute = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         const middlewares = resp.body?.spec?.routes?.[0]?.middlewares ?? [];
@@ -153,17 +162,21 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
 }, () => {
 
   let tlsOptionName: string;
+  let removeTlsOption = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-tlsopt').then((name) => {
       tlsOptionName = name;
       cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(tlsOptionName, { minVersion: 'VersionTLS12' }));
+      removeTlsOption = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    if (removeTlsOption) {
+      cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ tlsOptionName }`, false);
+    }
   });
 
   beforeEach(() => {
@@ -178,7 +191,8 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
     form.tlsTab().click();
     form.enableTls();
 
-    form.tlsOptionShouldExist(tlsOptionName);
+    form.openTlsOptions().contains('li', tlsOptionName).should('be.visible');
+    form.closeTlsOptions();
   });
 
   it('can select the TLS option and it appears as a selected tag', () => {
@@ -198,6 +212,7 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
 
   describe('create with TLS option and verify API', () => {
     let irName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       // Guard: outer describe must have created the TLS option before this runs
@@ -209,7 +224,9 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      }
     });
 
     it('creates an IngressRoute with a TLS option and verifies it in the API', () => {
@@ -238,7 +255,8 @@ describe('IngressRoute — TLS Options dropdown (secondary resource)', {
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldExist(irName);
+      list.rowWithName(irName).checkVisible();
+      removeIngressRoute = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         expect(resp.body?.spec?.tls?.options?.name).to.eq(tlsOptionName);
@@ -258,17 +276,21 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
 }, () => {
 
   let secretName: string;
+  let removeSecret = false;
 
   before(() => {
     cy.login();
     cy.createE2EResourceName('ir-tlssec').then((name) => {
       secretName = name;
       cy.createRancherResource('v1', 'secrets', makeK8sTLSSecret(secretName));
+      removeSecret = true;
     });
   });
 
   after('clean up', () => {
-    cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    if (removeSecret) {
+      cy.deleteRancherResource('v1', 'secrets', `${ NAMESPACE }/${ secretName }`, false);
+    }
   });
 
   beforeEach(() => {
@@ -283,7 +305,8 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
     form.tlsTab().click();
     form.enableTls();
 
-    form.tlsSecretShouldExist(secretName);
+    form.openTlsSecrets().contains('li', secretName).should('be.visible');
+    form.closeTlsSecrets();
   });
 
   it('can select the TLS secret and it appears as a selected tag', () => {
@@ -303,6 +326,7 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
 
   describe('create with TLS secret and verify API', () => {
     let irName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       // Guard: outer describe must have created the TLS secret before this runs
@@ -314,7 +338,9 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`, false);
+      }
     });
 
     it('creates an IngressRoute with a TLS secret and verifies it in the API', () => {
@@ -343,7 +369,8 @@ describe('IngressRoute — TLS Secret dropdown (secondary resource)', {
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldExist(irName);
+      list.rowWithName(irName).checkVisible();
+      removeIngressRoute = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ irName }`).then((resp) => {
         expect(resp.body?.spec?.tls?.secretName).to.eq(secretName);

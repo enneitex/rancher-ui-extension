@@ -20,6 +20,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Create via form', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -28,12 +29,10 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
       });
     });
 
-    beforeEach(() => {
-      cy.login();
-    });
-
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('fills in the form and creates an IngressRoute', () => {
@@ -57,7 +56,8 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       const list = new IngressRouteListPo(CLUSTER_ID);
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRoute = true;
     });
 
     it('shows the entry-point value "web" in the list row', () => {
@@ -73,6 +73,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Add and remove routes', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
@@ -82,7 +83,9 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can create an IngressRoute with two routes and persist them', () => {
@@ -109,7 +112,8 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       const list = new IngressRouteListPo(CLUSTER_ID);
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRoute = true;
 
       cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
         expect(resp.body.spec.routes).to.have.length(2);
@@ -141,17 +145,21 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Edit via form', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('ir-edit').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name, { match: 'Host(`original.example.com`)' }));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('edit form pre-fills the existing match rule', () => {
@@ -205,17 +213,21 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Delete from list', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('ir-delete').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('deletes the resource via the action menu and confirms it is removed', () => {
@@ -223,11 +235,12 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
 
       list.deleteResourceByName(resourceName);
 
-      list.rowShouldNotExist(resourceName);
+      list.rowElementWithName(resourceName).should('not.exist');
+      removeIngressRoute = false;
     });
   });
 
@@ -235,17 +248,21 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Cancel deletion', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('ir-cancel').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('cancelling the delete dialog keeps the resource in the list', () => {
@@ -253,12 +270,12 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
 
       list.list().actionMenu(resourceName).getMenuItem('Delete').click();
       new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName).cancelDelete();
 
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
     });
   });
 
@@ -266,17 +283,21 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('Delete from detail view', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('ir-detail-del').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('deletes via the detail view masthead and redirects to the list', () => {
@@ -290,7 +311,8 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.waitForPage();
-      list.rowShouldNotExist(resourceName);
+      list.rowElementWithName(resourceName).should('not.exist');
+      removeIngressRoute = false;
     });
   });
 
@@ -298,17 +320,21 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
   describe('YAML', () => {
     let resourceName: string;
+    let removeIngressRoute = false;
 
     before(() => {
       cy.login();
       cy.createE2EResourceName('ir-yaml').then((name) => {
         resourceName = name;
         cy.createRancherResource('v1', 'traefik.io.ingressroutes', makeIngressRoute(name));
+        removeIngressRoute = true;
       });
     });
 
     after('clean up', () => {
-      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
     });
 
     it('can open the YAML editor via the "Edit YAML" action', () => {
@@ -316,7 +342,7 @@ describe('IngressRoute', { testIsolation: 'off', tags: ['@traefik', '@adminUser'
 
       list.goTo();
       list.waitForPage();
-      list.rowShouldExist(resourceName);
+      list.rowWithName(resourceName).checkVisible();
 
       list.openEditYaml(resourceName);
       list.yamlEditor().should('be.visible');
