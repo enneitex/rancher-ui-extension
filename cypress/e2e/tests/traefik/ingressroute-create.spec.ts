@@ -1,6 +1,7 @@
 import IngressRouteFormPo from '../../po/traefik/ingressroute-form.po';
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
 import { makeMiddlewareStripPrefix } from './blueprints/middlewares';
+import { makeIngressClass } from './blueprints/ingressclasses';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
@@ -369,6 +370,80 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
           form.ingressClassWarningBanner().should('be.visible');
           form.ingressClassSelect().find('input').should('be.disabled');
         }
+      });
+    });
+
+    describe('with a dedicated IngressClass resource', () => {
+      let ingressClassName: string;
+      let resourceName: string;
+      let removeIngressClass = false;
+      let removeIngressRoute = false;
+
+      before(() => {
+        cy.login();
+        cy.createE2EResourceName('ir-ic').then((name) => {
+          ingressClassName = name;
+          cy.createRancherResource('v1', 'networking.k8s.io.ingressclasses', makeIngressClass(ingressClassName));
+          removeIngressClass = true;
+        });
+        cy.createE2EResourceName('ir-ic-create').then((name) => {
+          resourceName = name;
+        });
+      });
+
+      after('clean up', () => {
+        if (removeIngressRoute) {
+          cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+        }
+        if (removeIngressClass) {
+          cy.deleteRancherResource('v1', 'networking.k8s.io.ingressclasses', ingressClassName, false);
+        }
+      });
+
+      it('the created IngressClass appears in the dropdown options', () => {
+        const form = new IngressRouteFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+        form.ingressClassTab().click();
+
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+        cy.get('.vs__dropdown-menu').should('be.visible').contains('li', ingressClassName).should('be.visible');
+        // Close the dropdown
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+      });
+
+      it('selecting an IngressClass and saving persists the annotation in the API', () => {
+        const form = new IngressRouteFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+
+        form.setName(resourceName);
+
+        form.entryPointsTab().click();
+        form.clearEntryPoints();
+        form.addEntryPoint('websecure');
+
+        form.routesTab().click();
+        form.matchInput().type('Host(`ic-create.example.com`)');
+        form.setServiceName('kubernetes');
+        form.setServicePort('443');
+
+        form.ingressClassTab().click();
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+        cy.get('.vs__dropdown-menu').should('be.visible').contains('li', ingressClassName).click();
+
+        form.save();
+
+        const list = new IngressRouteListPo(CLUSTER_ID);
+        list.waitForPage();
+        list.rowWithName(resourceName).checkVisible();
+        removeIngressRoute = true;
+
+        cy.getRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
+          expect(resp.body.metadata.annotations?.['kubernetes.io/ingress.class']).to.eq(ingressClassName);
+        });
       });
     });
   });

@@ -228,6 +228,23 @@ export default class IngressRouteTCPFormPo extends PagePo {
     return cy.get('.tls-configuration .labeled-select:visible');
   }
 
+  // ── IngressClass tab ──────────────────────────────────────────────────────────
+  // Tab name="ingress-class" → [data-testid="btn-ingress-class"]
+  // Same component as IngressRoute; selectors are identical.
+
+  ingressClassTab() {
+    return cy.getId('btn-ingress-class');
+  }
+
+  ingressClassSelect() {
+    return cy.contains('.ingress-class-tab .labeled-select label', 'Ingress Class')
+      .closest('.labeled-select');
+  }
+
+  ingressClassWarningBanner() {
+    return cy.getId('ingress-class-warning');
+  }
+
   // ── Save / Create ─────────────────────────────────────────────────────────────
 
   saveButton() {

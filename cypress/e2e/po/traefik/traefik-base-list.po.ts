@@ -48,4 +48,16 @@ export default class TraefikBaseListPo extends BaseListPagePo {
       createButton: () => cy.get('[data-testid="masthead-create"], [data-testid="masthead-create-yaml"]').first()
     };
   }
+
+  /**
+   * Returns the cell content of the "Ingress Class" column for the row whose
+   * name matches `name`. Used to assert the ingressClass value in the list view.
+   */
+  ingressClassColumnForRow(name: string) {
+    return this.list()
+      .resourceTable()
+      .sortableTable()
+      .rowElementWithName(name)
+      .find('[data-label="Ingress Class"]');
+  }
 }

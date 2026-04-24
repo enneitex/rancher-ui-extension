@@ -43,6 +43,26 @@ export default class TraefikBaseDetailPo extends PagePo {
     this.mastheadMenuItem('Delete');
   }
 
+  // ── Masthead detail items ─────────────────────────────────────────────────────
+
+  /**
+   * Returns the content span of the "Ingress Class" detail item rendered by
+   * Rancher's DetailTop component inside the masthead.
+   *
+   * The model's `details` getter pushes `{ label: 'Ingress Class', content }`,
+   * which DetailTop renders as:
+   *   <div class="detail">
+   *     <span class="label">Ingress Class:</span>
+   *     <span>the-class-value</span>
+   *   </div>
+   */
+  mastheadIngressClass(): Cypress.Chainable {
+    return cy.get('.detail-top .detail')
+      .filter(':has(.label:contains("Ingress Class"))')
+      .find('span')
+      .last();
+  }
+
   // ── Delete confirmation ───────────────────────────────────────────────────────
 
   confirmDelete() {

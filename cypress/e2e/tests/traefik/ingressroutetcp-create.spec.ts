@@ -1,5 +1,6 @@
 import IngressRouteTCPFormPo from '../../po/traefik/ingressroutetcp-form.po';
 import IngressRouteTCPListPo from '../../po/traefik/ingressroutetcp-list.po';
+import { makeIngressClass } from './blueprints/ingressclasses';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
@@ -148,9 +149,113 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.5 Full create flow ──────────────────────────────────────────────────────
+  // ── 2.5 IngressClass tab ─────────────────────────────────────────────────────
 
-  describe('2.5 Full create flow', () => {
+  describe('2.5 IngressClass tab', () => {
+    it('IngressClass tab is present', () => {
+      const form = new IngressRouteTCPFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+
+      form.ingressClassTab().should('be.visible');
+    });
+
+    it('IngressClass dropdown reflects the cluster state (enabled with classes, disabled without)', () => {
+      cy.getRancherResource('v1', 'networking.k8s.io.ingressclasses').then((resp) => {
+        const hasClasses = (resp.body?.data?.length ?? 0) > 0;
+
+        const form = new IngressRouteTCPFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+        form.ingressClassTab().click();
+
+        if (hasClasses) {
+          form.ingressClassSelect().should('be.visible');
+          form.ingressClassSelect().find('input').should('not.be.disabled');
+        } else {
+          form.ingressClassWarningBanner().should('be.visible');
+          form.ingressClassSelect().find('input').should('be.disabled');
+        }
+      });
+    });
+
+    describe('with a dedicated IngressClass resource', () => {
+      let ingressClassName: string;
+      let resourceName: string;
+      let removeIngressClass = false;
+      let removeIngressRouteTCP = false;
+
+      before(() => {
+        cy.login();
+        cy.createE2EResourceName('irtcp-ic').then((name) => {
+          ingressClassName = name;
+          cy.createRancherResource('v1', 'networking.k8s.io.ingressclasses', makeIngressClass(ingressClassName));
+          removeIngressClass = true;
+        });
+        cy.createE2EResourceName('irtcp-ic-create').then((name) => {
+          resourceName = name;
+        });
+      });
+
+      after('clean up', () => {
+        if (removeIngressRouteTCP) {
+          cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+        }
+        if (removeIngressClass) {
+          cy.deleteRancherResource('v1', 'networking.k8s.io.ingressclasses', ingressClassName, false);
+        }
+      });
+
+      it('the created IngressClass appears in the dropdown options', () => {
+        const form = new IngressRouteTCPFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+        form.ingressClassTab().click();
+
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+        cy.get('.vs__dropdown-menu').should('be.visible').contains('li', ingressClassName).should('be.visible');
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+      });
+
+      it('selecting an IngressClass and saving persists the annotation in the API', () => {
+        const form = new IngressRouteTCPFormPo(CLUSTER_ID);
+
+        form.goTo();
+        form.waitForPage();
+
+        form.setName(resourceName);
+
+        form.entryPointsTab().click();
+        form.addEntryPoint('tcpep');
+
+        form.routesTab().click();
+        form.setServiceName('kubernetes');
+        form.setServicePort('443');
+
+        form.ingressClassTab().click();
+        form.ingressClassSelect().find('.vs__dropdown-toggle').click();
+        cy.get('.vs__dropdown-menu').should('be.visible').contains('li', ingressClassName).click();
+
+        form.save();
+
+        const list = new IngressRouteTCPListPo(CLUSTER_ID);
+        list.waitForPage();
+        list.rowWithName(resourceName).checkVisible();
+        removeIngressRouteTCP = true;
+
+        cy.getRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`).then((resp) => {
+          expect(resp.body.metadata.annotations?.['kubernetes.io/ingress.class']).to.eq(ingressClassName);
+        });
+      });
+    });
+  });
+
+  // ── 2.6 Full create flow ──────────────────────────────────────────────────────
+
+  describe('2.6 Full create flow', () => {
     let resourceName: string;
     let removeIngressRouteTCP = false;
 
@@ -197,9 +302,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.6 Validation ───────────────────────────────────────────────────────────
+  // ── 2.7 Validation ───────────────────────────────────────────────────────────
 
-  describe('2.6 Validation', () => {
+  describe('2.7 Validation', () => {
     it('save button is disabled when no entry point is set and match rule is default', () => {
       const form = new IngressRouteTCPFormPo(CLUSTER_ID);
 

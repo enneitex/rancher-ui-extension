@@ -174,3 +174,92 @@ describe('IngressRouteTCP — detail view', { testIsolation: 'off', tags: ['@tra
     });
   });
 });
+
+// ── Ingress Class display (masthead + list column) ────────────────────────────
+
+describe('IngressRouteTCP — ingressClass display', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
+
+  describe('via spec.ingressClassName (Traefik v3+)', () => {
+    let resourceName: string;
+    let removeResource = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('irtcp-icn').then((name) => {
+        resourceName = name;
+        cy.createRancherResource(
+          'v1',
+          'traefik.io.ingressroutetcps',
+          makeIngressRouteTCP(name, { ingressClassName: 'traefik-v3' })
+        );
+        removeResource = true;
+      });
+    });
+
+    beforeEach(() => cy.login());
+
+    after('clean up', () => {
+      if (removeResource) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('shows ingressClassName in the masthead detail row', () => {
+      const detail = new IngressRouteTCPDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
+
+      detail.goTo();
+      detail.waitForPage();
+      detail.mastheadIngressClass().should('contain', 'traefik-v3');
+    });
+
+    it('shows ingressClassName in the list view Ingress Class column', () => {
+      const list = new IngressRouteTCPListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+      list.ingressClassColumnForRow(resourceName).should('contain', 'traefik-v3');
+    });
+  });
+
+  describe('via legacy annotation (kubernetes.io/ingress.class)', () => {
+    let resourceName: string;
+    let removeResource = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('irtcp-ica').then((name) => {
+        resourceName = name;
+        cy.createRancherResource(
+          'v1',
+          'traefik.io.ingressroutetcps',
+          makeIngressRouteTCP(name, { ingressClassAnnotation: 'traefik-legacy' })
+        );
+        removeResource = true;
+      });
+    });
+
+    beforeEach(() => cy.login());
+
+    after('clean up', () => {
+      if (removeResource) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('shows annotation-based ingress class in the masthead detail row', () => {
+      const detail = new IngressRouteTCPDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
+
+      detail.goTo();
+      detail.waitForPage();
+      detail.mastheadIngressClass().should('contain', 'traefik-legacy');
+    });
+
+    it('shows annotation-based ingress class in the list view Ingress Class column', () => {
+      const list = new IngressRouteTCPListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+      list.ingressClassColumnForRow(resourceName).should('contain', 'traefik-legacy');
+    });
+  });
+});
