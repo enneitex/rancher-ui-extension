@@ -118,21 +118,11 @@ export default class IngressRouteTCPFormPo extends PagePo {
   }
 
   setServiceName(name: string) {
-    cy.get('.routes-section .container-group:visible')
-      .contains('.labeled-select label', 'Target Service')
-      .closest('.labeled-select')
-      .find('.vs__search')
-      .type(name)
-      .type('{enter}');
+    this.setServiceNameByIndex(0, name);
   }
 
   setServicePort(port: string) {
-    cy.get('.routes-section .container-group:visible')
-      .contains('.labeled-select label', 'Port')
-      .closest('.labeled-select')
-      .find('.vs__search')
-      .type(port)
-      .type('{enter}');
+    this.setServicePortByIndex(0, port);
   }
 
   // ── Remove route ─────────────────────────────────────────────────────────────
@@ -148,6 +138,41 @@ export default class IngressRouteTCPFormPo extends PagePo {
   addServiceButton() {
     return cy.get('.routes-section .container-group:visible .services-section')
       .contains('button', 'Add Target Service');
+  }
+
+  /**
+   * Set the "Target Service" field for the service row at the given zero-based index.
+   * Useful when multiple services are added to the same route.
+   */
+  setServiceNameByIndex(index: number, name: string) {
+    this.serviceRows().eq(index)
+      .contains('.labeled-select label', 'Target Service')
+      .closest('.labeled-select')
+      .find('.vs__search')
+      .type(name)
+      .type('{enter}');
+  }
+
+  /**
+   * Set the "Port" field for the service row at the given zero-based index.
+   */
+  setServicePortByIndex(index: number, port: string) {
+    this.serviceRows().eq(index)
+      .contains('.labeled-select label', 'Port')
+      .closest('.labeled-select')
+      .find('.vs__search')
+      .type(port)
+      .type('{enter}');
+  }
+
+  /**
+   * Returns the "Target Service" LabeledSelect element for the service row at the given
+   * zero-based index so callers can assert its status class (e.g. `warning`).
+   */
+  serviceNameSelectByIndex(index: number) {
+    return this.serviceRows().eq(index)
+      .contains('.labeled-select label', 'Target Service')
+      .closest('.labeled-select');
   }
 
   servicePortField() {

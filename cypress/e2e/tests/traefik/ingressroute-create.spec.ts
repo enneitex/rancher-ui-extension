@@ -507,6 +507,54 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
     });
   });
 
+  // ── 2.10 Validation ───────────────────────────────────────────────────────────
+
+  describe('2.10 Validation', () => {
+    it('save button is disabled when the match rule is empty (initial state)', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+
+      // On initial load the match field is empty → routesValid is false → save disabled.
+      form.saveButton().should('be.disabled');
+    });
+
+    it('removing all entry points disables save and shows error banner', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.entryPointsTab().click();
+      form.clearEntryPoints();
+
+      form.entryPointsRequiredBanner().should('be.visible');
+      form.saveButton().should('be.disabled');
+    });
+
+    it('save button is enabled only after name, entry point, match rule and service are filled', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+
+      cy.createE2EResourceName('ir-validation').then((name) => {
+        form.setName(name);
+      });
+
+      form.entryPointsTab().click();
+      form.clearEntryPoints();
+      form.addEntryPoint('web');
+
+      form.routesTab().click();
+      form.matchInput().type('Host(`validation.example.com`)');
+      form.setServiceName('kubernetes');
+      form.setServicePort('443');
+
+      form.saveButton().should('not.be.disabled');
+    });
+  });
+
   // ── 2.11 Multi-route create ───────────────────────────────────────────────────
 
   describe('2.11 Multi-route create', () => {
@@ -558,51 +606,72 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
     });
   });
 
-  // ── 2.10 Validation ───────────────────────────────────────────────────────────
+  // ── 2.12 Multi-service create — unknown second service ───────────────────────
 
-  describe('2.10 Validation', () => {
-    it('save button is disabled when the match rule is empty (initial state)', () => {
-      const form = new IngressRouteFormPo(CLUSTER_ID);
+  describe('2.12 Multi-service create — first service existing, second service unknown', () => {
+    const HOST = 'multi-svc.example.com';
+    let resourceName: string;
+    let removeIngressRoute = false;
 
-      form.goTo();
-      form.waitForPage();
-
-      // On initial load the match field is empty → routesValid is false → save disabled.
-      form.saveButton().should('be.disabled');
-    });
-
-    it('removing all entry points disables save and shows error banner', () => {
-      const form = new IngressRouteFormPo(CLUSTER_ID);
-
-      form.goTo();
-      form.waitForPage();
-      form.entryPointsTab().click();
-      form.clearEntryPoints();
-
-      form.entryPointsRequiredBanner().should('be.visible');
-      form.saveButton().should('be.disabled');
-    });
-
-    it('save button is enabled only after name, entry point, match rule and service are filled', () => {
-      const form = new IngressRouteFormPo(CLUSTER_ID);
-
-      form.goTo();
-      form.waitForPage();
-
-      cy.createE2EResourceName('ir-validation').then((name) => {
-        form.setName(name);
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('ir-multi-svc').then((name) => {
+        resourceName = name;
       });
+    });
+
+    after('clean up', () => {
+      if (removeIngressRoute) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('second service row shows warning when the service does not exist in the namespace, then resource is saved', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.setName(resourceName);
 
       form.entryPointsTab().click();
       form.clearEntryPoints();
-      form.addEntryPoint('web');
+      form.addEntryPoint('websecure');
 
       form.routesTab().click();
-      form.matchInput().type('Host(`validation.example.com`)');
-      form.setServiceName('kubernetes');
-      form.setServicePort('443');
+      form.matchInput().type(`Host(\`${ HOST }\`)`);
 
-      form.saveButton().should('not.be.disabled');
+      // First service — existing: pick "kubernetes" from the dropdown and port 443 (https)
+      form.setServiceNameByIndex(0, 'kubernetes');
+      form.setServicePortByIndex(0, '443');
+
+      // Add a second service
+      form.addServiceButton().click();
+      form.serviceRows().should('have.length', 2);
+
+      // Second service — non-existent: typed manually, does not exist in the namespace
+      form.setServiceNameByIndex(1, 'nonexistent-svc');
+      form.setServicePortByIndex(1, '9999');
+
+      // The second "Target Service" select must carry the warning status (yellow highlight)
+      form.serviceNameSelectByIndex(1).should('have.class', 'warning');
+
+      form.save();
+
+      const list = new IngressRouteListPo(CLUSTER_ID);
+
+      list.waitForPage();
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRoute = true;
+    });
+
+    it('Routes column shows the host and both target services', () => {
+      const list = new IngressRouteListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+      list.routesColumnForRow(resourceName).should('contain', `Host(\`${ HOST }\`)`);
+      list.routesColumnForRow(resourceName).should('contain', 'kubernetes');
+      list.routesColumnForRow(resourceName).should('contain', 'nonexistent-svc');
     });
   });
 

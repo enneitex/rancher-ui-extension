@@ -319,4 +319,73 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
       form.saveButton().should('be.disabled');
     });
   });
+
+  // ── 2.8 Multi-service create — unknown second service ────────────────────────
+
+  describe('2.8 Multi-service create — first service existing, second service unknown', () => {
+    const MATCH = 'HostSNI(`*`)';
+    let resourceName: string;
+    let removeIngressRouteTCP = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('irtcp-multi-svc').then((name) => {
+        resourceName = name;
+      });
+    });
+
+    after('clean up', () => {
+      if (removeIngressRouteTCP) {
+        cy.deleteRancherResource('v1', 'traefik.io.ingressroutetcps', `${ NAMESPACE }/${ resourceName }`, false);
+      }
+    });
+
+    it('second service row shows warning when the service does not exist in the namespace, then resource is saved', () => {
+      const form = new IngressRouteTCPFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.setName(resourceName);
+
+      form.entryPointsTab().click();
+      form.addEntryPoint('tcpep');
+
+      form.routesTab().click();
+      // Default match HostSNI(`*`) is acceptable
+
+      // First service — existing: pick "kubernetes" from the dropdown and port 443 (https)
+      form.setServiceNameByIndex(0, 'kubernetes');
+      form.setServicePortByIndex(0, '443');
+
+      // Add a second service
+      form.addServiceButton().click();
+      form.serviceRows().should('have.length', 2);
+
+      // Second service — non-existent: typed manually, does not exist in the namespace
+      form.setServiceNameByIndex(1, 'nonexistent-svc');
+      form.setServicePortByIndex(1, '9999');
+
+      // The second "Target Service" select must carry the warning status (yellow highlight)
+      form.serviceNameSelectByIndex(1).should('have.class', 'warning');
+
+      form.save();
+
+      const list = new IngressRouteTCPListPo(CLUSTER_ID);
+
+      list.waitForPage();
+      list.rowWithName(resourceName).checkVisible();
+      removeIngressRouteTCP = true;
+    });
+
+    it('Routes column shows the match rule and both target services', () => {
+      const list = new IngressRouteTCPListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+      list.routesColumnForRow(resourceName).should('contain', MATCH);
+      list.routesColumnForRow(resourceName).should('contain', 'kubernetes');
+      list.routesColumnForRow(resourceName).should('contain', 'nonexistent-svc');
+    });
+  });
+
 });
