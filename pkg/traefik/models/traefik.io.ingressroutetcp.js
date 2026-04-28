@@ -23,7 +23,10 @@ export default class IngressRouteTCP extends SteveModel {
   }
 
   get ingressClass() {
-    return this.metadata?.annotations?.['kubernetes.io/ingress.class'] || '';
+    // Prefer spec.ingressClassName (Traefik v3.7+); fall back to the legacy annotation.
+    return this.spec?.ingressClassName
+      || this.metadata?.annotations?.['kubernetes.io/ingress.class']
+      || '';
   }
 
   get details() {

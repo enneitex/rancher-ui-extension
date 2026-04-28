@@ -1,5 +1,8 @@
 node_modules
 dist-pkg
+cypress/screenshots
+cypress/videos
+cypress/downloads
 tmp
 .DS_Store
 .nuxt

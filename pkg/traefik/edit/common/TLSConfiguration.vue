@@ -312,7 +312,7 @@ export default {
 
       <!-- TLS Secret and Options -->
       <div class="row mb-20">
-        <div class="col span-6">
+        <div class="col span-6" data-testid="tls-secret-field">
           <LabeledSelect
             :value="tlsSecretValue"
             :mode="mode"
@@ -324,7 +324,7 @@ export default {
             @update:value="updateSecretName"
           />
         </div>
-        <div class="col span-6">
+        <div class="col span-6" data-testid="tls-options-field">
           <LabeledSelect
             :value="tlsOptionsValue"
             :mode="mode"
@@ -340,7 +340,7 @@ export default {
 
       <!-- Certificate Resolver and Store -->
       <div class="row mb-20">
-        <div class="col span-6">
+        <div class="col span-6" data-testid="tls-cert-resolver-field">
           <LabeledInput
             :value="tlsCertResolverValue"
             :mode="mode"
@@ -350,7 +350,7 @@ export default {
             @update:value="updateCertResolver"
           />
         </div>
-        <div class="col span-6">
+        <div class="col span-6" data-testid="tls-store-field">
           <LabeledSelect
             :value="tlsStoreValue"
             :mode="mode"
@@ -365,7 +365,7 @@ export default {
       </div>
 
       <!-- Domains Section -->
-      <div class="domains-section">
+      <div class="domains-section" data-testid="tls-domains-section">
         <h5>{{ t('traefik.ingressRoute.tls.domains.label') }}</h5>
         <TLSDomains
           :value="value"

@@ -153,7 +153,7 @@ export default {
 </script>
 
 <template>
-  <div class="row mb-10">
+  <div class="row mb-10 service-row" data-testid="service-row">
     <div :class="isTraefikService ? 'col span-12' : 'col span-6'">
       <LabeledSelect
         v-model:value="serviceName"

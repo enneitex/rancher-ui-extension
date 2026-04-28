@@ -9,6 +9,7 @@
     "@rancher/shell": "3.0.11"
   },
   "devDependencies": {
+    "@rancher/cypress": "1.0.5",
     "@types/jest": "^27.5.2",
     "@types/lodash": "4.17.5"
   },
@@ -24,6 +25,8 @@
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
     "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
     "postinstall": "[ -d node_modules/@vue/babel-plugin-resolve-type/node_modules/@vue/compiler-core/node_modules ] && ln -sfn $(pwd)/node_modules/@vue/compiler-core/node_modules/entities node_modules/@vue/babel-plugin-resolve-type/node_modules/@vue/compiler-core/node_modules/entities || true",
-    "test:ci": "node_modules/.bin/jest --testPathPattern=pkg/"
+    "test:ci": "node_modules/.bin/jest --testPathPattern=pkg/",
+    "cy:open": "cypress open --config-file cypress.config.ts",
+    "cy:run": "cypress run --config-file cypress.config.ts --browser chrome"
   }
 }

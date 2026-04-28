@@ -130,13 +130,14 @@ export default {
 </script>
 
 <template>
-  <div class="route-card">
-    <div class="route-header">
+  <div class="route-card" :data-testid="`route-card-${ index }`">
+    <div class="route-header" :data-testid="`route-header-${ index }`">
       <h4>{{ routeTitle }}</h4>
       <button
         v-if="canRemove"
         type="button"
         class="btn role-link"
+        :data-testid="`route-remove-${ index }`"
         @click="remove"
       >
         {{ t('generic.remove') }}
@@ -171,7 +172,7 @@ export default {
 
 
     <!-- Services Section -->
-    <div class="services-section">
+    <div class="services-section" :data-testid="`route-services-${ index }`">
       <h5>{{ t('traefik.ingressRoute.routes.service.label') }}</h5>
 
       <ArrayListGrouped
@@ -194,7 +195,7 @@ export default {
     </div>
 
     <!-- Middlewares Section -->
-    <div class="middleware-section">
+    <div class="middleware-section" :data-testid="`route-middlewares-${ index }`">
       <h5>{{ isTcp ? t('traefik.ingressRouteTCP.middleware.label') : t('traefik.ingressRoute.middleware.label') }}</h5>
 
       <Banner

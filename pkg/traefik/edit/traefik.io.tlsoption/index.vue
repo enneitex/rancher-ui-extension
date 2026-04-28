@@ -365,7 +365,7 @@ export default {
 
           <div class="row mt-20">
             <div class="col span-12">
-              <Card class="cipher-suites-card" :show-actions="false">
+              <Card class="cipher-suites-card" :show-actions="false" data-testid="cipher-suites-card">
                 <template #title>
                   <h4 class="card-title">
                     <i class="icon icon-shield" />
@@ -417,7 +417,7 @@ export default {
 
           <div class="row mt-20">
             <div class="col span-12">
-              <Card class="client-auth-card" :show-actions="false">
+              <Card class="client-auth-card" :show-actions="false" data-testid="client-auth-card">
                 <template #title>
                   <h4 class="card-title">
                     <i class="icon icon-user" />
@@ -486,7 +486,7 @@ export default {
 
           <div class="row mt-20">
             <div class="col span-12">
-              <Card class="advanced-options-card" :show-actions="false">
+              <Card class="advanced-options-card" :show-actions="false" data-testid="advanced-options-card">
                 <template #title>
                   <h4 class="card-title">
                     <i class="icon icon-settings" />
@@ -495,7 +495,7 @@ export default {
                 </template>
                 <template #body>
                   <!-- ALPN Protocols -->
-                  <div class="mb-20">
+                  <div class="mb-20" data-testid="alpn-protocols-section">
                     <h5>{{ t('traefik.tlsOption.alpnProtocols.label') }}</h5>
                     <ArrayList
                       v-model:value="value.spec.alpnProtocols"
@@ -511,7 +511,7 @@ export default {
                   </div>
 
                   <!-- Curve Preferences -->
-                  <div class="mb-20">
+                  <div class="mb-20" data-testid="curve-preferences-section">
                     <h5>{{ t('traefik.tlsOption.curvePreferences.label') }}</h5>
                     <ArrayList
                       v-model:value="value.spec.curvePreferences"

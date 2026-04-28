@@ -58,11 +58,14 @@ function configureIngressRoute(plugin, store) {
         search: false,
       },
       {
-        name:   'ingressClass',
+        name:     'ingressClass',
         labelKey: 'traefik.ingressRoute.ingressClass.label',
-        value:  'metadata.annotations[kubernetes.io/ingress.class]',
-        sort:   false,
-        search: false,
+        // spec.ingressClassName is preferred (Traefik v3.7+); the annotation is not
+        // directly addressable as a second path in server-side mode, but the
+        // non-paginated list uses the model getter which handles the fallback.
+        value:    'spec.ingressClassName',
+        sort:     false,
+        search:   false,
       },
       {
         name:   'entryPoints',
@@ -131,11 +134,11 @@ function configureIngressRouteTCP(plugin, store) {
         search: false,
       },
       {
-        name:   'ingressClass',
+        name:     'ingressClass',
         labelKey: 'traefik.ingressRoute.ingressClass.label',
-        value:  'metadata.annotations[kubernetes.io/ingress.class]',
-        sort:   false,
-        search: false,
+        value:    'spec.ingressClassName',
+        sort:     false,
+        search:   false,
       },
       {
         name:   'entryPoints',

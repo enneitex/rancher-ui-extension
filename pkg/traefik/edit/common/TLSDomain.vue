@@ -63,7 +63,7 @@ export default {
 </script>
 
 <template>
-  <div class="domain-row row mb-10">
+  <div class="domain-row row mb-10" :data-testid="`tls-domain-row-${ index }`">
     <div class="col span-5">
       <LabeledInput
         v-model:value="value.main"
@@ -88,6 +88,7 @@ export default {
       <button
         type="button"
         class="btn role-link remove-btn"
+        :data-testid="`tls-domain-remove-${ index }`"
         @click="remove"
       >
         {{ t('generic.remove') }}

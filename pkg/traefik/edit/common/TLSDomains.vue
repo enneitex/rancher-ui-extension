@@ -104,7 +104,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div data-testid="tls-domains-list">
     <ArrayListGrouped
       v-model:value="value.spec.tls.domains"
       :add-label="t('traefik.ingressRoute.tls.domains.addDomain')"
