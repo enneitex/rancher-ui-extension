@@ -100,6 +100,16 @@ export default class TLSOptionFormPo extends PagePo {
     return cy.getId('cipher-suites-card').find('.box input');
   }
 
+  /**
+   * Returns the Remove button for the cipher suite row at the given zero-based index.
+   * Rendered by ArrayList — only present when at least one row exists.
+   */
+  removeCipherSuiteButton(index = 0) {
+    return cy.get('.cipher-suites-card .box').eq(index)
+      .closest('[data-testid="remove-item"], .box')
+      .find('[data-testid="remove-item"]');
+  }
+
   preferServerCipherSuitesCheckbox() {
     return cy.contains('.cipher-suites-card .checkbox-outer-container', 'Prefer Server Cipher Suites');
   }

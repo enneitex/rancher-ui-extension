@@ -203,6 +203,17 @@ export default class IngressRouteFormPo extends PagePo {
     return cy.contains('.routes-section .container-group:visible .banner', 'No middleware available in this namespace');
   }
 
+  /**
+   * Returns the Remove button for the service row at the given zero-based index.
+   * The button is rendered by ArrayListGrouped and is only present when more than
+   * one service exists in the route.
+   */
+  removeServiceButtonByIndex(index: number) {
+    return this.serviceRows().eq(index)
+      .closest('.array-list-grouped-row')
+      .find('[data-testid="remove-item"]');
+  }
+
   /** Click "Add Middleware" button inside the active route (only visible when middlewares exist). */
   addMiddlewareButton() {
     return cy.get('.routes-section .container-group:visible .middleware-section')

@@ -86,6 +86,23 @@ describe('TLSOption — create form', { testIsolation: 'off', tags: ['@traefik',
       form.cipherSuiteInputs().should('have.length.gte', 2);
     });
 
+    it('can remove a cipher suite row', () => {
+      // ArrayList renders a Remove button per row — extension-owned ArrayListGrouped behaviour.
+      const form = new TLSOptionFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.cipherSuitesTab().click();
+      form.addCipherSuiteButton().click();
+      form.addCipherSuiteButton().click();
+
+      form.cipherSuiteInputs().should('have.length', 2);
+
+      form.removeCipherSuiteButton(0).click();
+
+      form.cipherSuiteInputs().should('have.length', 1);
+    });
+
     it('preferServerCipherSuites checkbox is present and toggleable', () => {
       const form = new TLSOptionFormPo(CLUSTER_ID);
 

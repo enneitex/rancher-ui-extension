@@ -1,6 +1,7 @@
 import IngressRouteDetailPo from '../../po/traefik/ingressroute-detail.po';
 import IngressRouteListPo from '../../po/traefik/ingressroute-list.po';
 import { makeIngressRoute } from './blueprints/ingressroutes';
+import { makeMiddlewareStripPrefix } from './blueprints/middlewares';
 
 const CLUSTER_ID = 'local';
 const NAMESPACE  = 'default';
@@ -64,6 +65,59 @@ describe('IngressRoute — detail view', { testIsolation: 'off', tags: ['@traefi
     detail.waitForPage();
     detail.tlsTab().click();
     detail.tlsNotConfiguredText().should('be.visible');
+  });
+
+});
+
+// ── Routes tab: middleware names (detail view) ────────────────────────────────
+
+describe('IngressRoute — detail view: middleware names in Routes tab', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
+  let middlewareName: string;
+  let resourceName: string;
+  let removeMiddleware = false;
+  let removeIngressRoute = false;
+
+  before(() => {
+    cy.login();
+    cy.createE2EResourceName('ir-det-mw').then((mwName) => {
+      middlewareName = mwName;
+      cy.createRancherResource('v1', 'traefik.io.middlewares', makeMiddlewareStripPrefix(middlewareName));
+      removeMiddleware = true;
+
+      cy.createE2EResourceName('ir-det-mw-ir').then((name) => {
+        resourceName = name;
+        cy.createRancherResource('v1', 'traefik.io.ingressroutes',
+          makeIngressRoute(name, {
+            match:       'Host(`middleware-detail.example.com`)',
+            middlewares: [{ name: middlewareName, namespace: NAMESPACE }],
+          })
+        );
+        removeIngressRoute = true;
+      });
+    });
+  });
+
+  beforeEach(() => {
+    cy.login();
+  });
+
+  after('clean up', () => {
+    if (removeIngressRoute) {
+      cy.deleteRancherResource('v1', 'traefik.io.ingressroutes', `${ NAMESPACE }/${ resourceName }`, false);
+    }
+    if (removeMiddleware) {
+      cy.deleteRancherResource('v1', 'traefik.io.middlewares', `${ NAMESPACE }/${ middlewareName }`, false);
+    }
+  });
+
+  it('Routes tab shows the middleware name in the Middlewares column', () => {
+    // RoutesTable renders a "Middlewares" column via MiddlewaresList — extension-owned behaviour.
+    const detail = new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
+
+    detail.goTo();
+    detail.waitForPage();
+    detail.routesTab().click();
+    detail.routesTable().should('contain', middlewareName);
   });
 
 });

@@ -64,6 +64,27 @@ describe('Middleware — detail view', { testIsolation: 'off', tags: ['@traefik'
       detail.middlewareCardYaml('stripPrefix').should('exist');
     });
 
+    it('card title shows the human-readable middleware type label', () => {
+      // getDisplayName() in the detail component maps the raw type key to an i18n label.
+      // For "stripPrefix" the label rendered is "Strip Prefix" (or the i18n equivalent).
+      // We verify the title is NOT the raw camelCase key — i.e. the mapping fires.
+      const detail = new MiddlewareDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
+
+      detail.goTo();
+      detail.waitForPage();
+      detail.configurationTab().click();
+
+      // The card title must be present and must not be the bare key "stripPrefix"
+      detail.middlewareCardByType('stripPrefix')
+        .find('.card-title')
+        .should('be.visible')
+        .invoke('text')
+        .then((title) => {
+          expect(title.trim()).to.not.eq('stripPrefix');
+          expect(title.trim().length).to.be.greaterThan(0);
+        });
+    });
+
     it('Edit action in the masthead menu opens the edit form', () => {
       const detail = new MiddlewareDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
 

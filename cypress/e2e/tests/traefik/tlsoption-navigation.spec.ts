@@ -77,6 +77,47 @@ describe('TLSOption — navigation', { testIsolation: 'off', tags: ['@traefik', 
     list.findRowByName(resourceName).should('contain', 'VersionTLS13');
   });
 
+  describe('CipherSuites column — CompactList badge', () => {
+    // CompactList renders the first item + "+N more" badge when multiple suites are set.
+    // This is extension-owned rendering logic (CompactList.vue).
+    let cipherResourceName: string;
+    let removeCipherResource = false;
+
+    before(() => {
+      cy.login();
+      cy.createE2EResourceName('tls-nav-cipher').then((name) => {
+        cipherResourceName = name;
+        cy.createRancherResource('v1', 'traefik.io.tlsoptions', makeTLSOption(name, {
+          cipherSuites: [
+            'TLS_AES_128_GCM_SHA256',
+            'TLS_AES_256_GCM_SHA384',
+            'TLS_CHACHA20_POLY1305_SHA256',
+          ],
+        }));
+        removeCipherResource = true;
+      });
+    });
+
+    after('clean up', () => {
+      if (removeCipherResource) {
+        cy.deleteRancherResource('v1', 'traefik.io.tlsoptions', `${ NAMESPACE }/${ cipherResourceName }`, false);
+      }
+    });
+
+    it('CipherSuites column shows first suite and a "+N more" badge when multiple suites configured', () => {
+      const list = new TLSOptionListPo(CLUSTER_ID);
+
+      list.goTo();
+      list.waitForPage();
+
+      // First item rendered by CompactList
+      list.findRowByName(cipherResourceName).should('contain', 'TLS_AES_128_GCM_SHA256');
+
+      // "+2 more" badge for the remaining 2 suites
+      list.findRowByName(cipherResourceName).find('.plus-more').should('be.visible');
+    });
+  });
+
   it('row action menu contains Edit Config, Clone, Download YAML and Delete', () => {
     const list = new TLSOptionListPo(CLUSTER_ID);
 

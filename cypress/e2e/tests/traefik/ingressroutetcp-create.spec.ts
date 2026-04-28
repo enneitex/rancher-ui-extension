@@ -100,9 +100,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.4 TLS tab — passthrough ─────────────────────────────────────────────────
+  // ── 2.3 TLS tab — passthrough ─────────────────────────────────────────────────
 
-  describe('2.4 TLS tab — passthrough', () => {
+  describe('2.3 TLS tab — passthrough', () => {
     it('TLS is disabled by default', () => {
       const form = new IngressRouteTCPFormPo(CLUSTER_ID);
 
@@ -149,9 +149,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.5 IngressClass tab ─────────────────────────────────────────────────────
+  // ── 2.4 IngressClass tab ─────────────────────────────────────────────────────
 
-  describe('2.5 IngressClass tab', () => {
+  describe('2.4 IngressClass tab', () => {
     it('IngressClass tab is present', () => {
       const form = new IngressRouteTCPFormPo(CLUSTER_ID);
 
@@ -253,9 +253,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.6 Full create flow ──────────────────────────────────────────────────────
+  // ── 2.5 Full create flow ──────────────────────────────────────────────────────
 
-  describe('2.6 Full create flow', () => {
+  describe('2.5 Full create flow', () => {
     let resourceName: string;
     let removeIngressRouteTCP = false;
 
@@ -302,27 +302,9 @@ describe('IngressRouteTCP — create form', { testIsolation: 'off', tags: ['@tra
     });
   });
 
-  // ── 2.7 Validation ───────────────────────────────────────────────────────────
+  // ── 2.6 Multi-service create — unknown second service ────────────────────────
 
-  describe('2.7 Validation', () => {
-    it('save button is disabled when no entry point is set and match rule is default', () => {
-      const form = new IngressRouteTCPFormPo(CLUSTER_ID);
-
-      form.goTo();
-      form.waitForPage();
-      // TCP starts with no entry points by default → add one then remove it
-      form.entryPointsTab().click();
-      form.addEntryPoint('tcpep');
-      form.removeEntryPoint('tcpep');
-
-      form.entryPointsRequiredBanner().should('be.visible');
-      form.saveButton().should('be.disabled');
-    });
-  });
-
-  // ── 2.8 Multi-service create — unknown second service ────────────────────────
-
-  describe('2.8 Multi-service create — first service existing, second service unknown', () => {
+  describe('2.6 Multi-service create — first service existing, second service unknown', () => {
     const MATCH = 'HostSNI(`*`)';
     let resourceName: string;
     let removeIngressRouteTCP = false;

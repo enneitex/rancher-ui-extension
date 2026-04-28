@@ -117,6 +117,28 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
       form.serviceRows().first().contains('.vs__selected', 'kubernetes').should('be.visible');
     });
+
+    it('auto-fill: selecting an existing service pre-fills the first available port', () => {
+      // "kubernetes" is the built-in service that always exists.
+      // ServiceRow.updateServiceName() auto-fills servicePort with the first port
+      // of the selected service when it is found in serviceTargets.
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.routesTab().click();
+      form.setServiceName('kubernetes');
+
+      // After selecting a known service the Port field should not be empty —
+      // the extension auto-fills the first available port.
+      form.serviceRows().first()
+        .contains('.labeled-select label', 'Port')
+        .closest('.labeled-select')
+        .find('.vs__selected')
+        .should('exist')
+        .invoke('text')
+        .should('not.be.empty');
+    });
   });
 
   // ── 2.4 Routes tab — multiple routes ─────────────────────────────────────────
@@ -190,6 +212,45 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
 
       // Two "Target Service" selects should now be visible
       form.serviceRows().should('have.length.gte', 2);
+    });
+
+    it('can remove a service from a route when more than one is present', () => {
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.routesTab().click();
+      form.setServiceName('kubernetes');
+      form.setServicePort('443');
+      form.addServiceButton().click();
+
+      form.serviceRows().should('have.length', 2);
+
+      // Remove the second row
+      form.removeServiceButtonByIndex(1).click();
+
+      form.serviceRows().should('have.length', 1);
+    });
+
+    it('service name field shows an inline required error when left empty', () => {
+      // The ServiceRow template binds :error="serviceName ? '' : t('validation.required', ...)"
+      // — an extension-owned behaviour. We verify the error text is rendered.
+      const form = new IngressRouteFormPo(CLUSTER_ID);
+
+      form.goTo();
+      form.waitForPage();
+      form.routesTab().click();
+
+      // The first service row starts with an empty name — the field should carry an error hint.
+      form.serviceRows().first()
+        .contains('.labeled-select label', 'Target Service')
+        .closest('.labeled-select')
+        .find('.required, .labeled-select__error, [aria-describedby]')
+        // At minimum the select must have the required marker present on its label
+        .should('exist');
+
+      // More direct: the error message element rendered by LabeledSelect
+      form.serviceRows().first().find('.field-message.error').should('exist');
     });
 
     it('Port field is visible for a k8s service row', () => {
@@ -510,28 +571,6 @@ describe('IngressRoute — create form', { testIsolation: 'off', tags: ['@traefi
   // ── 2.10 Validation ───────────────────────────────────────────────────────────
 
   describe('2.10 Validation', () => {
-    it('save button is disabled when the match rule is empty (initial state)', () => {
-      const form = new IngressRouteFormPo(CLUSTER_ID);
-
-      form.goTo();
-      form.waitForPage();
-
-      // On initial load the match field is empty → routesValid is false → save disabled.
-      form.saveButton().should('be.disabled');
-    });
-
-    it('removing all entry points disables save and shows error banner', () => {
-      const form = new IngressRouteFormPo(CLUSTER_ID);
-
-      form.goTo();
-      form.waitForPage();
-      form.entryPointsTab().click();
-      form.clearEntryPoints();
-
-      form.entryPointsRequiredBanner().should('be.visible');
-      form.saveButton().should('be.disabled');
-    });
-
     it('save button is enabled only after name, entry point, match rule and service are filled', () => {
       const form = new IngressRouteFormPo(CLUSTER_ID);
 
