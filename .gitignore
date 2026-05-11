@@ -13,7 +13,6 @@ tmp
 *.png
 doc/
 CLAUDE.md
-*.sh
 .claude
 pkg/traefik/examples/
 examples

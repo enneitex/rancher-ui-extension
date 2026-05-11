@@ -1,7 +1,7 @@
 {
   "name": "compliance",
   "description": "Compliance & Security Reports extension for Rancher Dashboard",
-  "version": "0.1.8",
+  "version": "0.1.7",
   "private": false,
   "rancher": {
     "annotations": {
