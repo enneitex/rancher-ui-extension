@@ -205,13 +205,12 @@ export default class IngressRouteFormPo extends PagePo {
 
   /**
    * Returns the Remove button for the service row at the given zero-based index.
-   * The button is rendered by ArrayListGrouped and is only present when more than
-   * one service exists in the route.
+   * ArrayListGrouped renders each row's remove button as [data-testid="remove-item-{i}"]
+   * inside the .services-section container.
    */
   removeServiceButtonByIndex(index: number) {
-    return this.serviceRows().eq(index)
-      .closest('.array-list-grouped-row')
-      .find('[data-testid="remove-item"]');
+    return cy.get('.routes-section .container-group:visible .services-section')
+      .find(`[data-testid="remove-item-${index}"]`);
   }
 
   /** Click "Add Middleware" button inside the active route (only visible when middlewares exist). */

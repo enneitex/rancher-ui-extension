@@ -290,6 +290,49 @@ describe('component: RoutesList formatter', () => {
     expect(serviceItems[0].text()).toContain('-');
   });
 
+  it('should render Traefik provider services (api@internal) as plain text, not a link', async () => {
+    const mockRow = {
+      spec: {
+        routes: [{
+          match:    'Host(`example.com`)',
+          services: [
+            { name: 'api@internal', namespace: 'default' },
+            { name: 'my-svc', namespace: 'default' }
+          ]
+        }]
+      },
+      _type:    'traefik.io.ingressroute',
+      metadata: { namespace: 'default' }
+    };
+
+    const wrapper = mount(RoutesList, {
+      props: { row: mockRow },
+      global: {
+        mocks: {
+          $store: createMockStore(),
+          $route: createMockRoute()
+        },
+        stubs: {
+          'router-link': {
+            template: '<a :href="to" v-bind="$attrs"><slot /></a>',
+            props:    ['to']
+          }
+        }
+      }
+    });
+
+    const serviceItems = wrapper.findAll('.service-item');
+    expect(serviceItems.length).toBe(2);
+
+    // api@internal must NOT be a clickable link
+    expect(serviceItems[0].find('.service-link').exists()).toBe(false);
+    expect(serviceItems[0].find('.service-name').exists()).toBe(true);
+    expect(serviceItems[0].text()).toContain('api@internal');
+
+    // regular service still gets a link
+    expect(serviceItems[1].find('.service-link').exists()).toBe(true);
+  });
+
   it('should handle empty or missing data gracefully', async () => {
     const wrapper = mount(RoutesList, {
       props: { row: {} },

@@ -140,6 +140,10 @@ describe('CRUIngressRouteTCP › routesValid', () => {
       { match: '' },
     ])).toBe(false);
   });
+
+  it('returns false when a route has match: null', () => {
+    expect(computeRoutesValid([{ match: null }])).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -186,20 +190,13 @@ describe('CRUIngressRouteTCP › validationPassed', () => {
     epValid:       true,
   };
 
-  it('returns true when all conditions are met', () => {
-    expect(validationPassed(allValid)).toBe(true);
-  });
-
-  it('returns false when fvFormIsValid is false (e.g. port missing)', () => {
-    expect(validationPassed({ ...allValid, fvFormIsValid: false })).toBe(false);
-  });
-
-  it('returns false when routesValid is false', () => {
-    expect(validationPassed({ ...allValid, routesValid: false })).toBe(false);
-  });
-
-  it('returns false when epValid is false (no entryPoints)', () => {
-    expect(validationPassed({ ...allValid, epValid: false })).toBe(false);
+  it.each([
+    { desc: 'returns true when all conditions are met',                          override: {},                     expected: true },
+    { desc: 'returns false when fvFormIsValid is false (e.g. port missing)',     override: { fvFormIsValid: false }, expected: false },
+    { desc: 'returns false when routesValid is false',                           override: { routesValid: false },  expected: false },
+    { desc: 'returns false when epValid is false (no entryPoints)',              override: { epValid: false },      expected: false },
+  ])('$desc', ({ override, expected }) => {
+    expect(validationPassed({ ...allValid, ...override })).toBe(expected);
   });
 });
 
@@ -213,14 +210,14 @@ describe('CRUIngressRouteTCP › middlewareTcpTargets', () => {
       { metadata: { name: 'tcp-mw-1', namespace: 'default' } },
       { metadata: { name: 'tcp-mw-2', namespace: 'kube-system' } },
     ];
-    expect(middlewareTcpTargets(middlewaretcps)).toEqual([
+    expect(middlewareTcpTargets(middlewaretcps)).toStrictEqual([
       { label: 'tcp-mw-1', value: 'tcp-mw-1', namespace: 'default' },
       { label: 'tcp-mw-2', value: 'tcp-mw-2', namespace: 'kube-system' },
     ]);
   });
 
   it('returns empty array when no MiddlewareTCP resources exist', () => {
-    expect(middlewareTcpTargets([])).toEqual([]);
+    expect(middlewareTcpTargets([])).toStrictEqual([]);
   });
 
   it('does NOT include HTTP middleware resources (they come from a different store key)', () => {
@@ -249,6 +246,30 @@ describe('CRUIngressRouteTCP › willSave', () => {
     expect(willSave(spec).routes[0]).not.toHaveProperty('vKey');
   });
 
+  it('coerces service.name from object to string using label', () => {
+    const spec = {
+      entryPoints: ['tcpep'],
+      routes: [{
+        match:      'HostSNI(`*`)',
+        services:   [{ name: { label: 'my-svc', value: 'my-svc' }, port: '8443' }],
+        middlewares: [],
+      }],
+    };
+    expect(willSave(spec).routes[0].services[0].name).toBe('my-svc');
+  });
+
+  it('coerces service.name: uses value when label is empty string', () => {
+    const spec = {
+      entryPoints: ['tcpep'],
+      routes: [{
+        match:      'HostSNI(`*`)',
+        services:   [{ name: { label: '', value: 'fallback' }, port: '8443' }],
+        middlewares: [],
+      }],
+    };
+    expect(willSave(spec).routes[0].services[0].name).toBe('fallback');
+  });
+
   it('coerces service.port from object to string', () => {
     const spec = {
       entryPoints: ['tcpep'],
@@ -266,7 +287,7 @@ describe('CRUIngressRouteTCP › willSave', () => {
       entryPoints: [{ label: 'tcpep', value: 'tcpep' }],
       routes: [{ match: 'HostSNI(`*`)', services: [], middlewares: [] }],
     };
-    expect(willSave(spec).entryPoints).toEqual(['tcpep']);
+    expect(willSave(spec).entryPoints).toStrictEqual(['tcpep']);
   });
 
   it('filters empty entryPoints strings', () => {
@@ -274,7 +295,7 @@ describe('CRUIngressRouteTCP › willSave', () => {
       entryPoints: ['tcpep', ''],
       routes: [{ match: 'HostSNI(`*`)', services: [], middlewares: [] }],
     };
-    expect(willSave(spec).entryPoints).toEqual(['tcpep']);
+    expect(willSave(spec).entryPoints).toStrictEqual(['tcpep']);
   });
 
   it('removes vKey from TLS domains', () => {

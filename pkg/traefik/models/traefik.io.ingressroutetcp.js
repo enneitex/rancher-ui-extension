@@ -88,7 +88,7 @@ export default class IngressRouteTCP extends SteveModel {
       this.spec.routes.forEach(route => {
         if (route.services && Array.isArray(route.services)) {
           route.services.forEach(service => {
-            if (service.name) {
+            if (service.name && !service.name.includes('@')) {
               // Handle cross-namespace services
               const serviceName = service.namespace
                 ? `${service.namespace}/${service.name}`
@@ -242,6 +242,11 @@ export default class IngressRouteTCP extends SteveModel {
   // Rancher-standard methods for linking (similar to IngressRoute)
   targetTo(workloads, serviceName, serviceKind = 'Service') {
     if (!serviceName) {
+      return null;
+    }
+
+    // Traefik provider services (name@provider, e.g. api@internal) are not K8s resources
+    if (serviceName.includes('@')) {
       return null;
     }
 

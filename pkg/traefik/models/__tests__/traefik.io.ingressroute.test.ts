@@ -96,6 +96,192 @@ describe('traefik.io.ingressroute model', () => {
     });
   });
 
+  describe('ingressClass — spec.ingressClassName priority', () => {
+    it('returns spec.ingressClassName when present (Traefik v3.7+)', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     { ingressClassName: 'traefik-v3' },
+      });
+
+      expect(route.ingressClass).toStrictEqual('traefik-v3');
+    });
+
+    it('spec.ingressClassName takes priority over annotation', () => {
+      const route = makeRoute({
+        metadata: {
+          name:        'r',
+          namespace:   'default',
+          annotations: { 'kubernetes.io/ingress.class': 'by-annotation' },
+        },
+        spec: { ingressClassName: 'by-spec' },
+      });
+
+      expect(route.ingressClass).toStrictEqual('by-spec');
+    });
+  });
+
+  describe('relationships getter (lazy)', () => {
+    it('returns [] when metadata is absent', () => {
+      const route = makeRoute({ spec: { routes: [] } });
+
+      expect(route.relationships).toStrictEqual([]);
+    });
+
+    it('regenerates when metadata.relationships is empty', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     { routes: [{ match: 'Host(`a.com`)', services: [{ name: 'svc' }] }] },
+      });
+      route.metadata.relationships = [];
+
+      expect(route.relationships).toHaveLength(1);
+      expect(route.relationships[0].toId).toStrictEqual('default/svc');
+    });
+
+    it('does not regenerate when relationships are already populated', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     { routes: [{ match: 'Host(`a.com`)', services: [{ name: 'svc' }] }] },
+      });
+      const first = route.relationships;
+
+      // Mutate the cached array — if the getter regenerated it would be overwritten
+      first[0].toId = 'SENTINEL';
+
+      expect(route.relationships[0].toId).toStrictEqual('SENTINEL');
+    });
+  });
+
+  describe('createRulesForListPage', () => {
+    it('returns empty array when spec.routes is empty', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     { routes: [] },
+      });
+
+      expect(route.createRulesForListPage([])).toStrictEqual([]);
+    });
+
+    it('flatMaps correctly across routes with multiple services', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     {
+          routes: [
+            { match: 'Host(`a.com`)', services: [{ name: 'svc-a', port: 80 }, { name: 'svc-b', port: 443 }] },
+            { match: 'Host(`b.com`)', services: [{ name: 'svc-c', port: 8080 }] },
+          ],
+        },
+      });
+
+      const result = route.createRulesForListPage([]);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].matchRule).toStrictEqual('Host(`a.com`)');
+      expect(result[2].matchRule).toStrictEqual('Host(`b.com`)');
+    });
+
+    it('contributes 0 elements for a route with no services', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     { routes: [{ match: 'Host(`a.com`)', services: [] }] },
+      });
+
+      expect(route.createRulesForListPage([])).toHaveLength(0);
+    });
+  });
+
+  describe('createServiceForListPage', () => {
+    const route = makeRoute({
+      metadata: { name: 'r', namespace: 'default' },
+      spec:     { routes: [] },
+    });
+    const dummyRoute = { match: 'Host(`x.com`)' };
+
+    it('display = "name:port" when both name and port are present', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'svc', port: 80 });
+
+      expect(result.display).toStrictEqual('svc:80');
+    });
+
+    it('display = "name" when port is absent', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'svc' });
+
+      expect(result.display).toStrictEqual('svc');
+    });
+
+    it('display = "-:port" when serviceName is absent but port is present', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { port: 80 });
+
+      expect(result.display).toStrictEqual('-:80');
+    });
+
+    it('display = "-" when both serviceName and port are absent', () => {
+      const result = route.createServiceForListPage([], dummyRoute, {});
+
+      expect(result.display).toStrictEqual('-');
+    });
+
+    it('serviceNamespace falls back to this.namespace when service.namespace is absent', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'svc', port: 80 });
+
+      expect(result.serviceNamespace).toStrictEqual('default');
+    });
+
+    it('serviceNamespace uses service.namespace when provided', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'svc', namespace: 'other-ns' });
+
+      expect(result.serviceNamespace).toStrictEqual('other-ns');
+    });
+
+    it('serviceKind defaults to "Service" — reflected in serviceTargetTo resource type', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'svc', port: 80 });
+
+      expect(result.serviceTargetTo).toStrictEqual(expect.objectContaining({
+        params: expect.objectContaining({ resource: 'service' }),
+      }));
+    });
+
+    it('targetLink is null for Traefik provider services (api@internal)', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'api@internal' });
+
+      expect(result.targetLink).toBeNull();
+    });
+
+    it('display still shows the service name for Traefik provider services', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'api@internal' });
+
+      expect(result.display).toStrictEqual('api@internal');
+    });
+
+    it('serviceTargetTo is null for any name@provider pattern', () => {
+      const result = route.createServiceForListPage([], dummyRoute, { name: 'ping@internal' });
+
+      expect(result.serviceTargetTo).toBeNull();
+    });
+  });
+
+  describe('targetTo', () => {
+    const route = makeRoute({
+      metadata: { name: 'r', namespace: 'default' },
+      spec:     { routes: [] },
+    });
+
+    it('returns null for Traefik provider services (api@internal)', () => {
+      expect(route.targetTo([], 'api@internal')).toBeNull();
+    });
+
+    it('returns null for any name@provider pattern', () => {
+      expect(route.targetTo([], 'ping@internal')).toBeNull();
+      expect(route.targetTo([], 'dashboard@internal')).toBeNull();
+    });
+
+    it('returns a route location for a regular K8s service', () => {
+      expect(route.targetTo([], 'my-svc')).toStrictEqual(expect.objectContaining({
+        params: expect.objectContaining({ resource: 'service', id: 'my-svc' }),
+      }));
+    });
+  });
+
   describe('_generateRelationships', () => {
     it('should use service.namespace as the namespace when set (cross-namespace service)', () => {
       const route = makeRoute({
@@ -256,6 +442,50 @@ describe('traefik.io.ingressroute model', () => {
       });
 
       expect(route._generateRelationships()).toStrictEqual([]);
+    });
+
+    it('should NOT create a relationship for Traefik provider services (name@provider)', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     {
+          routes: [{ match: 'Host(`example.com`)', kind: 'Rule', services: [{ name: 'api@internal' }] }],
+        },
+      });
+
+      expect(route._generateRelationships()).toStrictEqual([]);
+    });
+
+    it('should NOT create a relationship for any name@provider pattern', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     {
+          routes: [{
+            match:    'Host(`x.com`)',
+            kind:     'Rule',
+            services: [{ name: 'ping@internal' }, { name: 'dashboard@internal' }],
+          }],
+        },
+      });
+
+      expect(route._generateRelationships()).toStrictEqual([]);
+    });
+
+    it('should create a relationship for K8s services but skip provider services in the same route', () => {
+      const route = makeRoute({
+        metadata: { name: 'r', namespace: 'default' },
+        spec:     {
+          routes: [{
+            match:    'Host(`x.com`)',
+            kind:     'Rule',
+            services: [{ name: 'real-svc' }, { name: 'api@internal' }],
+          }],
+        },
+      });
+
+      const rels = route._generateRelationships();
+
+      expect(rels).toHaveLength(1);
+      expect(rels[0].toId).toStrictEqual('default/real-svc');
     });
   });
 });

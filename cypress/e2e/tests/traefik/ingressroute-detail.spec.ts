@@ -126,7 +126,12 @@ describe('IngressRoute — detail view: middleware names in Routes tab', { testI
 
 describe('IngressRoute — ingressClass display', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
-  describe('via spec.ingressClassName (Traefik v3+)', () => {
+  // The Traefik CRD does not include spec.ingressClassName in its OpenAPI schema — Kubernetes
+  // strips any unknown spec fields on admission. Both variants below persist the value via the
+  // kubernetes.io/ingress.class annotation, which is what the model getter and the form's
+  // IngressClass tab write as well.
+
+  describe('via ingressClassName option (stored as annotation)', { testIsolation: 'off' }, () => {
     let resourceName: string;
     let removeResource = false;
 
@@ -151,7 +156,7 @@ describe('IngressRoute — ingressClass display', { testIsolation: 'off', tags: 
       }
     });
 
-    it('shows ingressClassName in the masthead detail row', () => {
+    it('shows ingressClass value in the masthead detail row', () => {
       const detail = new IngressRouteDetailPo(CLUSTER_ID, NAMESPACE, resourceName);
 
       detail.goTo();
@@ -159,7 +164,7 @@ describe('IngressRoute — ingressClass display', { testIsolation: 'off', tags: 
       detail.mastheadIngressClass().should('contain', 'traefik-v3');
     });
 
-    it('shows ingressClassName in the list view Ingress Class column', () => {
+    it('shows ingressClass value in the list view Ingress Class column', () => {
       const list = new IngressRouteListPo(CLUSTER_ID);
 
       list.goTo();
@@ -168,7 +173,7 @@ describe('IngressRoute — ingressClass display', { testIsolation: 'off', tags: 
     });
   });
 
-  describe('via legacy annotation (kubernetes.io/ingress.class)', () => {
+  describe('via legacy annotation (kubernetes.io/ingress.class)', { testIsolation: 'off' }, () => {
     let resourceName: string;
     let removeResource = false;
 
