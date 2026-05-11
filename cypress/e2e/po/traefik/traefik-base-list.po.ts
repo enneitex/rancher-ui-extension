@@ -50,15 +50,15 @@ export default class TraefikBaseListPo extends BaseListPagePo {
   }
 
   /**
-   * Returns the "Ingress Class" cell for the row whose name matches `name`.
-   * Column index 5: checkbox(0) state(1) name(2) namespace(3) routes(4) ingressClass(5).
-   * Both IngressRoute and IngressRouteTCP share this column layout.
+   * Returns the "Ingress Class" cell content for the row whose name matches `name`.
+   * Targets the data-testid="ingress-class" span rendered by the #cell:ingressClass
+   * slot in the list Vue template — robust against flat-list vs namespace-grouped views.
    */
   ingressClassColumnForRow(name: string) {
     return this.list()
       .resourceTable()
       .sortableTable()
-      .rowWithName(name)
-      .column(5);
+      .rowElementWithName(name)
+      .find('[data-testid="ingress-class"]');
   }
 }

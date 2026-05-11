@@ -35,7 +35,7 @@ export default {
 
     <!-- Custom cell for ingress class -->
     <template #cell:ingressClass="{row}">
-      {{ row.ingressClass }}
+      <span data-testid="ingress-class">{{ row.ingressClass }}</span>
     </template>
   </PaginatedResourceTable>
 </template>
