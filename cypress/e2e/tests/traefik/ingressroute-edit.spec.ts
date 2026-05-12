@@ -10,6 +10,7 @@ const NAMESPACE  = 'default';
 describe('IngressRoute — edit form', { testIsolation: 'off', tags: ['@traefik', '@adminUser'] }, () => {
 
   beforeEach(() => {
+    Cypress.session.clearAllSavedSessions();
     cy.login();
   });
 

@@ -105,9 +105,7 @@ export default class TLSOptionFormPo extends PagePo {
    * Rendered by ArrayList — only present when at least one row exists.
    */
   removeCipherSuiteButton(index = 0) {
-    return cy.get('.cipher-suites-card .box').eq(index)
-      .closest('[data-testid="remove-item"], .box')
-      .find('[data-testid="remove-item"]');
+    return cy.get('.cipher-suites-card').find(`[data-testid="array-list-remove-item-${index}"]`);
   }
 
   preferServerCipherSuitesCheckbox() {
