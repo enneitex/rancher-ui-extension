@@ -36,7 +36,12 @@ export function makeIngressRoute(name: string, options: {
   }
 
   const annotations: Record<string, string> = {};
-  if (options.ingressClassAnnotation) {
+  // spec.ingressClassName is stripped by the Traefik CRD (not in its OpenAPI schema).
+  // Both ingressClassName and ingressClassAnnotation write to the legacy annotation,
+  // which is what the ingressClass model getter and the form's IngressClass tab also use.
+  if (options.ingressClassName) {
+    annotations['kubernetes.io/ingress.class'] = options.ingressClassName;
+  } else if (options.ingressClassAnnotation) {
     annotations['kubernetes.io/ingress.class'] = options.ingressClassAnnotation;
   }
 
@@ -51,7 +56,6 @@ export function makeIngressRoute(name: string, options: {
     spec: {
       entryPoints: options.entryPoints ?? ['web'],
       routes:      [route],
-      ...(options.ingressClassName ? { ingressClassName: options.ingressClassName } : {}),
       ...(options.tls ? { tls: options.tls } : {}),
     },
   };
@@ -92,7 +96,12 @@ export function makeIngressRouteTCP(name: string, options: {
   }
 
   const annotations: Record<string, string> = {};
-  if (options.ingressClassAnnotation) {
+  // spec.ingressClassName is stripped by the Traefik CRD (not in its OpenAPI schema).
+  // Both ingressClassName and ingressClassAnnotation write to the legacy annotation,
+  // which is what the ingressClass model getter and the form's IngressClass tab also use.
+  if (options.ingressClassName) {
+    annotations['kubernetes.io/ingress.class'] = options.ingressClassName;
+  } else if (options.ingressClassAnnotation) {
     annotations['kubernetes.io/ingress.class'] = options.ingressClassAnnotation;
   }
 
@@ -107,7 +116,6 @@ export function makeIngressRouteTCP(name: string, options: {
     spec: {
       entryPoints: options.entryPoints ?? ['tcpep'],
       routes:      [route],
-      ...(options.ingressClassName ? { ingressClassName: options.ingressClassName } : {}),
       ...(options.tls ? { tls: options.tls } : {}),
     },
   };

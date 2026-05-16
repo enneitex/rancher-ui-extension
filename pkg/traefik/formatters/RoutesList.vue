@@ -102,9 +102,9 @@ export default {
           // Use the service's namespace if defined, otherwise fall back to IngressRoute's namespace
           const serviceNamespace = service.namespace || this.row?.metadata?.namespace;
 
-          // Create link only if service has a valid name
+          // Create link only if service has a valid K8s name (names with @ are Traefik provider refs, e.g. api@internal)
           let targetLink = null;
-          if (name && name !== '-') {
+          if (name && name !== '-' && !name.includes('@')) {
             targetLink = this.createServiceLink(name, serviceNamespace, kind);
           }
 

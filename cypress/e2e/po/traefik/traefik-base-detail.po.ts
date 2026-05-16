@@ -46,21 +46,21 @@ export default class TraefikBaseDetailPo extends PagePo {
   // ── Masthead detail items ─────────────────────────────────────────────────────
 
   /**
-   * Returns the content span of the "Ingress Class" detail item rendered by
-   * Rancher's DetailTop component inside the masthead.
+   * Returns the value span of the "Ingress Class" detail item in the masthead.
    *
-   * The model's `details` getter pushes `{ label: 'Ingress Class', content }`,
-   * which DetailTop renders as:
-   *   <div class="detail">
-   *     <span class="label">Ingress Class:</span>
-   *     <span>the-class-value</span>
+   * Rancher 2.12+ uses a new detail page masthead (latest.vue) that renders model
+   * `details()` items via useResourceDetails → IdentifyingInformation:
+   *   <div class="identifying-information">
+   *     <div class="row">
+   *       <label class="label">Ingress Class</label>
+   *       <span class="value">traefik-v3</span>
+   *     </div>
    *   </div>
    */
   mastheadIngressClass(): Cypress.Chainable {
-    return cy.get('.detail-top .detail')
-      .filter(':has(.label:contains("Ingress Class"))')
-      .find('span')
-      .last();
+    return cy.contains('.identifying-information .row .label', 'Ingress Class')
+      .parent()
+      .find('.value');
   }
 
   // ── Delete confirmation ───────────────────────────────────────────────────────

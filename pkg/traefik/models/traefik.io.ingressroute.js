@@ -89,7 +89,7 @@ export default class IngressRoute extends SteveModel {
       this.spec.routes.forEach(route => {
         if (route.services && Array.isArray(route.services)) {
           route.services.forEach(service => {
-            if (service.name) {
+            if (service.name && !service.name.includes('@')) {
               // Handle cross-namespace services
               const serviceName = service.namespace
                 ? `${service.namespace}/${service.name}`
@@ -200,6 +200,11 @@ export default class IngressRoute extends SteveModel {
       return null;
     }
 
+    // Traefik provider services (name@provider, e.g. api@internal) are not K8s resources
+    if (serviceName.includes('@')) {
+      return null;
+    }
+
     // Determine resource type based on service kind
     const resource = serviceKind === 'TraefikService' ? 'traefik.io.traefikservice' : SERVICE;
 
@@ -247,8 +252,13 @@ export default class IngressRoute extends SteveModel {
   }
 
   createServiceLink(workloads, serviceName, serviceKind = 'Service') {
+    const to = this.targetTo(workloads, serviceName, serviceKind);
+    if (!to) {
+      return null;
+    }
+
     return {
-      to:      this.targetTo(workloads, serviceName, serviceKind),
+      to,
       text:    serviceName,
       options: { internal: true }
     };

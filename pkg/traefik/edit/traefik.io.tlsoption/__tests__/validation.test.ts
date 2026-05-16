@@ -65,29 +65,16 @@ function willSave(spec) {
 // ---------------------------------------------------------------------------
 
 describe('CRUTLSOption › requiresClientCerts', () => {
-  it('returns false for NoClientCert', () => {
-    expect(requiresClientCerts('NoClientCert')).toBe(false);
-  });
-
-  it('returns false for RequestClientCert', () => {
-    expect(requiresClientCerts('RequestClientCert')).toBe(false);
-  });
-
-  it('returns true for RequireAnyClientCert', () => {
-    expect(requiresClientCerts('RequireAnyClientCert')).toBe(true);
-  });
-
-  it('returns true for VerifyClientCertIfGiven', () => {
-    expect(requiresClientCerts('VerifyClientCertIfGiven')).toBe(true);
-  });
-
-  it('returns true for RequireAndVerifyClientCert', () => {
-    expect(requiresClientCerts('RequireAndVerifyClientCert')).toBe(true);
-  });
-
-  it('returns false for unknown/empty string', () => {
-    expect(requiresClientCerts('')).toBe(false);
-    expect(requiresClientCerts(undefined)).toBe(false);
+  it.each([
+    { desc: 'returns false for NoClientCert',              authType: 'NoClientCert',              expected: false },
+    { desc: 'returns false for RequestClientCert',         authType: 'RequestClientCert',         expected: false },
+    { desc: 'returns true for RequireAnyClientCert',       authType: 'RequireAnyClientCert',       expected: true },
+    { desc: 'returns true for VerifyClientCertIfGiven',    authType: 'VerifyClientCertIfGiven',    expected: true },
+    { desc: 'returns true for RequireAndVerifyClientCert', authType: 'RequireAndVerifyClientCert', expected: true },
+    { desc: 'returns false for empty string',              authType: '',                           expected: false },
+    { desc: 'returns false for undefined',                 authType: undefined,                    expected: false },
+  ])('$desc', ({ authType, expected }) => {
+    expect(requiresClientCerts(authType)).toBe(expected);
   });
 });
 
@@ -155,12 +142,17 @@ describe('CRUTLSOption › willSave', () => {
 
     it('preserves cipherSuites when non-empty', () => {
       const spec = { cipherSuites: ['TLS_AES_128_GCM_SHA256'] };
-      expect(willSave(spec).cipherSuites).toEqual(['TLS_AES_128_GCM_SHA256']);
+      expect(willSave(spec).cipherSuites).toStrictEqual(['TLS_AES_128_GCM_SHA256']);
     });
 
     it('preserves alpnProtocols when non-empty', () => {
       const spec = { alpnProtocols: ['h2', 'http/1.1'] };
-      expect(willSave(spec).alpnProtocols).toEqual(['h2', 'http/1.1']);
+      expect(willSave(spec).alpnProtocols).toStrictEqual(['h2', 'http/1.1']);
+    });
+
+    it('preserves curvePreferences when non-empty', () => {
+      const spec = { curvePreferences: ['CurveP256'] };
+      expect(willSave(spec).curvePreferences).toStrictEqual(['CurveP256']);
     });
   });
 
@@ -219,7 +211,7 @@ describe('CRUTLSOption › willSave', () => {
       expect(result).not.toHaveProperty('disableSessionTickets');
       expect(result).not.toHaveProperty('preferServerCipherSuites');
       // clientAuth is preserved untouched by willSave
-      expect(result.clientAuth).toEqual({ clientAuthType: 'NoClientCert', secretNames: [] });
+      expect(result.clientAuth).toStrictEqual({ clientAuthType: 'NoClientCert', secretNames: [] });
     });
 
     it('preserves configured values while cleaning defaults', () => {
@@ -235,7 +227,7 @@ describe('CRUTLSOption › willSave', () => {
       const result = willSave(spec);
       expect(result.minVersion).toBe('VersionTLS12');
       expect(result).not.toHaveProperty('maxVersion');
-      expect(result.cipherSuites).toEqual(['TLS_AES_256_GCM_SHA384']);
+      expect(result.cipherSuites).toStrictEqual(['TLS_AES_256_GCM_SHA384']);
       expect(result).not.toHaveProperty('alpnProtocols');
       expect(result.sniStrict).toBe(true);
       expect(result).not.toHaveProperty('disableSessionTickets');

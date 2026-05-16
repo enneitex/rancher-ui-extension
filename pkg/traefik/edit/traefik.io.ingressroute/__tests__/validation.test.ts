@@ -81,24 +81,14 @@ function willSave(spec) {
 // ---------------------------------------------------------------------------
 
 describe('CRUIngressRoute › entryPointsValid', () => {
-  it('returns true when entryPoints has at least one value', () => {
-    expect(entryPointsValid({ entryPoints: ['websecure'] })).toBe(true);
-  });
-
-  it('returns true when entryPoints has multiple values', () => {
-    expect(entryPointsValid({ entryPoints: ['web', 'websecure'] })).toBe(true);
-  });
-
-  it('returns false when entryPoints is an empty array', () => {
-    expect(entryPointsValid({ entryPoints: [] })).toBe(false);
-  });
-
-  it('returns false when entryPoints is undefined', () => {
-    expect(entryPointsValid({ entryPoints: undefined })).toBe(false);
-  });
-
-  it('returns false when entryPoints is null', () => {
-    expect(entryPointsValid({ entryPoints: null })).toBe(false);
+  it.each([
+    { desc: 'returns true when entryPoints has at least one value', entryPoints: ['websecure'],        expected: true },
+    { desc: 'returns true when entryPoints has multiple values',    entryPoints: ['web', 'websecure'], expected: true },
+    { desc: 'returns false when entryPoints is an empty array',     entryPoints: [],                   expected: false },
+    { desc: 'returns false when entryPoints is undefined',          entryPoints: undefined,            expected: false },
+    { desc: 'returns false when entryPoints is null',               entryPoints: null,                 expected: false },
+  ])('$desc', ({ entryPoints, expected }) => {
+    expect(entryPointsValid({ entryPoints })).toBe(expected);
   });
 });
 
@@ -139,6 +129,10 @@ describe('CRUIngressRoute › routesValid', () => {
   it('returns false when routes is null', () => {
     expect(computeRoutesValid(null)).toBe(false);
   });
+
+  it('returns false when a route has match: null', () => {
+    expect(computeRoutesValid([{ match: null }])).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -153,33 +147,15 @@ describe('CRUIngressRoute › validationPassed', () => {
     epValid:       true,
   };
 
-  it('returns true when all conditions are met', () => {
-    expect(validationPassed(allValid)).toBe(true);
-  });
-
-  it('returns false when fvFormIsValid is false', () => {
-    expect(validationPassed({ ...allValid, fvFormIsValid: false })).toBe(false);
-  });
-
-  it('returns false when routesValid is false', () => {
-    expect(validationPassed({ ...allValid, routesValid: false })).toBe(false);
-  });
-
-  it('returns false when tlsValid is false', () => {
-    expect(validationPassed({ ...allValid, tlsValid: false })).toBe(false);
-  });
-
-  it('returns false when epValid (entryPointsValid) is false', () => {
-    expect(validationPassed({ ...allValid, epValid: false })).toBe(false);
-  });
-
-  it('returns false when all conditions are false', () => {
-    expect(validationPassed({
-      fvFormIsValid: false,
-      routesValid:   false,
-      tlsValid:      false,
-      epValid:       false,
-    })).toBe(false);
+  it.each([
+    { desc: 'returns true when all conditions are met',       override: {},                                                                        expected: true },
+    { desc: 'returns false when fvFormIsValid is false',      override: { fvFormIsValid: false },                                                  expected: false },
+    { desc: 'returns false when routesValid is false',        override: { routesValid: false },                                                    expected: false },
+    { desc: 'returns false when tlsValid is false',           override: { tlsValid: false },                                                       expected: false },
+    { desc: 'returns false when epValid is false',            override: { epValid: false },                                                        expected: false },
+    { desc: 'returns false when all conditions are false',    override: { fvFormIsValid: false, routesValid: false, tlsValid: false, epValid: false }, expected: false },
+  ])('$desc', ({ override, expected }) => {
+    expect(validationPassed({ ...allValid, ...override })).toBe(expected);
   });
 });
 
@@ -223,6 +199,32 @@ describe('CRUIngressRoute › willSave', () => {
     expect(result.routes[0].middlewares[0]).not.toHaveProperty('vKey');
   });
 
+  it('coerces service.name: uses value when label is empty string', () => {
+    const spec = {
+      entryPoints: ['websecure'],
+      routes: [{
+        match: 'Host(`a.com`)',
+        services: [{ name: { label: '', value: 'fallback' }, port: '80', kind: 'Service' }],
+        middlewares: [],
+      }],
+    };
+    const result = willSave(spec);
+    expect(result.routes[0].services[0].name).toBe('fallback');
+  });
+
+  it('coerces service.name: returns empty string when both label and value are empty', () => {
+    const spec = {
+      entryPoints: ['websecure'],
+      routes: [{
+        match: 'Host(`a.com`)',
+        services: [{ name: { label: '', value: '' }, port: '80', kind: 'Service' }],
+        middlewares: [],
+      }],
+    };
+    const result = willSave(spec);
+    expect(result.routes[0].services[0].name).toBe('');
+  });
+
   it('coerces service.name from object to string using label', () => {
     const spec = {
       entryPoints: ['websecure'],
@@ -234,6 +236,19 @@ describe('CRUIngressRoute › willSave', () => {
     };
     const result = willSave(spec);
     expect(result.routes[0].services[0].name).toBe('my-svc');
+  });
+
+  it('coerces service.port: uses value when label is empty string', () => {
+    const spec = {
+      entryPoints: ['websecure'],
+      routes: [{
+        match: 'Host(`a.com`)',
+        services: [{ name: 'svc', port: { label: '', value: '9090' }, kind: 'Service' }],
+        middlewares: [],
+      }],
+    };
+    const result = willSave(spec);
+    expect(result.routes[0].services[0].port).toBe('9090');
   });
 
   it('coerces service.port from object to string using value', () => {
@@ -275,13 +290,22 @@ describe('CRUIngressRoute › willSave', () => {
     expect(result.routes[0].services[0].kind).toBe('TraefikService');
   });
 
+  it('normalizes entryPoints: uses value when label is absent (value-only tag object)', () => {
+    const spec = {
+      entryPoints: [{ value: 'web' }],
+      routes: [{ match: 'Host(`a.com`)', services: [], middlewares: [] }],
+    };
+    const result = willSave(spec);
+    expect(result.entryPoints).toStrictEqual(['web']);
+  });
+
   it('normalizes entryPoints: converts tag objects to strings', () => {
     const spec = {
       entryPoints: [{ label: 'websecure', value: 'websecure' }, 'web'],
       routes: [{ match: 'Host(`a.com`)', services: [], middlewares: [] }],
     };
     const result = willSave(spec);
-    expect(result.entryPoints).toEqual(['websecure', 'web']);
+    expect(result.entryPoints).toStrictEqual(['websecure', 'web']);
   });
 
   it('normalizes entryPoints: filters empty strings', () => {
@@ -290,7 +314,7 @@ describe('CRUIngressRoute › willSave', () => {
       routes: [{ match: 'Host(`a.com`)', services: [], middlewares: [] }],
     };
     const result = willSave(spec);
-    expect(result.entryPoints).toEqual(['websecure', 'web']);
+    expect(result.entryPoints).toStrictEqual(['websecure', 'web']);
   });
 
   it('removes vKey from TLS domains', () => {

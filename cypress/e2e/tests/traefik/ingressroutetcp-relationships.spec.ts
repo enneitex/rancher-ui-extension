@@ -238,4 +238,3 @@ describe('IngressRouteTCP — Related Resources: TLS option reference', {
   });
 
 });
-
